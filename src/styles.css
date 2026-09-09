@@ -1,0 +1,236 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --font-sans: "Inter", "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: #f8f7ff;
+  --color-background-wash: #f0eeff;
+  --color-foreground: #1a1625;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1625;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1a1625;
+  --color-primary: #7c3aed;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f0eeff;
+  --color-secondary-foreground: #1a1625;
+  --color-muted: #f5f3ff;
+  --color-muted-foreground: #6b7280;
+  --color-accent: #ede9fe;
+  --color-accent-foreground: #1a1625;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e5e7eb;
+  --color-input: #e5e7eb;
+  --color-ring: #7c3aed;
+  --color-income: #10b981;
+  --color-expense: #ef4444;
+  --color-chart-1: #7c3aed;
+  --color-chart-2: #a78bfa;
+  --color-chart-3: #c4b5fd;
+  --color-chart-4: #10b981;
+  --color-chart-5: #6ee7b7;
+  --color-chart-6: #f59e0b;
+  --color-chart-7: #fbbf24;
+  --color-chart-8: #ec4899;
+
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  --text-display: 2rem;
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 700;
+
+  --text-stat: 1.25rem;
+  --text-stat--line-height: 1.2;
+  --text-stat--letter-spacing: -0.01em;
+  --text-stat--font-weight: 600;
+
+  --tracking-label: 0.05em;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.05);
+  --shadow-border: 0 0 0 1px var(--color-border);
+  --shadow-border-hover: 0 0 0 1px var(--color-primary);
+  --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.15);
+
+  --ease-out-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-background: #0f0a1a;
+  --color-background-wash: #1a1230;
+  --color-foreground: #f0eeff;
+  --color-card: #1a1230;
+  --color-card-foreground: #f0eeff;
+  --color-popover: #231a3d;
+  --color-popover-foreground: #f0eeff;
+  --color-primary: #a78bfa;
+  --color-primary-foreground: #0f0a1a;
+  --color-secondary: #1a1230;
+  --color-secondary-foreground: #f0eeff;
+  --color-muted: #1a1230;
+  --color-muted-foreground: #9ca3af;
+  --color-accent: #2d1f5e;
+  --color-accent-foreground: #f0eeff;
+  --color-destructive: #f87171;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #2d2347;
+  --color-input: #2d2347;
+  --color-ring: #a78bfa;
+  --color-income: #34d399;
+  --color-expense: #f87171;
+  --color-chart-1: #a78bfa;
+  --color-chart-2: #c4b5fd;
+  --color-chart-3: #ddd6fe;
+  --color-chart-4: #34d399;
+  --color-chart-5: #6ee7b7;
+  --color-chart-6: #fbbf24;
+  --color-chart-7: #fcd34d;
+  --color-chart-8: #f472b6;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-card-hover: 0 2px 8px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-border: 0 0 0 1px var(--color-border);
+  --shadow-border-hover: 0 0 0 1px var(--color-primary);
+  --shadow-glow: 0 0 20px rgba(167, 139, 250, 0.2);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.55;
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .dark .glass {
+    background: rgba(15, 10, 26, 0.85);
+  }
+
+  .glass-dark {
+    background: rgba(124, 58, 237, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .gradient-purple {
+    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+  }
+
+  .dark .gradient-purple {
+    background: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+  }
+
+  .gradient-hero {
+    background: linear-gradient(180deg, #7c3aed 0%, #a78bfa 50%, #f8f7ff 100%);
+  }
+
+  .dark .gradient-hero {
+    background: linear-gradient(180deg, #6d28d9 0%, #4c1d95 50%, #0f0a1a 100%);
+  }
+
+  .gradient-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f7ff 100%);
+  }
+
+  .dark .gradient-card {
+    background: linear-gradient(145deg, #1a1230 0%, #231a3d 100%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .dark .text-gradient {
+    background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s var(--ease-out-smooth);
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s var(--ease-out-smooth);
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s var(--ease-out-smooth);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
