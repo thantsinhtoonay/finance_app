@@ -1,5 +1,3 @@
-# Northline
-
 A complete personal finance tracker — income, expenses, budgets, and a live remaining balance.
 
 ## Features
