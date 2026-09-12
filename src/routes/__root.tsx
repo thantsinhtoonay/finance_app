@@ -2,6 +2,7 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { ThemeInit } from "@/components/budget/theme-init";
+import { I18nInit } from "@/components/budget/i18n-init";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "Northline";
@@ -24,7 +25,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Padauk:wght@400;700&display=swap",
       },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
@@ -38,6 +39,7 @@ export const Route = createRootRoute({
       </head>
       <body>
         <ThemeInit />
+        <I18nInit />
         <PreviewHostBridge />
         <AuthProvider>
           <Outlet />

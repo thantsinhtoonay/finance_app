@@ -4,6 +4,7 @@
 @theme {
   --font-sans: "Inter", "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Inter", "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
+  --font-burmese: "Padauk", "Myanmar3", "Unicode Myanmar", ui-sans-serif, system-ui, sans-serif;
 
   --color-background: #f8f7ff;
   --color-background-wash: #f0eeff;
@@ -233,4 +234,84 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Burmese language styles */
+[lang="my"] {
+  font-family: var(--font-burmese);
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+}
+
+[lang="my"] h1,
+[lang="my"] h2,
+[lang="my"] h3 {
+  line-height: 1.6;
+}
+
+[lang="my"] p,
+[lang="my"] span,
+[lang="my"] label {
+  line-height: 1.8;
+}
+
+/* English language styles */
+[lang="en"] {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  letter-spacing: 0em;
+}
+
+/* Language-aware typography utilities */
+.lang-tight {
+  line-height: 1.25;
+}
+
+[lang="my"] .lang-tight {
+  line-height: 1.6;
+}
+
+.lang-normal {
+  line-height: 1.5;
+}
+
+[lang="my"] .lang-normal {
+  line-height: 1.8;
+}
+
+.lang-relaxed {
+  line-height: 1.75;
+}
+
+[lang="my"] .lang-relaxed {
+  line-height: 2.0;
+}
+
+/* Font size adjustments for Burmese */
+[lang="my"] .text-xs {
+  font-size: 0.8125rem;
+}
+
+[lang="my"] .text-sm {
+  font-size: 0.9375rem;
+}
+
+[lang="my"] .text-base {
+  font-size: 1.0625rem;
+}
+
+[lang="my"] .text-lg {
+  font-size: 1.1875rem;
+}
+
+[lang="my"] .text-xl {
+  font-size: 1.3125rem;
+}
+
+[lang="my"] .text-2xl {
+  font-size: 1.625rem;
+}
+
+[lang="my"] .text-3xl {
+  font-size: 2rem;
 }

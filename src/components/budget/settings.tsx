@@ -27,8 +27,10 @@ import { useSettingsStore, applyTheme } from "@/lib/settings/store";
 import type { Theme } from "@/lib/settings/types";
 import { useBudgetStore } from "@/lib/budget/store";
 import { cn } from "@/lib/utils";
+import { LanguageSelector } from "@/lib/i18n/components/language-selector";
+import { useTranslation } from "@/lib/i18n/store";
 
-type SettingsView = "main" | "account" | "theme" | "privacy" | "data";
+type SettingsView = "main" | "account" | "theme" | "privacy" | "data" | "language";
 
 type Props = {
   onBack: () => void;
@@ -54,6 +56,7 @@ export function Settings({ onBack }: Props) {
         {view === "theme" && <ThemeSettings onBack={() => setView("main")} />}
         {view === "privacy" && <PrivacySettings onBack={() => setView("main")} />}
         {view === "data" && <DataSettings onBack={() => setView("main")} />}
+        {view === "language" && <LanguageSettings onBack={() => setView("main")} />}
       </div>
     </div>
   );
@@ -70,29 +73,36 @@ function SettingsMain({
   const theme = useSettingsStore((s) => s.theme);
   const privacy = useSettingsStore((s) => s.privacy);
   const getDisplayName = useSettingsStore((s) => s.getDisplayName);
+  const { t, language } = useTranslation();
 
   const menuItems = [
     {
       icon: User,
-      label: "Account",
+      label: t("settings_account"),
       description: `${getDisplayName()} · ${account.email || "No email"}`,
       onClick: () => onNavigate("account"),
     },
     {
+      icon: Globe,
+      label: t("settings_language"),
+      description: language === "en" ? "English" : "မြန်မာ",
+      onClick: () => onNavigate("language"),
+    },
+    {
       icon: Palette,
-      label: "Appearance",
-      description: theme === "light" ? "Light mode" : theme === "dark" ? "Dark mode" : "System default",
+      label: t("settings_appearance"),
+      description: theme === "light" ? t("settings_theme_light") : theme === "dark" ? t("settings_theme_dark") : t("settings_theme_system"),
       onClick: () => onNavigate("theme"),
     },
     {
       icon: Shield,
-      label: "Privacy",
+      label: t("settings_privacy"),
       description: privacy.showBalances ? "Balances visible" : "Balances hidden",
       onClick: () => onNavigate("privacy"),
     },
     {
       icon: CreditCard,
-      label: "Data & Export",
+      label: t("settings_data"),
       description: "Export or clear your data",
       onClick: () => onNavigate("data"),
     },
@@ -488,6 +498,39 @@ function DataSettings({ onBack }: { onBack: () => void }) {
           {transactions.length} transactions · {categoryBudgets.length} category budgets
         </p>
       </div>
+    </div>
+  );
+}
+
+function LanguageSettings({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3 mb-2">
+        <Button variant="ghost" size="icon" onClick={onBack} className="size-9">
+          <ArrowLeft className="size-5" />
+        </Button>
+        <h2 className="text-lg font-bold">{t("settings_language")}</h2>
+      </div>
+
+      <Card>
+        <CardContent className="p-5">
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Choose your preferred language. Burmese text uses different typography for better readability.
+            </p>
+            
+            <LanguageSelector showLabel={false} />
+            
+            <div className="rounded-xl bg-secondary/30 px-4 py-3 mt-2">
+              <p className="text-xs text-muted-foreground">
+                <strong>Burmese typography note:</strong> Burmese script requires more vertical space and larger font sizes for proper readability. The app automatically adjusts line height and font size when Burmese is selected.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
