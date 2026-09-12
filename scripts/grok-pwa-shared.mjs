@@ -234,11 +234,15 @@ export function grokExtensionsHeadTags(projectId = readGrokProjectId()) {
   if (projectId) {
     tags.push(`<meta name="grok-project-id" content="${id}">`);
   }
-  tags.push(
-    `<script src="${GROK_EXTENSIONS_SCRIPT_SRC}"${
-      projectId ? ` data-project-id="${id}"` : ""
-    } defer></script>`,
-  );
+  // Only inject extensions.js when running on the Grok platform
+  // (VITE_PROJECT_ID is only set on grok-sandbox.com / grok.com deployments)
+  if (projectId) {
+    tags.push(
+      `<script src="${GROK_EXTENSIONS_SCRIPT_SRC}"${
+        projectId ? ` data-project-id="${id}"` : ""
+      } defer></script>`,
+    );
+  }
   return tags;
 }
 
