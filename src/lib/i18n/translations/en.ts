@@ -2,7 +2,7 @@ import { TranslationKeys } from "../types";
 
 export const en: TranslationKeys = {
   // Common
-  app_name: "Northline",
+  app_name: "Shal Su",
   save: "Save",
   cancel: "Cancel",
   delete: "Delete",
@@ -105,4 +105,27 @@ export const en: TranslationKeys = {
   msg_data_cleared: "All data has been cleared",
   msg_import_success: "Data imported successfully",
   msg_import_error: "Error importing data",
+
+  // Dialog
+  dialog_add_entry: "Add entry",
+  dialog_edit_entry: "Edit entry",
+  dialog_add_desc: "Log income or an expense for your budget.",
+  dialog_edit_desc: "Update this income or expense.",
+  dialog_amount: "Amount",
+  dialog_category: "Category",
+  dialog_date: "Date",
+  dialog_recurring: "Recurring",
+  dialog_one_time: "One-time",
+  dialog_note: "Note",
+  dialog_optional: "Optional",
+  dialog_remaining_after: "Remaining after this:",
+  dialog_save_changes: "Save changes",
+  dialog_error_zero_amount: "Enter an amount greater than zero.",
+  dialog_error_no_date: "Choose a date.",
+
+  // Recurring
+  recurring_weekly: "Weekly",
+  recurring_biweekly: "Bi-weekly",
+  recurring_monthly: "Monthly",
+  recurring_yearly: "Yearly",
 };

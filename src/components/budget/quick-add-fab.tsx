@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 type Props = {
   onAdd: () => void;
@@ -7,13 +7,17 @@ type Props = {
 
 export function QuickAddFab({ onAdd }: Props) {
   return (
-    <Button
+    <motion.button
       onClick={onAdd}
-      className="fixed bottom-24 right-4 size-14 rounded-2xl gradient-purple text-white shadow-xl shadow-primary/30 sm:hidden z-50 active:scale-95 transition-transform"
-      size="icon"
+      whileTap={{ scale: 0.9 }}
+      whileHover={{ scale: 1.05 }}
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      className="fixed bottom-24 right-4 size-14 rounded-2xl gradient-purple text-white shadow-xl shadow-primary/30 sm:hidden z-50 flex items-center justify-center touch-target"
       aria-label="Add transaction"
     >
       <Plus className="size-6" />
-    </Button>
+    </motion.button>
   );
 }

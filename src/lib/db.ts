@@ -137,6 +137,17 @@ async function createPgliteSql(): Promise<Sql> {
   // passes serialized on a global chain so concurrent callers never
   // double-apply.
   const migrate = async (): Promise<void> => {
+    // Apply auth schema first (Better Auth needs these tables)
+    const authMigrations = import.meta.glob("/migrations/auth/*.sql", {
+      query: "?raw",
+      import: "default",
+      eager: true,
+    }) as Record<string, string>;
+    for (const sql of Object.values(authMigrations)) {
+      await pg.exec(sql);
+    }
+
+    // Then apply app migrations
     const migrations = import.meta.glob("/migrations/*.sql", {
       query: "?raw",
       import: "default",

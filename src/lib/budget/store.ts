@@ -1,8 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { categoryById } from "./categories";
-import { monthKey, shiftMonth } from "./format";
-import { createSeedTransactions } from "./seed";
+import { monthKey } from "./format";
 import type {
   CategoryBudget,
   CategoryTotal,
@@ -20,20 +18,177 @@ type BudgetState = {
   monthlyGoal: number;
   selectedMonth: string;
   categoryBudgets: CategoryBudget[];
-  addTransaction: (draft: Draft) => void;
-  updateTransaction: (id: string, draft: Draft) => void;
-  deleteTransaction: (id: string) => void;
-  setMonthlyGoal: (goal: number) => void;
+  loaded: boolean;
+  addTransaction: (draft: Draft) => Promise<void>;
+  updateTransaction: (id: string, draft: Draft) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
+  setMonthlyGoal: (goal: number) => Promise<void>;
   setSelectedMonth: (month: string) => void;
-  setCategoryBudget: (categoryId: string, limit: number) => void;
+  setCategoryBudget: (categoryId: string, limit: number) => Promise<void>;
   removeCategoryBudget: (categoryId: string) => void;
-  generateRecurringTransactions: () => void;
+  loadFromServer: () => Promise<void>;
   resetData: () => void;
 };
 
-export const useBudgetStore = create<BudgetState>()(
-  persist(
-    (set, get) => ({
+async function apiFetch(url: string, options?: RequestInit) {
+  const res = await fetch(url, {
+    ...options,
+    headers: { "Content-Type": "application/json", ...options?.headers },
+  });
+  if (res.status === 401) {
+    window.location.href = "/login";
+    throw new Error("Unauthorized");
+  }
+  return res;
+}
+
+export const useBudgetStore = create<BudgetState>()((set, get) => ({
+  transactions: [],
+  monthlyGoal: 3500,
+  selectedMonth: monthKey(),
+  categoryBudgets: [
+    { categoryId: "housing", limit: 2000 },
+    { categoryId: "food", limit: 500 },
+    { categoryId: "transport", limit: 300 },
+    { categoryId: "utilities", limit: 200 },
+    { categoryId: "health", limit: 150 },
+    { categoryId: "entertainment", limit: 200 },
+    { categoryId: "shopping", limit: 250 },
+  ],
+  loaded: false,
+
+  loadFromServer: async () => {
+    try {
+      const [txRes, budgetRes, settingsRes] = await Promise.all([
+        apiFetch("/api/transactions/"),
+        apiFetch("/api/budgets/"),
+        apiFetch("/api/settings/"),
+      ]);
+
+      if (txRes.ok) {
+        const transactions = await txRes.json();
+        set({ transactions });
+      }
+
+      if (budgetRes.ok) {
+        const categoryBudgets = await budgetRes.json();
+        if (categoryBudgets.length > 0) {
+          set({ categoryBudgets });
+        }
+      }
+
+      if (settingsRes.ok) {
+        const { monthlyGoal } = await settingsRes.json();
+        set({ monthlyGoal });
+      }
+
+      set({ loaded: true });
+    } catch (err) {
+      console.error("Failed to load data from server:", err);
+      set({ loaded: true });
+    }
+  },
+
+  addTransaction: async (draft) => {
+    const id = crypto.randomUUID();
+    const tempTx = { ...draft, id };
+    set((s) => ({ transactions: [tempTx, ...s.transactions] }));
+
+    try {
+      const res = await apiFetch("/api/transactions/", {
+        method: "POST",
+        body: JSON.stringify(draft),
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        set((s) => ({
+          transactions: s.transactions.map((t) => (t.id === id ? saved : t)),
+        }));
+      }
+    } catch {
+      set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) }));
+    }
+  },
+
+  updateTransaction: async (id, draft) => {
+    const prev = get().transactions;
+    set((s) => ({
+      transactions: s.transactions.map((t) => (t.id === id ? { ...t, ...draft } : t)),
+    }));
+
+    try {
+      const res = await apiFetch(`/api/transactions/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(draft),
+      });
+      if (!res.ok) set({ transactions: prev });
+    } catch {
+      set({ transactions: prev });
+    }
+  },
+
+  deleteTransaction: async (id) => {
+    const prev = get().transactions;
+    set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) }));
+
+    try {
+      const res = await apiFetch(`/api/transactions/${id}`, { method: "DELETE" });
+      if (!res.ok) set({ transactions: prev });
+    } catch {
+      set({ transactions: prev });
+    }
+  },
+
+  setMonthlyGoal: async (monthlyGoal) => {
+    const prev = get().monthlyGoal;
+    set({ monthlyGoal });
+
+    try {
+      const res = await apiFetch("/api/settings/", {
+        method: "PUT",
+        body: JSON.stringify({ monthlyGoal }),
+      });
+      if (!res.ok) set({ monthlyGoal: prev });
+    } catch {
+      set({ monthlyGoal: prev });
+    }
+  },
+
+  setSelectedMonth: (selectedMonth) => set({ selectedMonth }),
+
+  setCategoryBudget: async (categoryId, limit) => {
+    const prev = get().categoryBudgets;
+    set((s) => {
+      const existing = s.categoryBudgets.find((b) => b.categoryId === categoryId);
+      if (existing) {
+        return {
+          categoryBudgets: s.categoryBudgets.map((b) =>
+            b.categoryId === categoryId ? { ...b, limit } : b,
+          ),
+        };
+      }
+      return { categoryBudgets: [...s.categoryBudgets, { categoryId, limit }] };
+    });
+
+    try {
+      const res = await apiFetch("/api/budgets/", {
+        method: "PUT",
+        body: JSON.stringify({ categoryId, limit }),
+      });
+      if (!res.ok) set({ categoryBudgets: prev });
+    } catch {
+      set({ categoryBudgets: prev });
+    }
+  },
+
+  removeCategoryBudget: (categoryId) => {
+    set((s) => ({
+      categoryBudgets: s.categoryBudgets.filter((b) => b.categoryId !== categoryId),
+    }));
+  },
+
+  resetData: () => {
+    set({
       transactions: [],
       monthlyGoal: 3500,
       selectedMonth: monthKey(),
@@ -46,101 +201,9 @@ export const useBudgetStore = create<BudgetState>()(
         { categoryId: "entertainment", limit: 200 },
         { categoryId: "shopping", limit: 250 },
       ],
-      addTransaction: (draft) =>
-        set((s) => ({
-          transactions: [{ ...draft, id: crypto.randomUUID() }, ...s.transactions],
-        })),
-      updateTransaction: (id, draft) =>
-        set((s) => ({
-          transactions: s.transactions.map((t) => (t.id === id ? { ...t, ...draft } : t)),
-        })),
-      deleteTransaction: (id) =>
-        set((s) => ({
-          transactions: s.transactions.filter((t) => t.id !== id),
-        })),
-      setMonthlyGoal: (monthlyGoal) => set({ monthlyGoal }),
-      setSelectedMonth: (selectedMonth) => set({ selectedMonth }),
-      setCategoryBudget: (categoryId, limit) =>
-        set((s) => {
-          const existing = s.categoryBudgets.find((b) => b.categoryId === categoryId);
-          if (existing) {
-            return {
-              categoryBudgets: s.categoryBudgets.map((b) =>
-                b.categoryId === categoryId ? { ...b, limit } : b,
-              ),
-            };
-          }
-          return { categoryBudgets: [...s.categoryBudgets, { categoryId, limit }] };
-        }),
-      removeCategoryBudget: (categoryId) =>
-        set((s) => ({
-          categoryBudgets: s.categoryBudgets.filter((b) => b.categoryId !== categoryId),
-        })),
-      generateRecurringTransactions: () => {
-        const state = get();
-        const currentMonth = monthKey();
-        const newTransactions: Transaction[] = [];
-
-        const recurring = state.transactions.filter(
-          (t) => t.recurring && t.date.startsWith(currentMonth),
-        );
-
-        for (const tx of recurring) {
-          if (!tx.recurring) continue;
-          const nextDate = getNextRecurringDate(tx.date, tx.recurring);
-          if (!nextDate.startsWith(currentMonth)) continue;
-
-          const alreadyExists = state.transactions.some(
-            (t) =>
-              t.recurring === tx.recurring &&
-              t.category === tx.category &&
-              t.amount === tx.amount &&
-              t.date === nextDate,
-          );
-
-          if (!alreadyExists) {
-            newTransactions.push({
-              ...tx,
-              id: crypto.randomUUID(),
-              date: nextDate,
-            });
-          }
-        }
-
-        if (newTransactions.length > 0) {
-          set((s) => ({
-            transactions: [...newTransactions, ...s.transactions],
-          }));
-        }
-      },
-      resetData: () => {
-        localStorage.removeItem("northline-budget-v1");
-        set({
-          transactions: [],
-          monthlyGoal: 3500,
-          selectedMonth: monthKey(),
-          categoryBudgets: [
-            { categoryId: "housing", limit: 2000 },
-            { categoryId: "food", limit: 500 },
-            { categoryId: "transport", limit: 300 },
-            { categoryId: "utilities", limit: 200 },
-            { categoryId: "health", limit: 150 },
-            { categoryId: "entertainment", limit: 200 },
-            { categoryId: "shopping", limit: 250 },
-          ],
-        });
-      },
-    }),
-    {
-      name: "northline-budget-v1",
-      partialize: (s) => ({
-        transactions: s.transactions,
-        monthlyGoal: s.monthlyGoal,
-        categoryBudgets: s.categoryBudgets,
-      }),
-    },
-  ),
-);
+    });
+  },
+}));
 
 function getNextRecurringDate(lastDate: string, frequency: RecurringFrequency): string {
   const d = new Date(lastDate + "T00:00:00");

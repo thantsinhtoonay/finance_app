@@ -1,4 +1,5 @@
 import type { TxType } from "./types";
+import type { TranslationKeys } from "@/lib/i18n/types";
 
 export type CategoryDef = {
   id: string;
@@ -26,12 +27,32 @@ export const INCOME_CATEGORIES: CategoryDef[] = [
 
 const ALL = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
 
+const CATEGORY_I18N: Record<string, string> = {
+  housing: "category_housing",
+  food: "category_food",
+  transport: "category_transport",
+  utilities: "category_utilities",
+  health: "category_health",
+  entertainment: "category_entertainment",
+  shopping: "category_shopping",
+  other: "category_other",
+  salary: "category_salary",
+  freelance: "category_freelance",
+  investments: "category_investment",
+  "other-income": "category_other",
+};
+
 export function categoriesFor(type: TxType): CategoryDef[] {
   return type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 }
 
 export function categoryById(id: string): CategoryDef {
   return ALL.find((c) => c.id === id) ?? { id, label: id, color: "#a8aaa6" };
+}
+
+export function translatedCategoryLabel(id: string, t: (key: keyof TranslationKeys) => string): string {
+  const key = CATEGORY_I18N[id];
+  return key ? t(key as keyof TranslationKeys) : id;
 }
 
 export function defaultCategory(type: TxType): string {

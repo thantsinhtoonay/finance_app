@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Bell,
@@ -9,10 +10,13 @@ import {
   Eye,
   EyeOff,
   Globe,
+  Key,
   Lock,
   LogOut,
+  Mail,
   Moon,
   Palette,
+  Pencil,
   Shield,
   Sun,
   Monitor,
@@ -29,6 +33,8 @@ import { useBudgetStore } from "@/lib/budget/store";
 import { cn } from "@/lib/utils";
 import { LanguageSelector } from "@/lib/i18n/components/language-selector";
 import { useTranslation } from "@/lib/i18n/store";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { authClient } from "@/lib/auth/client";
 
 type SettingsView = "main" | "account" | "theme" | "privacy" | "data" | "language";
 
@@ -72,14 +78,17 @@ function SettingsMain({
   const account = useSettingsStore((s) => s.account);
   const theme = useSettingsStore((s) => s.theme);
   const privacy = useSettingsStore((s) => s.privacy);
-  const getDisplayName = useSettingsStore((s) => s.getDisplayName);
+  const user = useCurrentUser();
   const { t, language } = useTranslation();
+
+  const displayName = user?.displayName || "User";
+  const displayEmail = user?.primaryEmail || account.email || "No email";
 
   const menuItems = [
     {
       icon: User,
       label: t("settings_account"),
-      description: `${getDisplayName()} · ${account.email || "No email"}`,
+      description: `${displayName} · ${displayEmail}`,
       onClick: () => onNavigate("account"),
     },
     {
@@ -111,12 +120,20 @@ function SettingsMain({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-4 mb-2">
-        <div className="flex items-center justify-center size-16 rounded-2xl gradient-purple text-white text-2xl font-bold">
-          {getDisplayName().charAt(0).toUpperCase()}
-        </div>
+        {user?.profileImageUrl ? (
+          <img
+            src={user.profileImageUrl}
+            alt="Profile"
+            className="size-16 rounded-2xl object-cover ring-2 ring-primary/20"
+          />
+        ) : (
+          <div className="flex items-center justify-center size-16 rounded-2xl gradient-purple text-white text-2xl font-bold">
+            {displayName.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div>
-          <h2 className="text-xl font-bold">{getDisplayName()}</h2>
-          <p className="text-sm text-muted-foreground">{account.email || "No email set"}</p>
+          <h2 className="text-xl font-bold">{displayName}</h2>
+          <p className="text-sm text-muted-foreground">{displayEmail}</p>
         </div>
       </div>
 
@@ -151,17 +168,183 @@ function SettingsMain({
 }
 
 function AccountSettings({ onBack }: { onBack: () => void }) {
-  const account = useSettingsStore((s) => s.account);
-  const setAccount = useSettingsStore((s) => s.setAccount);
-  const [name, setName] = useState(account.name);
-  const [email, setEmail] = useState(account.email);
+  const user = useCurrentUser();
+  const { t } = useTranslation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  const [name, setName] = useState(user?.displayName || "");
   const [saved, setSaved] = useState(false);
 
-  function handleSave() {
-    setAccount({ name: name.trim() || "User", email: email.trim() });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  // Change password state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // Change email state
+  const [newEmail, setNewEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [emailSuccess, setEmailSuccess] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+
+  // Delete account state
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  function toggleSection(section: string) {
+    setExpandedSection(expandedSection === section ? null : section);
+    setPasswordError("");
+    setPasswordSuccess("");
+    setEmailError("");
+    setEmailSuccess("");
+    setDeleteError("");
   }
+
+  async function handleUpdateName() {
+    if (!name.trim()) return;
+    try {
+      await authClient.updateUser({ name: name.trim() });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error("Update name failed:", err);
+    }
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image must be less than 2MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      try {
+        await authClient.updateUser({ image: base64 });
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } catch (err) {
+        console.error("Update avatar failed:", err);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      return;
+    }
+    if (currentPassword === newPassword) {
+      setPasswordError("New password must be different from current");
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword,
+        newPassword,
+      });
+      if (error) {
+        setPasswordError(error.message || "Failed to change password");
+      } else {
+        setPasswordSuccess("Password changed successfully");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmNewPassword("");
+      }
+    } catch {
+      setPasswordError("An unexpected error occurred");
+    } finally {
+      setPasswordLoading(false);
+    }
+  }
+
+  async function handleChangeEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailError("");
+    setEmailSuccess("");
+
+    if (!newEmail.trim()) {
+      setEmailError("Email is required");
+      return;
+    }
+
+    setEmailLoading(true);
+    try {
+      const { error } = await authClient.changeEmail({
+        newEmail: newEmail.trim(),
+      });
+      if (error) {
+        setEmailError(error.message || "Failed to change email");
+      } else {
+        setEmailSuccess("Email updated successfully");
+        setNewEmail("");
+      }
+    } catch {
+      setEmailError("An unexpected error occurred");
+    } finally {
+      setEmailLoading(false);
+    }
+  }
+
+  async function handleDeleteAccount(e: React.FormEvent) {
+    e.preventDefault();
+    setDeleteError("");
+
+    if (!deleteConfirm) {
+      setDeleteConfirm(true);
+      return;
+    }
+
+    setDeleteLoading(true);
+    try {
+      const { error } = await authClient.deleteUser({
+        password: deletePassword,
+      });
+      if (error) {
+        setDeleteError(error.message || "Failed to delete account");
+        setDeleteLoading(false);
+      } else {
+        navigate({ to: "/login" });
+      }
+    } catch {
+      setDeleteError("An unexpected error occurred");
+      setDeleteLoading(false);
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await authClient.signOut();
+      navigate({ to: "/login" });
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  }
+
+  const avatarInitial = (user?.displayName || name || "U").charAt(0).toUpperCase();
 
   return (
     <div className="flex flex-col gap-4">
@@ -169,62 +352,272 @@ function AccountSettings({ onBack }: { onBack: () => void }) {
         <Button variant="ghost" size="icon" onClick={onBack} className="size-9">
           <ArrowLeft className="size-5" />
         </Button>
-        <h2 className="text-lg font-bold">Account</h2>
+        <h2 className="text-lg font-bold">{t("settings_account")}</h2>
       </div>
 
-      <div className="flex flex-col items-center gap-4 mb-4">
-        <div className="relative group">
-          <div className="flex items-center justify-center size-20 rounded-2xl gradient-purple text-white text-3xl font-bold">
-            {name.charAt(0).toUpperCase() || "U"}
-          </div>
-          <button className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Profile Header */}
+      <div className="flex flex-col items-center gap-3 mb-2">
+        <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+          {user?.profileImageUrl ? (
+            <img
+              src={user.profileImageUrl}
+              alt="Profile"
+              className="size-20 rounded-2xl object-cover ring-2 ring-primary/20"
+            />
+          ) : (
+            <div className="flex items-center justify-center size-20 rounded-2xl gradient-purple text-white text-3xl font-bold">
+              {avatarInitial}
+            </div>
+          )}
+          <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
             <Camera className="size-6 text-white" />
-          </button>
+          </div>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarUpload}
+        />
+        <div className="text-center">
+          <p className="font-semibold text-lg">{user?.displayName || "User"}</p>
+          <p className="text-sm text-muted-foreground">{user?.primaryEmail || "No email"}</p>
         </div>
       </div>
 
+      {/* Edit Name */}
       <Card>
-        <CardContent className="flex flex-col gap-4 p-5">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="name" className="text-sm font-semibold">Full Name</Label>
+        <CardContent className="flex flex-col gap-3 p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
+              <User className="size-4 text-primary" />
+            </div>
+            <Label className="text-sm font-semibold flex-1">Display Name</Label>
+          </div>
+          <div className="flex gap-2">
             <Input
-              id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
-              className="h-11"
+              className="h-10"
             />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="h-11"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label className="text-sm font-semibold">Currency</Label>
-            <div className="flex items-center h-11 px-4 rounded-xl bg-secondary/50 text-sm font-medium">
-              USD ($)
-            </div>
+            <Button
+              size="sm"
+              onClick={handleUpdateName}
+              disabled={!name.trim() || name === user?.displayName}
+              className="gradient-purple text-white px-4"
+            >
+              {saved ? <Check className="size-4" /> : <Pencil className="size-4" />}
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      <Button onClick={handleSave} className="gradient-purple text-white shadow-lg shadow-primary/25">
-        {saved ? (
-          <>
-            <Check className="size-4" />
-            Saved!
-          </>
-        ) : (
-          "Save Changes"
-        )}
-      </Button>
+      {/* Change Password */}
+      <Card>
+        <CardContent className="p-0">
+          <button
+            onClick={() => toggleSection("password")}
+            className="flex items-center gap-3 w-full px-5 py-4 text-left"
+          >
+            <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
+              <Key className="size-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Change Password</p>
+              <p className="text-xs text-muted-foreground">Update your password regularly</p>
+            </div>
+            <span className={cn("text-muted-foreground transition-transform", expandedSection === "password" && "rotate-90")}>›</span>
+          </button>
+          {expandedSection === "password" && (
+            <form onSubmit={handleChangePassword} className="px-5 pb-5 flex flex-col gap-3 border-t border-border/50">
+              {passwordError && (
+                <div className="mt-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
+                  {passwordError}
+                </div>
+              )}
+              {passwordSuccess && (
+                <div className="mt-3 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-2 text-xs text-green-600">
+                  {passwordSuccess}
+                </div>
+              )}
+              <div className="flex flex-col gap-2 mt-3">
+                <Label className="text-xs font-medium text-muted-foreground">Current Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="h-10 pl-8 pr-9 text-sm"
+                  />
+                  <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {showCurrentPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-medium text-muted-foreground">New Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="h-10 pl-8 pr-9 text-sm"
+                  />
+                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {showNewPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-medium text-muted-foreground">Confirm New Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showNewPassword ? "text" : "password"}
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="h-10 pl-8 text-sm"
+                  />
+                </div>
+              </div>
+              <Button type="submit" disabled={passwordLoading} className="gradient-purple text-white mt-1">
+                {passwordLoading ? "Changing..." : "Update Password"}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Change Email */}
+      <Card>
+        <CardContent className="p-0">
+          <button
+            onClick={() => toggleSection("email")}
+            className="flex items-center gap-3 w-full px-5 py-4 text-left"
+          >
+            <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
+              <Mail className="size-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Change Email</p>
+              <p className="text-xs text-muted-foreground">{user?.primaryEmail || "No email set"}</p>
+            </div>
+            <span className={cn("text-muted-foreground transition-transform", expandedSection === "email" && "rotate-90")}>›</span>
+          </button>
+          {expandedSection === "email" && (
+            <form onSubmit={handleChangeEmail} className="px-5 pb-5 flex flex-col gap-3 border-t border-border/50">
+              {emailError && (
+                <div className="mt-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
+                  {emailError}
+                </div>
+              )}
+              {emailSuccess && (
+                <div className="mt-3 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-2 text-xs text-green-600">
+                  {emailSuccess}
+                </div>
+              )}
+              <div className="flex flex-col gap-2 mt-3">
+                <Label className="text-xs font-medium text-muted-foreground">New Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="new@email.com"
+                    required
+                    className="h-10 pl-8 text-sm"
+                  />
+                </div>
+              </div>
+              <Button type="submit" disabled={emailLoading} className="gradient-purple text-white mt-1">
+                {emailLoading ? "Updating..." : "Update Email"}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Sign Out */}
+      <Card>
+        <CardContent className="p-0">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-5 py-4 rounded-xl hover:bg-red-50 transition-colors text-left"
+          >
+            <div className="flex items-center justify-center size-9 rounded-lg bg-red-100">
+              <LogOut className="size-4 text-red-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-red-600">Sign Out</p>
+              <p className="text-xs text-muted-foreground">Sign out of your account</p>
+            </div>
+          </button>
+        </CardContent>
+      </Card>
+
+      {/* Danger Zone */}
+      <Card className="border-destructive/30">
+        <CardContent className="p-0">
+          <button
+            onClick={() => toggleSection("delete")}
+            className="flex items-center gap-3 w-full px-5 py-4 text-left"
+          >
+            <div className="flex items-center justify-center size-9 rounded-lg bg-red-100">
+              <Trash2 className="size-4 text-red-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-red-600">Delete Account</p>
+              <p className="text-xs text-muted-foreground">Permanently delete your account and all data</p>
+            </div>
+            <span className={cn("text-muted-foreground transition-transform", expandedSection === "delete" && "rotate-90")}>›</span>
+          </button>
+          {expandedSection === "delete" && (
+            <form onSubmit={handleDeleteAccount} className="px-5 pb-5 flex flex-col gap-3 border-t border-destructive/20">
+              <div className="mt-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-xs text-red-600">
+                {deleteConfirm
+                  ? "This action is irreversible. All your data will be permanently deleted."
+                  : "This will permanently delete your account and all associated data."}
+              </div>
+              {deleteError && (
+                <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
+                  {deleteError}
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-medium text-muted-foreground">Enter your password to confirm</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showDeletePassword ? "text" : "password"}
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="h-10 pl-8 pr-9 text-sm"
+                  />
+                  <button type="button" onClick={() => setShowDeletePassword(!showDeletePassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    {showDeletePassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  </button>
+                </div>
+              </div>
+              <Button type="submit" disabled={deleteLoading} variant="destructive" className="mt-1">
+                {deleteLoading ? "Deleting..." : deleteConfirm ? "Yes, Delete My Account" : "Delete Account"}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

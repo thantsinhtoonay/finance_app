@@ -54,6 +54,8 @@ import {
 } from "@/lib/budget/format";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Filter = "all" | TxType;
 type View = "dashboard" | "yearly" | "settings";
@@ -68,6 +70,7 @@ export function Dashboard() {
   const [view, setView] = useState<View>("dashboard");
 
   const { t } = useTranslation();
+  const user = useCurrentUser();
 
   const transactions = useBudgetStore((s) => s.transactions);
   const monthlyGoal = useBudgetStore((s) => s.monthlyGoal);
@@ -79,6 +82,12 @@ export function Dashboard() {
   const setMonthlyGoal = useBudgetStore((s) => s.setMonthlyGoal);
   const setSelectedMonth = useBudgetStore((s) => s.setSelectedMonth);
   const resetData = useBudgetStore((s) => s.resetData);
+  const loadFromServer = useBudgetStore((s) => s.loadFromServer);
+  const loaded = useBudgetStore((s) => s.loaded);
+
+  useEffect(() => {
+    loadFromServer();
+  }, [loadFromServer]);
 
   const summary = useMemo(
     () => summarizeMonth(transactions, selectedMonth, categoryBudgets),
@@ -186,12 +195,12 @@ export function Dashboard() {
               <Wallet className="size-5" />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight">Shal Su</h1>
+              <h1 className="text-lg font-bold tracking-tight">{t("app_name")}</h1>
               <p className="text-xs text-muted-foreground">{t("dashboard_budget")}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="hidden sm:flex items-center gap-1 bg-secondary rounded-xl p-1">
               <Button
                 variant={view === "dashboard" ? "default" : "ghost"}
@@ -212,15 +221,19 @@ export function Dashboard() {
               </Button>
             </div>
 
-            <Button onClick={openAdd} className="gradient-purple text-white shadow-lg shadow-primary/25">
-              <Plus />
+            <Button
+              onClick={openAdd}
+              size="icon"
+              className="size-10 gradient-purple text-white shadow-lg shadow-primary/25 sm:h-11 sm:w-auto sm:px-5"
+            >
+              <Plus className="size-5" />
               <span className="hidden sm:inline">{t("add")}</span>
             </Button>
             <LanguageIconToggle />
             <Button
               variant="ghost"
               size="icon"
-              className="size-9"
+              className="size-10 hidden sm:flex"
               onClick={() => setView("settings")}
               aria-label={t("nav_settings")}
             >
@@ -231,33 +244,55 @@ export function Dashboard() {
       </header>
 
       <div className="flex-1 px-4 sm:px-6">
-        {view === "settings" ? (
-          <div className="py-6">
-            <SettingsPage onBack={() => setView("dashboard")} />
-          </div>
-        ) : view === "yearly" ? (
-          <div className="py-6">
-            <YearlyOverview year={currentYear} />
-          </div>
-        ) : (
-          <div className="flex flex-col gap-5 py-6">
+        <AnimatePresence mode="wait">
+          {view === "settings" ? (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="py-6"
+            >
+              <SettingsPage onBack={() => setView("dashboard")} />
+            </motion.div>
+          ) : view === "yearly" ? (
+            <motion.div
+              key="yearly"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="py-6"
+            >
+              <YearlyOverview year={currentYear} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="flex flex-col gap-5 py-6"
+            >
             <Card className="gradient-card border-0 shadow-card">
-              <CardContent className="flex flex-col gap-5 p-5 sm:p-6">
-                <div className="flex items-center justify-between">
+              <CardContent className="flex flex-col gap-4 sm:gap-5 p-4 sm:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold tracking-label text-muted-foreground uppercase">
                       Remaining this month
                     </p>
                     <p
                       className={cn(
-                        "mt-2 text-3xl font-bold tracking-tight tabular-nums sm:text-4xl",
+                        "mt-2 text-2xl sm:text-3xl font-bold tracking-tight tabular-nums lg:text-4xl",
                         overspent ? "text-expense" : "text-gradient",
                       )}
                     >
                       {formatMoney(summary.remaining)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 self-end sm:self-auto">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -267,7 +302,7 @@ export function Dashboard() {
                     >
                       <ChevronLeft />
                     </Button>
-                    <p className="min-w-24 text-center text-sm font-semibold tabular-nums">
+                    <p className="min-w-20 sm:min-w-24 text-center text-xs sm:text-sm font-semibold tabular-nums">
                       <span className="sm:hidden">{formatMonthShort(selectedMonth)}</span>
                       <span className="hidden sm:inline">{formatMonth(selectedMonth)}</span>
                     </p>
@@ -295,23 +330,23 @@ export function Dashboard() {
                   </Button>
                 )}
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   <StatCard
                     label={t("dashboard_income")}
                     value={formatMoney(summary.income)}
-                    icon={<TrendingUp className="size-4 text-emerald-500" />}
+                    icon={<TrendingUp className="size-3.5 sm:size-4 text-emerald-500" />}
                     tone="income"
                   />
                   <StatCard
                     label={t("dashboard_expenses")}
                     value={formatMoney(summary.expenses)}
-                    icon={<Wallet className="size-4 text-red-500" />}
+                    icon={<Wallet className="size-3.5 sm:size-4 text-red-500" />}
                     tone="expense"
                   />
                   <StatCard
                     label={t("savings_goal")}
                     value={formatMoney(monthlyGoal)}
-                    icon={<TrendingUp className="size-4 text-primary" />}
+                    icon={<TrendingUp className="size-3.5 sm:size-4 text-primary" />}
                     tone={leftover < 0 ? "expense" : leftover > 0 ? "income" : undefined}
                   />
                 </div>
@@ -342,8 +377,9 @@ export function Dashboard() {
               onDelete={setPendingDelete}
               onAdd={openAdd}
             />
-          </div>
-        )}
+          </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <TransactionDialog
@@ -426,21 +462,25 @@ function StatCard({
   tone?: "income" | "expense";
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-secondary/50 px-4 py-3">
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="flex flex-col gap-1.5 sm:gap-2 rounded-xl bg-secondary/50 px-3 py-2.5 sm:px-4 sm:py-3"
+    >
       <div className="flex items-center gap-1.5">
         {icon}
-        <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+        <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground truncate">{label}</span>
       </div>
       <p
         className={cn(
-          "text-base font-bold tabular-nums tracking-tight sm:text-lg",
+          "text-sm sm:text-base font-bold tabular-nums tracking-tight",
           tone === "income" && "text-emerald-600",
           tone === "expense" && "text-red-500",
         )}
       >
         {value}
       </p>
-    </div>
+    </motion.div>
   );
 }
 

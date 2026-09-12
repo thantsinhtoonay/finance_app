@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatMoney } from "@/lib/budget/format";
+import { translatedCategoryLabel } from "@/lib/budget/categories";
 import type { CategoryTotal } from "@/lib/budget/types";
 import { useTranslation } from "@/lib/i18n/store";
 
@@ -17,11 +18,12 @@ function ChartTooltip({
   active?: boolean;
   payload?: Array<{ payload: CategoryTotal }>;
 }) {
+  const { t } = useTranslation();
   if (!active || !payload?.[0]) return null;
   const item = payload[0].payload;
   return (
     <div className="rounded-xl bg-white px-3 py-2 text-sm shadow-lg border border-border">
-      <p className="font-semibold">{item.label}</p>
+      <p className="font-semibold">{translatedCategoryLabel(item.id, t)}</p>
       <p className="tabular-nums text-muted-foreground">
         {formatMoney(item.amount)} · {item.percent.toFixed(0)}%
       </p>
@@ -94,7 +96,7 @@ export function CategoryChart({ categories, total }: Props) {
                     style={{ backgroundColor: cat.color }}
                     aria-hidden
                   />
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium">{cat.label}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium">{translatedCategoryLabel(cat.id, t)}</span>
                   <span className="text-xs font-semibold tabular-nums text-muted-foreground">
                     {cat.percent.toFixed(0)}%
                   </span>

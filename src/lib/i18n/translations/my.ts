@@ -61,7 +61,7 @@ export const my: TranslationKeys = {
   budget_exceeded: "ဘတ်ဂျက်ကျော်လွန်သည်",
   
   // Savings
-  savings_goal: "အပိုငွေရည်မှန်းချက်",
+  savings_goal: "ငွေစုပန်းတိုင်",
   savings_target: "ရည်မှန်းချက်ငွေပမာဏ",
   savings_deadline: "သတ်မှတ်ရက်",
   savings_progress: "တိုးတက်မှု",
@@ -89,7 +89,7 @@ export const my: TranslationKeys = {
   data_export_csv: "CSV ထုတ်ယူရန်",
   data_import: "ဒေတာထည့်သွင်းရန်",
   data_clear: "ဒေတာအားလုံးဖျက်ရန်",
-  data_clear_confirm: "သင်သည် အတည်ပြုလိုပါသလား? ဒေတာအားလုံးကို အမြဲတမ်းဖျက်မည်ဖြစ်သည်။",
+  data_clear_confirm: "‌ဒေတာအားလုံးဖျက်ရန် အတည်ပြပါသလား။",
   
   // Time
   time_monthly: "လစဉ်",
@@ -105,4 +105,27 @@ export const my: TranslationKeys = {
   msg_data_cleared: "ဒေတာအားလုံးဖျက်ပြီးပါပြီ",
   msg_import_success: "ဒေတာအောင်မြင်စွာထည့်သွင်းပြီးပါပြီ",
   msg_import_error: "ဒေတာထည့်သွင်းရာတွင် အမှားရှိသည်",
+
+  // Dialog
+  dialog_add_entry: "ထည့်သွင်းရန်",
+  dialog_edit_entry: "ပြင်ဆင်ရန်",
+  dialog_add_desc: "ဘတ်ဂျက်အတွက် ဝင်ငွေ သို့မဟုတ် ထွက်ငွေ မှတ်တမ်းတင်ရန်။",
+  dialog_edit_desc: "ဒီဝင်ငွေ သို့မဟုတ် ထွက်ငွေကို ပြင်ဆင်ရန်။",
+  dialog_amount: "ငွေပမာဏ",
+  dialog_category: "အမျိုးအစား",
+  dialog_date: "ရက်စွဲ",
+  dialog_recurring: "ပုံမှန်ထည့်ရန်",
+  dialog_one_time: "တစ်ကြိမ်တည်း",
+  dialog_note: "မှတ်စု",
+  dialog_optional: "Optional",
+  dialog_remaining_after: "ဒီနောက်ကျန်ငွေ:",
+  dialog_save_changes: "သိမ်းဆည်းရန်",
+  dialog_error_zero_amount: "သုညထက်မက ငွေပမာဏထည့်ပါ။",
+  dialog_error_no_date: "ရက်စွဲရွေးပါ။",
+
+  // Recurring
+  recurring_weekly: "အပတ်စဉ်",
+  recurring_biweekly: "နှစ်ပတ်တစ်ခါ",
+  recurring_monthly: "လစဉ်",
+  recurring_yearly: "နှစ်စဉ်",
 };

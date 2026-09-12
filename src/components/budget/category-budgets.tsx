@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useBudgetStore } from "@/lib/budget/store";
+import { translatedCategoryLabel } from "@/lib/budget/categories";
 import type { CategoryBudget, CategoryTotal } from "@/lib/budget/types";
 import { formatMoney, parseAmount, clampPercent } from "@/lib/budget/format";
 import { cn } from "@/lib/utils";
@@ -88,7 +89,7 @@ function CategoryBudgetRow({
             className="size-2.5 shrink-0 rounded-full"
             style={{ backgroundColor: category.color }}
           />
-          <span className="text-sm font-semibold">{category.label}</span>
+          <span className="text-sm font-semibold">{translatedCategoryLabel(category.id, t)}</span>
           {overBudget && (
             <span className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-500">
               <AlertTriangle className="size-3" />

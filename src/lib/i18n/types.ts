@@ -142,4 +142,27 @@ export interface TranslationKeys {
   msg_data_cleared: string;
   msg_import_success: string;
   msg_import_error: string;
+
+  // Dialog
+  dialog_add_entry: string;
+  dialog_edit_entry: string;
+  dialog_add_desc: string;
+  dialog_edit_desc: string;
+  dialog_amount: string;
+  dialog_category: string;
+  dialog_date: string;
+  dialog_recurring: string;
+  dialog_one_time: string;
+  dialog_note: string;
+  dialog_optional: string;
+  dialog_remaining_after: string;
+  dialog_save_changes: string;
+  dialog_error_zero_amount: string;
+  dialog_error_no_date: string;
+
+  // Recurring
+  recurring_weekly: string;
+  recurring_biweekly: string;
+  recurring_monthly: string;
+  recurring_yearly: string;
 }
