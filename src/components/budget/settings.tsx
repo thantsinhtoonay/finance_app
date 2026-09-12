@@ -503,7 +503,8 @@ function DataSettings({ onBack }: { onBack: () => void }) {
 }
 
 function LanguageSettings({ onBack }: { onBack: () => void }) {
-  const { t } = useTranslation();
+  const { t, language, isBurmese } = useTranslation();
+  const { LanguageSwitch } = require("@/lib/i18n");
 
   return (
     <div className="flex flex-col gap-4">
@@ -516,16 +517,53 @@ function LanguageSettings({ onBack }: { onBack: () => void }) {
 
       <Card>
         <CardContent className="p-5">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-6">
             <p className="text-sm text-muted-foreground">
               Choose your preferred language. Burmese text uses different typography for better readability.
             </p>
             
-            <LanguageSelector showLabel={false} />
+            {/* Beautiful Language Toggle */}
+            <div className="flex justify-center">
+              <LanguageSwitch size="lg" showLabels={true} />
+            </div>
             
-            <div className="rounded-xl bg-secondary/30 px-4 py-3 mt-2">
+            {/* Typography Preview */}
+            <div className="rounded-xl border border-border bg-secondary/30 p-4">
+              <h3 className="text-sm font-semibold mb-3">Typography Preview</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Font Family</span>
+                  <span className="text-xs font-medium">
+                    {isBurmese ? "Padauk" : "Inter"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Line Height</span>
+                  <span className="text-xs font-medium">
+                    {isBurmese ? "1.8 (relaxed)" : "1.5 (normal)"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Font Size</span>
+                  <span className="text-xs font-medium">
+                    {isBurmese ? "6.25% larger" : "Standard"}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Sample text */}
+              <div className="mt-4 pt-4 border-t border-border">
+                <p className="text-sm" style={{ lineHeight: isBurmese ? "1.8" : "1.5" }}>
+                  {isBurmese 
+                    ? "မြန်မာဘာသာစကားသည် ပိုမိုကြီးမားသော မျဉ်းအမြင့်နှင့် ဖတ်ရလွယ်ကူရန် အရွယ်အစားပိုကြီးသော ဖောင့်များလိုအပ်ပါသည်။"
+                    : "The quick brown fox jumps over the lazy dog. This text demonstrates the typography differences between English and Burmese scripts."}
+                </p>
+              </div>
+            </div>
+            
+            <div className="rounded-xl bg-primary/5 border border-primary/10 px-4 py-3">
               <p className="text-xs text-muted-foreground">
-                <strong>Burmese typography note:</strong> Burmese script requires more vertical space and larger font sizes for proper readability. The app automatically adjusts line height and font size when Burmese is selected.
+                <strong className="text-primary">Note:</strong> Burmese script requires more vertical space and larger font sizes for proper readability. The app automatically adjusts line height and font size when Burmese is selected.
               </p>
             </div>
           </div>

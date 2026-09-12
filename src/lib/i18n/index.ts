@@ -20,6 +20,9 @@ export {
   useTranslatedText,
   LanguageSelector,
   LanguageToggle,
+  LanguageSwitch,
+  LanguagePillToggle,
+  LanguageIconToggle,
   I18nProvider,
   LanguageAwareContainer,
 } from "./components";

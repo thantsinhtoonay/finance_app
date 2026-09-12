@@ -34,6 +34,7 @@ import { YearlyOverview } from "@/components/budget/yearly-overview";
 import { QuickAddFab } from "@/components/budget/quick-add-fab";
 import { BottomNav } from "@/components/budget/bottom-nav";
 import { Settings as SettingsPage } from "@/components/budget/settings";
+import { LanguageIconToggle } from "@/lib/i18n/components/language-toggle";
 import { useSettingsStore } from "@/lib/settings/store";
 import {
   downloadFile,
@@ -212,6 +213,7 @@ export function Dashboard() {
               <Plus />
               <span className="hidden sm:inline">Add</span>
             </Button>
+            <LanguageIconToggle />
             <Button
               variant="ghost"
               size="icon"
