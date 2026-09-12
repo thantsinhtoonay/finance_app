@@ -14,6 +14,7 @@ import { categoryById } from "@/lib/budget/categories";
 import { formatDay, formatSigned } from "@/lib/budget/format";
 import type { Transaction, TxType } from "@/lib/budget/types";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/store";
 
 type Filter = "all" | TxType;
 
@@ -28,12 +29,6 @@ type Props = {
   onAdd: () => void;
 };
 
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "income", label: "Income" },
-  { id: "expense", label: "Expenses" },
-];
-
 export function TransactionList({
   items,
   filter,
@@ -44,22 +39,30 @@ export function TransactionList({
   onDelete,
   onAdd,
 }: Props) {
+  const { t } = useTranslation();
+  
+  const FILTERS: { id: Filter; label: string }[] = [
+    { id: "all", label: t("transaction_category") },
+    { id: "income", label: t("transaction_income") },
+    { id: "expense", label: t("transaction_expense") },
+  ];
+
   return (
     <Card>
       <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold tracking-label text-muted-foreground uppercase">
-              Transactions
+              {t("transaction_search")}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">Edit or remove any entry</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("transaction_edit")}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="search-input"
-                placeholder="Search..."
+                placeholder={t("transaction_search")}
                 value={search}
                 onChange={(e) => onSearch(e.target.value)}
                 className="h-10 w-40 pl-9 sm:w-56 rounded-xl"
@@ -89,15 +92,15 @@ export function TransactionList({
           <div className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-xl bg-secondary/30 px-6 text-center">
             <p className="text-sm text-muted-foreground">
               {search
-                ? "No transactions match your search."
+                ? t("msg_no_transactions")
                 : filter === "all"
-                  ? "No entries this month yet."
+                  ? t("msg_no_transactions")
                   : filter === "income"
-                    ? "No income logged this month."
-                    : "No expenses logged this month."}
+                    ? t("msg_no_transactions")
+                    : t("msg_no_transactions")}
             </p>
             <Button variant="outline" onClick={onAdd} className="rounded-xl">
-              Add entry
+              {t("add")}
             </Button>
           </div>
         ) : (
@@ -161,12 +164,12 @@ export function TransactionList({
                     <DropdownMenuContent align="end" className="rounded-xl">
                       <DropdownMenuItem onSelect={() => onEdit(tx)} className="rounded-lg">
                         <Pencil className="size-4" />
-                        Edit
+                        {t("edit")}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem variant="destructive" onSelect={() => onDelete(tx)} className="rounded-lg">
                         <Trash2 className="size-4" />
-                        Delete
+                        {t("delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

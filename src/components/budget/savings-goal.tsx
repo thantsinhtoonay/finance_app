@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { clampPercent, formatMoney, parseAmount } from "@/lib/budget/format";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/store";
 
 type Props = {
   goal: number;
@@ -16,6 +17,7 @@ type Props = {
 export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(goal));
+  const { t } = useTranslation();
 
   const towardGoal = Math.max(0, remaining);
   const pct = goal > 0 ? clampPercent((towardGoal / goal) * 100) : 0;
@@ -40,7 +42,7 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
             </div>
             <div>
               <p className="text-xs font-semibold tracking-label text-muted-foreground uppercase">
-                Savings goal
+                {t("savings_goal")}
               </p>
             </div>
           </div>
@@ -53,7 +55,7 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
                 setDraft(String(goal));
                 setEditing(true);
               }}
-              aria-label="Edit savings goal"
+              aria-label={t("savings_goal")}
             >
               <Pencil className="size-4" />
             </Button>
@@ -74,23 +76,23 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onBlur={commit}
-              aria-label="Monthly savings goal"
+              aria-label={t("savings_target")}
               className="text-lg font-bold tabular-nums"
             />
-            <Button type="submit" size="icon" className="gradient-purple text-white" aria-label="Save goal">
+            <Button type="submit" size="icon" className="gradient-purple text-white" aria-label={t("save")}>
               <Check />
             </Button>
           </form>
         ) : (
           <p className="text-2xl font-bold tabular-nums tracking-tight">
             {formatMoney(goal)}
-            <span className="ml-2 text-sm font-normal text-muted-foreground">/ month</span>
+            <span className="ml-2 text-sm font-normal text-muted-foreground">/ {t("time_monthly")}</span>
           </p>
         )}
 
         <div className="mt-auto flex flex-col gap-3">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-sm font-medium text-muted-foreground">Progress</span>
+            <span className="text-sm font-medium text-muted-foreground">{t("savings_progress")}</span>
             <span className="text-sm font-semibold tabular-nums">{pct.toFixed(0)}%</span>
           </div>
           <Progress
@@ -105,12 +107,12 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
             )}
           >
             {goal <= 0
-              ? "Set a monthly target to track savings."
+              ? t("msg_no_savings")
               : met
-                ? `Goal met · ${formatMoney(surplus)} extra`
+                ? `${t("savings_goal")} · ${formatMoney(surplus)}`
                 : remaining < 0
-                  ? "Overspent — nothing left to save this month."
-                  : `${formatMoney(shortfall)} short of the goal`}
+                  ? t("budget_exceeded")
+                  : `${formatMoney(shortfall)} ${t("savings_days_left")}`}
           </p>
         </div>
       </CardContent>

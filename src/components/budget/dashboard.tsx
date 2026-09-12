@@ -53,6 +53,7 @@ import {
   yearKey,
 } from "@/lib/budget/format";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/store";
 
 type Filter = "all" | TxType;
 type View = "dashboard" | "yearly" | "settings";
@@ -65,6 +66,8 @@ export function Dashboard() {
   const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [view, setView] = useState<View>("dashboard");
+
+  const { t } = useTranslation();
 
   const transactions = useBudgetStore((s) => s.transactions);
   const monthlyGoal = useBudgetStore((s) => s.monthlyGoal);
@@ -184,7 +187,7 @@ export function Dashboard() {
             </div>
             <div>
               <h1 className="text-lg font-bold tracking-tight">Shal Su</h1>
-              <p className="text-xs text-muted-foreground">Finance App</p>
+              <p className="text-xs text-muted-foreground">{t("dashboard_budget")}</p>
             </div>
           </div>
 
@@ -196,7 +199,7 @@ export function Dashboard() {
                 onClick={() => setView("dashboard")}
                 className="rounded-lg"
               >
-                Monthly
+                {t("time_monthly")}
               </Button>
               <Button
                 variant={view === "yearly" ? "default" : "ghost"}
@@ -205,13 +208,13 @@ export function Dashboard() {
                 className="rounded-lg"
               >
                 <CalendarDays className="size-4" />
-                Yearly
+                {t("time_yearly")}
               </Button>
             </div>
 
             <Button onClick={openAdd} className="gradient-purple text-white shadow-lg shadow-primary/25">
               <Plus />
-              <span className="hidden sm:inline">Add</span>
+              <span className="hidden sm:inline">{t("add")}</span>
             </Button>
             <LanguageIconToggle />
             <Button
@@ -219,7 +222,7 @@ export function Dashboard() {
               size="icon"
               className="size-9"
               onClick={() => setView("settings")}
-              aria-label="Settings"
+              aria-label={t("nav_settings")}
             >
               <SettingsIcon className="size-5" />
             </Button>
@@ -288,25 +291,25 @@ export function Dashboard() {
                     className="w-fit gap-1.5"
                   >
                     <RotateCcw className="size-3.5" />
-                    Back to today
+                    {t("nav_home")}
                   </Button>
                 )}
 
                 <div className="grid grid-cols-3 gap-3">
                   <StatCard
-                    label="Income"
+                    label={t("dashboard_income")}
                     value={formatMoney(summary.income)}
                     icon={<TrendingUp className="size-4 text-emerald-500" />}
                     tone="income"
                   />
                   <StatCard
-                    label="Spent"
+                    label={t("dashboard_expenses")}
                     value={formatMoney(summary.expenses)}
                     icon={<Wallet className="size-4 text-red-500" />}
                     tone="expense"
                   />
                   <StatCard
-                    label="Goal"
+                    label={t("savings_goal")}
                     value={formatMoney(monthlyGoal)}
                     icon={<TrendingUp className="size-4 text-primary" />}
                     tone={leftover < 0 ? "expense" : leftover > 0 ? "income" : undefined}
@@ -369,15 +372,15 @@ export function Dashboard() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+            <AlertDialogTitle>{t("msg_confirm_delete")}</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingDelete
-                ? `${pendingDelete.note || "This transaction"} will be removed from your budget. This cannot be undone.`
-                : "This cannot be undone."}
+                ? `${pendingDelete.note || t("transaction_delete")} will be removed.`
+                : t("data_clear_confirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
@@ -385,7 +388,7 @@ export function Dashboard() {
                 setPendingDelete(null);
               }}
             >
-              Delete
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -394,16 +397,16 @@ export function Dashboard() {
       <AlertDialog open={showShortcuts} onOpenChange={setShowShortcuts}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Keyboard Shortcuts</AlertDialogTitle>
+            <AlertDialogTitle>{t("transaction_search")}</AlertDialogTitle>
           </AlertDialogHeader>
           <div className="flex flex-col gap-2 text-sm">
-            <ShortcutRow keys="N" desc="Add new transaction" />
-            <ShortcutRow keys="/" desc="Focus search" />
-            <ShortcutRow keys="?" desc="Toggle this help" />
-            <ShortcutRow keys="Esc" desc="Close dialog / clear search" />
+            <ShortcutRow keys="N" desc={t("transaction_add")} />
+            <ShortcutRow keys="/" desc={t("transaction_search")} />
+            <ShortcutRow keys="?" desc={t("close")} />
+            <ShortcutRow keys="Esc" desc={t("close")} />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Close</AlertDialogCancel>
+            <AlertDialogCancel>{t("close")}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

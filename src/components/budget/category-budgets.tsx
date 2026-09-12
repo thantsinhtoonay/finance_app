@@ -8,6 +8,7 @@ import { useBudgetStore } from "@/lib/budget/store";
 import type { CategoryBudget, CategoryTotal } from "@/lib/budget/types";
 import { formatMoney, parseAmount, clampPercent } from "@/lib/budget/format";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/store";
 
 type Props = {
   categories: CategoryTotal[];
@@ -16,6 +17,7 @@ type Props = {
 
 export function CategoryBudgets({ categories, categoryBudgets }: Props) {
   const setCategoryBudget = useBudgetStore((s) => s.setCategoryBudget);
+  const { t } = useTranslation();
 
   const expenseCategories = categories.filter((c) => c.amount > 0);
 
@@ -30,9 +32,9 @@ export function CategoryBudgets({ categories, categoryBudgets }: Props) {
           </div>
           <div>
             <p className="text-xs font-semibold tracking-label text-muted-foreground uppercase">
-              Category budgets
+              {t("budget_limit")}
             </p>
-            <p className="text-xs text-muted-foreground">Track spending limits per category</p>
+            <p className="text-xs text-muted-foreground">{t("budget_remaining")}</p>
           </div>
         </div>
 
@@ -65,6 +67,7 @@ function CategoryBudgetRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(budget?.limit ?? ""));
+  const { t } = useTranslation();
 
   const limit = budget?.limit ?? 0;
   const pct = limit > 0 ? clampPercent((category.amount / limit) * 100) : 0;
@@ -89,7 +92,7 @@ function CategoryBudgetRow({
           {overBudget && (
             <span className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-500">
               <AlertTriangle className="size-3" />
-              Over
+              {t("budget_exceeded")}
             </span>
           )}
         </div>

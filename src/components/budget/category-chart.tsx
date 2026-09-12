@@ -3,6 +3,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatMoney } from "@/lib/budget/format";
 import type { CategoryTotal } from "@/lib/budget/types";
+import { useTranslation } from "@/lib/i18n/store";
 
 type Props = {
   categories: CategoryTotal[];
@@ -30,6 +31,7 @@ function ChartTooltip({
 
 export function CategoryChart({ categories, total }: Props) {
   const [mounted, setMounted] = useState(false);
+  const { t } = useTranslation();
   useEffect(() => setMounted(true), []);
 
   return (
@@ -37,15 +39,15 @@ export function CategoryChart({ categories, total }: Props) {
       <CardContent className="flex h-full flex-col gap-5">
         <div>
           <p className="text-xs font-semibold tracking-label text-muted-foreground uppercase">
-            Spending by category
+            {t("dashboard_budget")}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">Where this month went</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("dashboard_expenses")}</p>
         </div>
 
         {categories.length === 0 ? (
           <div className="flex flex-1 min-h-48 items-center justify-center rounded-xl bg-secondary/50 px-6 text-center">
             <p className="text-sm text-muted-foreground">
-              No expenses this month. Add a purchase to see the breakdown.
+              {t("msg_no_transactions")}
             </p>
           </div>
         ) : (
@@ -77,7 +79,7 @@ export function CategoryChart({ categories, total }: Props) {
                 <div className="size-full rounded-full bg-secondary" />
               )}
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xs font-semibold tracking-label text-muted-foreground uppercase">Spent</span>
+                <span className="text-xs font-semibold tracking-label text-muted-foreground uppercase">{t("budget_spent")}</span>
                 <span className="text-lg font-bold tabular-nums tracking-tight">
                   {formatMoney(total)}
                 </span>
