@@ -5,6 +5,13 @@ import { ThemeInit } from "@/components/budget/theme-init";
 import { I18nInit } from "@/components/budget/i18n-init";
 import appCss from "../styles.css?url";
 
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/padauk/400.css";
+import "@fontsource/padauk/700.css";
+
 const APP_NAME = "Northline";
 
 export const Route = createRootRoute({
@@ -21,12 +28,6 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Padauk:wght@400;700&display=swap",
-      },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
