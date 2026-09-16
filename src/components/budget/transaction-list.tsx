@@ -70,14 +70,14 @@ export function TransactionList({
               className="h-11 w-full pl-9 rounded-xl"
             />
           </div>
-          <div className="flex gap-1 rounded-xl bg-secondary p-1 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-1 rounded-xl bg-secondary p-1">
             {FILTERS.map((f) => (
               <button
                 key={f.id}
                 type="button"
                 onClick={() => onFilter(f.id)}
                 className={cn(
-                  "h-10 flex-1 min-w-0 rounded-lg px-2 sm:px-3 text-xs sm:text-sm font-semibold transition-all duration-200 touch-target whitespace-nowrap",
+                  "h-10 flex-1 min-w-0 rounded-lg px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold transition-all duration-200 overflow-hidden text-ellipsis whitespace-nowrap",
                   filter === f.id
                     ? "bg-primary text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/80",
@@ -168,7 +168,7 @@ export function TransactionList({
                           size="icon"
                           aria-label={`Actions for ${title}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity size-10 sm:size-8"
+                          className="size-9 sm:size-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0"
                         >
                           <MoreHorizontal className="size-4" />
                         </Button>

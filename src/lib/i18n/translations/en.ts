@@ -33,7 +33,7 @@ export const en: TranslationKeys = {
   transaction_income: "Income",
   transaction_expense: "Expense",
   transaction_amount: "Amount",
-  transaction_category: "Category",
+  transaction_category: "All",
   transaction_note: "Note",
   transaction_date: "Date",
   transaction_recurring: "Recurring",
@@ -65,7 +65,7 @@ export const en: TranslationKeys = {
   savings_target: "Target Amount",
   savings_deadline: "Deadline",
   savings_progress: "Progress",
-  savings_days_left: "days left",
+  savings_days_left: "to go",
   
   // Settings
   settings_account: "Account",

@@ -12,7 +12,7 @@ import "@fontsource/inter/700.css";
 import "@fontsource/padauk/400.css";
 import "@fontsource/padauk/700.css";
 
-const APP_NAME = "Northline";
+const APP_NAME = "Shal Su";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -24,7 +24,7 @@ export const Route = createRootRoute({
         name: "description",
         content: "A personal finance tracker — income, expenses, budgets, and savings goals.",
       },
-      { name: "theme-color", content: "#7c3aed" },
+      { name: "theme-color", content: "#b8860b" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },

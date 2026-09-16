@@ -33,7 +33,7 @@ export const my: TranslationKeys = {
   transaction_income: "ဝင်ငွေ",
   transaction_expense: "ထွက်ငွေ",
   transaction_amount: "ငွေပမာဏ",
-  transaction_category: "အမျိုးအစား",
+  transaction_category: "အားလုံး",
   transaction_note: "မှတ်စု",
   transaction_date: "ရက်စွဲ",
   transaction_recurring: "ပုံမှန်ထည့်ရန်",
@@ -65,7 +65,7 @@ export const my: TranslationKeys = {
   savings_target: "ရည်မှန်းချက်ငွေပမာဏ",
   savings_deadline: "သတ်မှတ်ရက်",
   savings_progress: "တိုးတက်မှု",
-  savings_days_left: "ရက်ကျန်",
+  savings_days_left: "ကျန်ရှိ",
   
   // Settings
   settings_account: "အကောင့်",

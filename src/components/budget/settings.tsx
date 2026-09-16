@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Bell,
@@ -27,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useSettingsStore, applyTheme } from "@/lib/settings/store";
 import type { Theme } from "@/lib/settings/types";
 import { useBudgetStore } from "@/lib/budget/store";
@@ -44,21 +46,25 @@ type Props = {
 
 export function Settings({ onBack }: Props) {
   const [view, setView] = useState<SettingsView>("main");
+  // Shared avatar preview — lifted so SettingsMain also shows the updated photo
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col">
-      <header className="sticky top-0 z-40 glass border-b border-border">
+    <div className="mx-auto flex h-dvh w-full max-w-2xl flex-col overflow-hidden">
+      <header className="shrink-0 border-b border-border/20 bg-background/80 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center gap-3 px-4 py-3">
-          <Button variant="ghost" size="icon" onClick={onBack} className="size-9">
-            <ArrowLeft className="size-5" />
-          </Button>
-          <h1 className="text-lg font-bold">Settings</h1>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button variant="ghost" size="icon" onClick={onBack} className="size-10 rounded-full hover:bg-secondary/60">
+              <ArrowLeft className="size-5" />
+            </Button>
+          </motion.div>
+          <h1 className="text-lg font-bold tracking-tight">Settings</h1>
         </div>
       </header>
 
-      <div className="flex-1 px-4 py-6">
-        {view === "main" && <SettingsMain onNavigate={setView} onBack={onBack} />}
-        {view === "account" && <AccountSettings onBack={() => setView("main")} />}
+      <div className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth">
+        {view === "main" && <SettingsMain onNavigate={setView} onBack={onBack} localAvatarUrl={localAvatarUrl} />}
+        {view === "account" && <AccountSettings onBack={() => setView("main")} onAvatarUploaded={setLocalAvatarUrl} />}
         {view === "theme" && <ThemeSettings onBack={() => setView("main")} />}
         {view === "privacy" && <PrivacySettings onBack={() => setView("main")} />}
         {view === "data" && <DataSettings onBack={() => setView("main")} />}
@@ -71,9 +77,11 @@ export function Settings({ onBack }: Props) {
 function SettingsMain({
   onNavigate,
   onBack,
+  localAvatarUrl,
 }: {
   onNavigate: (view: SettingsView) => void;
   onBack: () => void;
+  localAvatarUrl: string | null;
 }) {
   const account = useSettingsStore((s) => s.account);
   const theme = useSettingsStore((s) => s.theme);
@@ -120,15 +128,24 @@ function SettingsMain({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-4 mb-2">
-        {user?.profileImageUrl ? (
-          <img
-            src={user.profileImageUrl}
-            alt="Profile"
-            className="size-16 rounded-2xl object-cover ring-2 ring-primary/20"
-          />
+        {localAvatarUrl || user?.profileImageUrl ? (
+          <div className="relative">
+            <img
+              src={localAvatarUrl || user?.profileImageUrl || ""}
+              alt="Profile"
+              className="size-16 rounded-2xl object-cover ring-2 ring-primary/30 shadow-lg shadow-primary/10"
+            />
+            <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-primary flex items-center justify-center shadow-md">
+              <Check className="size-3 text-white" />
+            </div>
+          </div>
         ) : (
-          <div className="flex items-center justify-center size-16 rounded-2xl gradient-purple text-white text-2xl font-bold">
-            {displayName.charAt(0).toUpperCase()}
+          <div className="relative">
+            <img
+              src="/images/logo.jpg"
+              alt="Shal Su"
+              className="size-16 rounded-2xl object-cover ring-2 ring-primary/30 shadow-lg shadow-primary/10"
+            />
           </div>
         )}
         <div>
@@ -146,18 +163,18 @@ function SettingsMain({
                 key={item.label}
                 onClick={item.onClick}
                 className={cn(
-                  "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl transition-colors hover:bg-secondary/50 text-left",
+                  "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl transition-all duration-200 hover:bg-secondary/50 text-left",
                   i > 0 && "border-t border-border/50",
                 )}
               >
-                <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10">
-                  <Icon className="size-5 text-primary" />
+                <div className="flex items-center justify-center size-10 rounded-xl glass-toggle text-primary">
+                  <Icon className="size-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold">{item.label}</p>
                   <p className="text-xs text-muted-foreground truncate">{item.description}</p>
                 </div>
-                <span className="text-muted-foreground">›</span>
+                <span className="text-muted-foreground transition-transform duration-200 group-hover:translate-x-1">›</span>
               </button>
             );
           })}
@@ -167,7 +184,7 @@ function SettingsMain({
   );
 }
 
-function AccountSettings({ onBack }: { onBack: () => void }) {
+function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onAvatarUploaded: (url: string) => void }) {
   const user = useCurrentUser();
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -175,6 +192,10 @@ function AccountSettings({ onBack }: { onBack: () => void }) {
 
   const [name, setName] = useState(user?.displayName || "");
   const [saved, setSaved] = useState(false);
+  // Local preview URL — shown immediately after upload
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
+  // Track the effective display image (local takes priority over session)
+  const displayImage = localAvatarUrl || user?.profileImageUrl || null;
 
   // Change password state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -231,8 +252,13 @@ function AccountSettings({ onBack }: { onBack: () => void }) {
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = reader.result as string;
+      // Show immediately via local state
+      setLocalAvatarUrl(base64);
+      onAvatarUploaded(base64);
       try {
         await authClient.updateUser({ image: base64 });
+        // Refetch session so it persists across page reloads
+        await authClient.getSession();
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       } catch (err) {
@@ -358,18 +384,20 @@ function AccountSettings({ onBack }: { onBack: () => void }) {
       {/* Profile Header */}
       <div className="flex flex-col items-center gap-3 mb-2">
         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-          {user?.profileImageUrl ? (
+          {displayImage ? (
             <img
-              src={user.profileImageUrl}
+              src={displayImage}
               alt="Profile"
               className="size-20 rounded-2xl object-cover ring-2 ring-primary/20"
             />
           ) : (
-            <div className="flex items-center justify-center size-20 rounded-2xl gradient-purple text-white text-3xl font-bold">
-              {avatarInitial}
-            </div>
+            <img
+              src="/images/logo.jpg"
+              alt="Shal Su"
+              className="size-20 rounded-2xl object-cover ring-2 ring-primary/20"
+            />
           )}
-          <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/50 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <Camera className="size-6 text-white" />
           </div>
         </div>
@@ -406,7 +434,7 @@ function AccountSettings({ onBack }: { onBack: () => void }) {
               size="sm"
               onClick={handleUpdateName}
               disabled={!name.trim() || name === user?.displayName}
-              className="gradient-purple text-white px-4"
+              className="gradient-gold text-white px-4"
             >
               {saved ? <Check className="size-4" /> : <Pencil className="size-4" />}
             </Button>
@@ -490,7 +518,7 @@ function AccountSettings({ onBack }: { onBack: () => void }) {
                   />
                 </div>
               </div>
-              <Button type="submit" disabled={passwordLoading} className="gradient-purple text-white mt-1">
+              <Button type="submit" disabled={passwordLoading} className="gradient-gold text-white mt-1">
                 {passwordLoading ? "Changing..." : "Update Password"}
               </Button>
             </form>
@@ -540,7 +568,7 @@ function AccountSettings({ onBack }: { onBack: () => void }) {
                   />
                 </div>
               </div>
-              <Button type="submit" disabled={emailLoading} className="gradient-purple text-white mt-1">
+              <Button type="submit" disabled={emailLoading} className="gradient-gold text-white mt-1">
                 {emailLoading ? "Updating..." : "Update Email"}
               </Button>
             </form>
@@ -663,8 +691,8 @@ function ThemeSettings({ onBack }: { onBack: () => void }) {
                 )}
               >
                 <div className={cn(
-                  "flex items-center justify-center size-10 rounded-xl",
-                  isActive ? "bg-primary text-white" : "bg-secondary",
+                  "flex items-center justify-center size-10 rounded-xl transition-all duration-300",
+                  isActive ? "bg-primary text-white shadow-md shadow-primary/25" : "glass-toggle text-muted-foreground",
                 )}>
                   <Icon className="size-5" />
                 </div>
@@ -673,7 +701,7 @@ function ThemeSettings({ onBack }: { onBack: () => void }) {
                   <p className="text-xs text-muted-foreground">{t.description}</p>
                 </div>
                 {isActive && (
-                  <div className="flex items-center justify-center size-6 rounded-full bg-primary text-white">
+                  <div className="flex items-center justify-center size-6 rounded-full bg-primary text-white animate-scale-in">
                     <Check className="size-4" />
                   </div>
                 )}
@@ -683,7 +711,7 @@ function ThemeSettings({ onBack }: { onBack: () => void }) {
         </CardContent>
       </Card>
 
-      <div className="rounded-xl bg-secondary/30 px-4 py-3">
+      <div className="rounded-xl glass-toggle px-4 py-3">
         <p className="text-xs text-muted-foreground">
           Theme is saved locally and persists across sessions.
         </p>
@@ -742,30 +770,24 @@ function PrivacySettings({ onBack }: { onBack: () => void }) {
                 key={t.key}
                 onClick={() => setPrivacy({ [t.key]: !isEnabled })}
                 className={cn(
-                  "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl transition-colors hover:bg-secondary/50 text-left",
+                  "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl transition-all duration-200 hover:bg-secondary/50 text-left",
                   i > 0 && "border-t border-border/50",
                 )}
               >
-                <div className="flex items-center justify-center size-10 rounded-xl bg-secondary">
-                  <Icon className="size-5 text-muted-foreground" />
+                <div className={cn(
+                  "flex items-center justify-center size-10 rounded-xl transition-all duration-300",
+                  isEnabled ? "bg-primary/15 text-primary" : "glass-toggle text-muted-foreground",
+                )}>
+                  <Icon className="size-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold">{t.label}</p>
                   <p className="text-xs text-muted-foreground">{t.description}</p>
                 </div>
-                <div
-                  className={cn(
-                    "relative w-11 h-6 rounded-full transition-colors duration-200",
-                    isEnabled ? "bg-primary" : "bg-secondary",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform duration-200",
-                      isEnabled ? "translate-x-[22px]" : "translate-x-0.5",
-                    )}
-                  />
-                </div>
+                <Switch
+                  checked={isEnabled}
+                  onCheckedChange={(checked) => setPrivacy({ [t.key]: checked })}
+                />
               </button>
             );
           })}
@@ -886,7 +908,7 @@ function DataSettings({ onBack }: { onBack: () => void }) {
         </CardContent>
       </Card>
 
-      <div className="rounded-xl bg-secondary/30 px-4 py-3">
+      <div className="rounded-xl glass-toggle px-4 py-3">
         <p className="text-xs text-muted-foreground">
           {transactions.length} transactions · {categoryBudgets.length} category budgets
         </p>
@@ -921,7 +943,7 @@ function LanguageSettings({ onBack }: { onBack: () => void }) {
             </div>
             
             {/* Typography Preview */}
-            <div className="rounded-xl border border-border bg-secondary/30 p-4">
+            <div className="rounded-xl glass-toggle p-4">
               <h3 className="text-sm font-semibold mb-3">Typography Preview</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -954,7 +976,7 @@ function LanguageSettings({ onBack }: { onBack: () => void }) {
               </div>
             </div>
             
-            <div className="rounded-xl bg-primary/5 border border-primary/10 px-4 py-3">
+            <div className="rounded-xl glass-toggle px-4 py-3 border border-primary/10">
               <p className="text-xs text-muted-foreground">
                 <strong className="text-primary">Note:</strong> Burmese script requires more vertical space and larger font sizes for proper readability. The app automatically adjusts line height and font size when Burmese is selected.
               </p>

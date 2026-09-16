@@ -100,7 +100,7 @@ function CategoryBudgetRow({
         <div className="flex items-center gap-1">
           {editing ? (
             <form
-              className="flex items-center gap-1"
+              className="flex items-center gap-1.5"
               onSubmit={(e) => {
                 e.preventDefault();
                 commit();
@@ -112,10 +112,10 @@ function CategoryBudgetRow({
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onBlur={commit}
-                className="h-7 w-24 text-xs font-semibold tabular-nums"
+                className="h-9 w-24 text-xs font-semibold tabular-nums"
               />
-              <Button type="submit" size="icon" className="size-7 gradient-purple text-white">
-                <Check className="size-3" />
+              <Button type="submit" size="icon" className="size-9 gradient-gold text-white">
+                <Check className="size-4" />
               </Button>
             </form>
           ) : (
@@ -129,13 +129,13 @@ function CategoryBudgetRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-7"
+                className="size-9"
                 onClick={() => {
                   setDraft(String(limit || ""));
                   setEditing(true);
                 }}
               >
-                <Pencil className="size-3" />
+                <Pencil className="size-3.5" />
               </Button>
             </>
           )}

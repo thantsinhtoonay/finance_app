@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Mail, Lock, Eye, EyeOff, Wallet } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { authClient } from "@/lib/auth/client";
+import { MyanmarSkyline } from "@/components/ui/myanmar-skyline";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -43,14 +44,19 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
+    <div className="relative min-h-dvh flex items-center justify-center bg-background px-4 overflow-hidden">
+      {/* Full Myanmar skyline background */}
+      <MyanmarSkyline className="pointer-events-none absolute bottom-0 left-0 w-full h-[50vh] min-h-[280px] text-primary opacity-40" />
+
+      <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center size-16 rounded-2xl gradient-purple text-white mb-4">
-            <Wallet className="size-8" />
-          </div>
-          <h1 className="text-2xl font-bold">Northline</h1>
+          <img
+            src="/images/logo.jpg"
+            alt="Shal Su Logo"
+            className="size-24 rounded-full object-cover mb-4 shadow-lg"
+          />
+          <h1 className="text-2xl font-bold text-foreground">Shal Su</h1>
           <p className="text-muted-foreground mt-1">Sign in to your account</p>
         </div>
 
@@ -104,7 +110,7 @@ function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full gradient-purple text-white"
+                className="w-full gradient-gold text-white font-semibold"
                 disabled={loading}
               >
                 {loading ? "Signing in..." : "Sign In"}

@@ -22,7 +22,7 @@ function ChartTooltip({
   if (!active || !payload?.[0]) return null;
   const item = payload[0].payload;
   return (
-    <div className="rounded-xl bg-white px-3 py-2 text-sm shadow-lg border border-border">
+    <div className="rounded-xl glass-card px-3 py-2 text-sm shadow-lg border border-border/50">
       <p className="font-semibold">{translatedCategoryLabel(item.id, t)}</p>
       <p className="tabular-nums text-muted-foreground">
         {formatMoney(item.amount)} · {item.percent.toFixed(0)}%

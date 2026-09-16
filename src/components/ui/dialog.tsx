@@ -15,7 +15,9 @@ function DialogOverlay({
   return (
     <DialogPrimitive.Overlay
       className={cn(
-        "fixed inset-0 z-50 bg-background/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         className,
       )}
       {...props}
@@ -33,16 +35,18 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "fixed z-50 grid w-full gap-4 bg-card p-6 text-card-foreground shadow-border duration-200",
-          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-          "max-sm:inset-x-0 max-sm:bottom-0 max-sm:rounded-t-2xl max-sm:rounded-b-none",
+          "fixed z-50 grid w-full gap-4 p-6 text-card-foreground",
+          "bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl shadow-black/20",
+          "data-[state=open]:animate-glass-in data-[state=closed]:animate-out",
+          "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          "max-sm:inset-x-0 max-sm:bottom-0 max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85dvh] max-sm:overflow-y-auto",
           "sm:top-1/2 sm:left-1/2 sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl",
           className,
         )}
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm p-2 text-muted-foreground opacity-80 transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+        <DialogPrimitive.Close className="absolute top-4 right-4 rounded-full p-2 text-muted-foreground bg-secondary/80 hover:bg-secondary transition-all duration-200 hover:text-foreground hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
           <X className="size-4" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>

@@ -216,6 +216,13 @@ export const auth = betterAuth({
   // for HTTP headers (431 errors). PGLite is fast enough to query each time.
   session: { cookieCache: { enabled: false } },
 
+  // Allow users to delete their own account.
+  user: {
+    deleteUser: {
+      enabled: true,
+    },
+  },
+
   // Local email/password — toggled only via `./email-password` (not a plugin).
   ...(emailAndPasswordEnabled ? { emailAndPassword: { enabled: true } } : {}),
 

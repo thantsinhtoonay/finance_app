@@ -31,7 +31,7 @@ import { SavingsGoal } from "@/components/budget/savings-goal";
 import { TransactionDialog } from "@/components/budget/transaction-dialog";
 import { TransactionList } from "@/components/budget/transaction-list";
 import { YearlyOverview } from "@/components/budget/yearly-overview";
-import { QuickAddFab } from "@/components/budget/quick-add-fab";
+
 import { BottomNav } from "@/components/budget/bottom-nav";
 import { Settings as SettingsPage } from "@/components/budget/settings";
 import { LanguageIconToggle } from "@/lib/i18n/components/language-toggle";
@@ -187,26 +187,31 @@ export function Dashboard() {
   }, [handleKeyDown]);
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col pb-24 sm:pb-6">
-      <header className="sticky top-0 z-40 glass border-b border-border">
+    <>
+    <div className="mx-auto flex h-dvh w-full max-w-6xl flex-col overflow-hidden">
+      <header className="z-40 shrink-0 border-b border-border/30 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 shadow-sm shadow-black/5">
         <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center size-10 rounded-xl gradient-purple text-white">
-              <Wallet className="size-5" />
-            </div>
+            <motion.img
+              src="/images/logo.jpg"
+              alt="Shal Su"
+              className="size-10 rounded-full object-cover shadow-lg shadow-primary/10 ring-1 ring-primary/15"
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            />
             <div>
               <h1 className="text-lg font-bold tracking-tight">{t("app_name")}</h1>
-              <p className="text-xs text-muted-foreground">{t("dashboard_budget")}</p>
+              <p className="text-xs text-muted-foreground/70">{t("dashboard_budget")}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className="hidden sm:flex items-center gap-1 bg-secondary rounded-xl p-1">
+            <div className="hidden sm:flex items-center gap-0.5 rounded-full bg-secondary/60 backdrop-blur-sm p-1 border border-border/30">
               <Button
                 variant={view === "dashboard" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setView("dashboard")}
-                className="rounded-lg"
+                className="rounded-full px-4 text-xs"
               >
                 {t("time_monthly")}
               </Button>
@@ -214,36 +219,41 @@ export function Dashboard() {
                 variant={view === "yearly" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setView("yearly")}
-                className="rounded-lg"
+                className="rounded-full px-3 text-xs"
               >
-                <CalendarDays className="size-4" />
+                <CalendarDays className="size-3.5" />
                 {t("time_yearly")}
               </Button>
             </div>
 
-            <Button
-              onClick={openAdd}
-              size="icon"
-              className="size-10 gradient-purple text-white shadow-lg shadow-primary/25 sm:h-11 sm:w-auto sm:px-5"
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
             >
-              <Plus className="size-5" />
-              <span className="hidden sm:inline">{t("add")}</span>
-            </Button>
+              <Button
+                onClick={openAdd}
+                size="icon"
+                className="size-10 rounded-full gradient-gold text-white shadow-lg shadow-primary/25 sm:h-9 sm:w-auto sm:px-4 sm:rounded-full"
+              >
+                <Plus className="size-5" />
+                <span className="hidden sm:inline text-xs">{t("add")}</span>
+              </Button>
+            </motion.div>
             <LanguageIconToggle />
             <Button
               variant="ghost"
               size="icon"
-              className="size-10 hidden sm:flex"
+              className="size-10 hidden sm:flex rounded-full hover:bg-secondary/60"
               onClick={() => setView("settings")}
               aria-label={t("nav_settings")}
             >
-              <SettingsIcon className="size-5" />
+              <SettingsIcon className="size-4.5" />
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 px-4 sm:px-6">
+      <div className="flex-1 overflow-y-auto px-4 pb-28 sm:px-6 sm:pb-6">
         <AnimatePresence mode="wait">
           {view === "settings" ? (
             <motion.div
@@ -292,11 +302,11 @@ export function Dashboard() {
                       {formatMoney(summary.remaining)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 self-end sm:self-auto">
+                  <div className="flex items-center gap-0.5 self-end sm:self-auto">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-9"
+                      className="size-10"
                       onClick={() => setSelectedMonth(shiftMonth(selectedMonth, -1))}
                       aria-label="Previous month"
                     >
@@ -309,7 +319,7 @@ export function Dashboard() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-9"
+                      className="size-10"
                       onClick={() => setSelectedMonth(shiftMonth(selectedMonth, 1))}
                       aria-label="Next month"
                     >
@@ -397,9 +407,6 @@ export function Dashboard() {
         }}
       />
 
-      <QuickAddFab onAdd={openAdd} />
-      <BottomNav active={view} onChange={setView} />
-
       <AlertDialog
         open={pendingDelete !== null}
         onOpenChange={(open) => {
@@ -447,6 +454,9 @@ export function Dashboard() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+
+      <BottomNav active={view} onChange={setView} />
+    </>
   );
 }
 

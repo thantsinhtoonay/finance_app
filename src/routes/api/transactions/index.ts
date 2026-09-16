@@ -52,6 +52,17 @@ export const Route = createFileRoute("/api/transactions/")({
           return Response.json({ error: e.message }, { status: 500 });
         }
       },
+      DELETE: async () => {
+        try {
+          const userId = await requireUser();
+          const sql = await getSql();
+          await sql.query(`DELETE FROM transactions WHERE user_id = $1`, [userId]);
+          return Response.json({ success: true });
+        } catch (e: any) {
+          if (e instanceof Response) return e;
+          return Response.json({ error: e.message }, { status: 500 });
+        }
+      },
     },
   },
 });

@@ -131,19 +131,19 @@ export function TransactionDialog({
         </DialogHeader>
 
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-2 rounded-xl bg-secondary p-1">
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-secondary/80 border border-border/50 p-1">
             {(["expense", "income"] as const).map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => handleType(option)}
                 className={cn(
-                  "h-10 rounded-lg text-sm font-semibold capitalize transition-all duration-200",
+                  "h-11 rounded-lg text-sm font-semibold capitalize transition-all duration-200",
                   type === option
                     ? option === "income"
                       ? "bg-emerald-500 text-white shadow-md"
                       : "bg-primary text-white shadow-md"
-                    : "text-muted-foreground hover:text-foreground",
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary",
                 )}
               >
                 {option === "expense" ? t("transaction_expense") : t("transaction_income")}
@@ -226,7 +226,7 @@ export function TransactionDialog({
             />
           </div>
 
-          <div className="rounded-xl bg-secondary/50 px-4 py-3">
+          <div className="rounded-xl bg-secondary/80 border border-border/50 px-4 py-3">
             <p className="text-sm text-muted-foreground">
               {t("dialog_remaining_after")}{" "}
               <span
@@ -248,7 +248,7 @@ export function TransactionDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">
               {t("cancel")}
             </Button>
-            <Button type="submit" className="gradient-purple text-white shadow-lg shadow-primary/25 rounded-xl">
+            <Button type="submit" className="gradient-gold text-white shadow-lg shadow-primary/25 rounded-xl">
               {editing ? t("dialog_save_changes") : t("dialog_add_entry")}
             </Button>
           </div>

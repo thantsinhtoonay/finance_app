@@ -17,9 +17,9 @@ const NAV_ITEMS: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
 
 export function BottomNav({ active, onChange }: Props) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 sm:hidden safe-area-pb">
-      <div className="glass border-t border-border">
-        <div className="flex items-center justify-around px-2 py-1">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 sm:hidden">
+      <div className="mx-3 mb-3 rounded-2xl border border-border/30 bg-background/90 shadow-2xl shadow-black/20 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+        <div className="flex items-center justify-around px-2 py-1.5">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = active === item.id;
@@ -28,7 +28,7 @@ export function BottomNav({ active, onChange }: Props) {
                 key={item.id}
                 onClick={() => onChange(item.id)}
                 className={cn(
-                  "relative flex flex-col items-center gap-0.5 px-5 py-2.5 rounded-xl transition-colors duration-200 touch-target",
+                  "relative flex flex-col items-center gap-1 px-6 py-2.5 rounded-xl transition-all duration-300",
                   isActive
                     ? "text-primary"
                     : "text-muted-foreground active:text-foreground",
@@ -37,12 +37,23 @@ export function BottomNav({ active, onChange }: Props) {
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-primary/10 rounded-xl"
+                    className="absolute inset-0 rounded-xl bg-primary/10"
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
-                <Icon className="size-5 relative z-10" />
-                <span className="text-[10px] font-semibold relative z-10">{item.label}</span>
+                <motion.div
+                  animate={isActive ? { scale: 1.15, y: -1 } : { scale: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className="relative z-10"
+                >
+                  <Icon className="size-6" strokeWidth={isActive ? 2.5 : 2} />
+                </motion.div>
+                <motion.span
+                  animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0.6, y: 0 }}
+                  className="text-[11px] font-semibold relative z-10"
+                >
+                  {item.label}
+                </motion.span>
               </button>
             );
           })}

@@ -39,43 +39,43 @@ export function YearlyOverview({ year }: Props) {
             <p className="text-sm text-muted-foreground">Annual financial overview</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-4">
-              <div className="flex items-center justify-center size-10 rounded-xl bg-emerald-100">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-3 py-3 sm:px-4 sm:py-4">
+              <div className="flex items-center justify-center size-10 rounded-xl bg-emerald-100 shrink-0">
                 <TrendingUp className="size-5 text-emerald-600" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs font-semibold text-emerald-600/70">Total Income</p>
-                <p className="text-lg font-bold tabular-nums tracking-tight text-emerald-600">
+                <p className="text-base sm:text-lg font-bold tabular-nums tracking-tight text-emerald-600 truncate">
                   {formatMoney(summary.totalIncome)}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3 rounded-xl bg-red-50 px-4 py-4">
-              <div className="flex items-center justify-center size-10 rounded-xl bg-red-100">
+            <div className="flex items-center gap-3 rounded-xl bg-red-50 px-3 py-3 sm:px-4 sm:py-4">
+              <div className="flex items-center justify-center size-10 rounded-xl bg-red-100 shrink-0">
                 <TrendingDown className="size-5 text-red-500" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs font-semibold text-red-500/70">Total Expenses</p>
-                <p className="text-lg font-bold tabular-nums tracking-tight text-red-500">
+                <p className="text-base sm:text-lg font-bold tabular-nums tracking-tight text-red-500 truncate">
                   {formatMoney(summary.totalExpenses)}
                 </p>
               </div>
             </div>
             <div className={cn(
-              "flex items-center gap-3 rounded-xl px-4 py-4",
+              "flex items-center gap-3 rounded-xl px-3 py-3 sm:px-4 sm:py-4",
               summary.netSavings >= 0 ? "bg-primary/5" : "bg-red-50",
             )}>
               <div className={cn(
-                "flex items-center justify-center size-10 rounded-xl",
+                "flex items-center justify-center size-10 rounded-xl shrink-0",
                 summary.netSavings >= 0 ? "bg-primary/10" : "bg-red-100",
               )}>
                 <Wallet className={cn("size-5", summary.netSavings >= 0 ? "text-primary" : "text-red-500")} />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className={cn("text-xs font-semibold", summary.netSavings >= 0 ? "text-primary/70" : "text-red-500/70")}>Net Savings</p>
                 <p className={cn(
-                  "text-lg font-bold tabular-nums tracking-tight",
+                  "text-base sm:text-lg font-bold tabular-nums tracking-tight truncate",
                   summary.netSavings >= 0 ? "text-primary" : "text-red-500",
                 )}>
                   {formatMoney(summary.netSavings)}
@@ -109,13 +109,13 @@ export function YearlyOverview({ year }: Props) {
                   tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                  tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
                   content={({ active, payload, label }) => {
                     if (!active || !payload?.length) return null;
                     return (
-                      <div className="rounded-xl bg-white px-4 py-3 text-sm shadow-lg border border-border">
+                      <div className="rounded-xl glass-card px-4 py-3 text-sm shadow-lg border border-border/50">
                         <p className="font-bold mb-1">{label}</p>
                         {payload.map((entry) => (
                           <p key={entry.name} className="tabular-nums text-muted-foreground font-medium">

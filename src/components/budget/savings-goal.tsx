@@ -50,7 +50,7 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 shrink-0"
+              className="size-10 shrink-0"
               onClick={() => {
                 setDraft(String(goal));
                 setEditing(true);
@@ -79,12 +79,12 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
               aria-label={t("savings_target")}
               className="text-lg font-bold tabular-nums"
             />
-            <Button type="submit" size="icon" className="gradient-purple text-white" aria-label={t("save")}>
+            <Button type="submit" size="icon" className="gradient-gold text-white" aria-label={t("save")}>
               <Check />
             </Button>
           </form>
         ) : (
-          <p className="text-2xl font-bold tabular-nums tracking-tight">
+          <p className="text-xl sm:text-2xl font-bold tabular-nums tracking-tight">
             {formatMoney(goal)}
             <span className="ml-2 text-sm font-normal text-muted-foreground">/ {t("time_monthly")}</span>
           </p>

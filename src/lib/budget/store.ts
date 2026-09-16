@@ -27,7 +27,7 @@ type BudgetState = {
   setCategoryBudget: (categoryId: string, limit: number) => Promise<void>;
   removeCategoryBudget: (categoryId: string) => void;
   loadFromServer: () => Promise<void>;
-  resetData: () => void;
+  resetData: () => Promise<void>;
 };
 
 async function apiFetch(url: string, options?: RequestInit) {
@@ -187,7 +187,7 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
     }));
   },
 
-  resetData: () => {
+  resetData: async () => {
     set({
       transactions: [],
       monthlyGoal: 3500,
@@ -202,6 +202,12 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
         { categoryId: "shopping", limit: 250 },
       ],
     });
+
+    try {
+      await apiFetch("/api/transactions/", { method: "DELETE" });
+    } catch (err) {
+      console.error("Failed to clear data from server:", err);
+    }
   },
 }));
 
