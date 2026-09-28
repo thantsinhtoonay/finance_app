@@ -44,7 +44,7 @@ async function apiFetch(url: string, options?: RequestInit) {
 
 export const useBudgetStore = create<BudgetState>()((set, get) => ({
   transactions: [],
-  monthlyGoal: 3500,
+      monthlyGoal: 0,
   selectedMonth: monthKey(),
   categoryBudgets: [
     { categoryId: "housing", limit: 2000 },
@@ -198,7 +198,7 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
   resetData: async () => {
     set({
       transactions: [],
-      monthlyGoal: 3500,
+  monthlyGoal: 0,
       selectedMonth: monthKey(),
       categoryBudgets: [
         { categoryId: "housing", limit: 2000 },

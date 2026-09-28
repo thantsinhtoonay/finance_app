@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Download,
   Keyboard,
-  Plus,
   RotateCcw,
   Settings as SettingsIcon,
   Trash2,
@@ -108,6 +107,13 @@ export function Dashboard() {
   function openAdd() {
     setEditing(null);
     setDialogOpen(true);
+  }
+
+  function handleSearch() {
+    setView("dashboard");
+    setTimeout(() => {
+      document.getElementById("search-input")?.focus();
+    }, 100);
   }
 
   function openEdit(tx: Transaction) {
@@ -226,19 +232,6 @@ export function Dashboard() {
               </Button>
             </div>
 
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
-            >
-              <Button
-                onClick={openAdd}
-                size="icon"
-                className="size-10 rounded-full gradient-gold text-white shadow-lg shadow-primary/25 sm:h-9 sm:w-auto sm:px-4 sm:rounded-full"
-              >
-                <Plus className="size-5" />
-                <span className="hidden sm:inline text-xs">{t("add")}</span>
-              </Button>
-            </motion.div>
             <LanguageIconToggle />
             <Button
               variant="ghost"
@@ -455,7 +448,7 @@ export function Dashboard() {
       </AlertDialog>
     </div>
 
-      <BottomNav active={view} onChange={setView} />
+      <BottomNav active={view} onChange={setView} onAdd={openAdd} onSearch={handleSearch} />
     </>
   );
 }

@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/settings/")({
             [userId],
           );
           if (rows.length === 0) {
-            return Response.json({ monthlyGoal: 3500 });
+            return Response.json({ monthlyGoal: 0 });
           }
           return Response.json(rows[0]);
         } catch (e: any) {
