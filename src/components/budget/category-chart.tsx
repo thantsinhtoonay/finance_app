@@ -47,7 +47,7 @@ export function CategoryChart({ categories, total }: Props) {
         </div>
 
         {categories.length === 0 ? (
-          <div className="flex flex-1 min-h-48 items-center justify-center rounded-xl bg-secondary/50 px-6 text-center">
+          <div className="flex flex-1 min-h-28 sm:min-h-48 items-center justify-center rounded-xl bg-secondary/50 px-6 text-center">
             <p className="text-sm text-muted-foreground">
               {t("msg_no_transactions")}
             </p>

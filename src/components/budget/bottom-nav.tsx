@@ -34,8 +34,9 @@ export function BottomNav({ active, onChange, onAdd, onSearch }: Props) {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 sm:hidden">
-      <div className="mx-3 mb-3 rounded-2xl border border-border/30 bg-background/90 shadow-2xl shadow-black/20 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+    <nav className="fixed inset-x-0 bottom-0 z-50 pb-[env(safe-area-inset-bottom)] sm:hidden">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/85 to-transparent" />
+      <div className="relative mx-3 mb-3 rounded-2xl border border-border/40 bg-background/95 shadow-2xl shadow-black/25 backdrop-blur-xl supports-[backdrop-filter]:bg-background/85">
         <div className="flex items-center justify-around px-4 py-2">
           {NAV_ITEMS.slice(0, 2).map((item) => (
             <NavButton

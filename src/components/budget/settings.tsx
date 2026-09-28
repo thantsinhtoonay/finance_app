@@ -50,9 +50,9 @@ export function Settings({ onBack }: Props) {
   const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
 
   return (
-    <div className="mx-auto flex h-dvh w-full max-w-2xl flex-col overflow-hidden">
-      <header className="shrink-0 border-b border-border/20 bg-background/80 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center gap-3 px-4 py-3">
+    <div className="mx-auto w-full max-w-2xl">
+      <header className="sticky top-0 z-10 -mx-4 mb-4 border-b border-border/20 bg-background/95 px-4 py-3 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 sm:-mx-6 sm:px-6">
+        <div className="flex items-center gap-3">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button variant="ghost" size="icon" onClick={onBack} className="size-10 rounded-full hover:bg-secondary/60">
               <ArrowLeft className="size-5" />
@@ -62,7 +62,7 @@ export function Settings({ onBack }: Props) {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth">
+      <div className="px-0 pb-4">
         {view === "main" && <SettingsMain onNavigate={setView} onBack={onBack} localAvatarUrl={localAvatarUrl} />}
         {view === "account" && <AccountSettings onBack={() => setView("main")} onAvatarUploaded={setLocalAvatarUrl} />}
         {view === "theme" && <ThemeSettings onBack={() => setView("main")} />}

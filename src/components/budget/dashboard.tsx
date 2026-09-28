@@ -246,7 +246,7 @@ export function Dashboard() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-28 sm:px-6 sm:pb-6">
+      <div className="flex-1 overflow-y-auto px-4 pb-36 sm:px-6 sm:pb-6" id="main-scroll">
         <AnimatePresence mode="wait">
           {view === "settings" ? (
             <motion.div
@@ -468,15 +468,15 @@ function StatCard({
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="flex flex-col gap-1.5 sm:gap-2 rounded-xl bg-secondary/50 px-3 py-2.5 sm:px-4 sm:py-3"
+      className="flex min-w-0 flex-col gap-1.5 rounded-xl bg-secondary/50 px-2.5 py-2.5 sm:gap-2 sm:px-4 sm:py-3"
     >
-      <div className="flex items-center gap-1.5">
-        {icon}
-        <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground truncate">{label}</span>
+      <div className="flex items-start gap-1.5 min-w-0">
+        <span className="shrink-0 mt-0.5">{icon}</span>
+        <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground leading-tight break-words">{label}</span>
       </div>
       <p
         className={cn(
-          "text-sm sm:text-base font-bold tabular-nums tracking-tight",
+          "text-sm sm:text-base font-bold tabular-nums tracking-tight truncate",
           tone === "income" && "text-emerald-600",
           tone === "expense" && "text-red-500",
         )}
