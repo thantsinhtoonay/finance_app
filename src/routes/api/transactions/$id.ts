@@ -21,6 +21,11 @@ export const Route = createFileRoute("/api/transactions/$id")({
           const body = await request.json();
           const { type, amount, category, date, note, recurring } = body;
 
+          const amountNum = Number(amount);
+          if (!type || !Number.isFinite(amountNum) || amountNum <= 0 || !category || !date) {
+            return Response.json({ error: "Missing or invalid required fields" }, { status: 400 });
+          }
+
           const sql = await getSql();
           const existing = await sql.query(
             `SELECT id FROM transactions WHERE id = $1 AND user_id = $2`,
@@ -30,12 +35,13 @@ export const Route = createFileRoute("/api/transactions/$id")({
             return Response.json({ error: "Not found" }, { status: 404 });
           }
 
+          const rounded = Math.round(amountNum);
           await sql.query(
             `UPDATE transactions SET type = $1, amount = $2, category = $3, date = $4, note = $5, recurring = $6
              WHERE id = $7 AND user_id = $8`,
-            [type, amount, category, date, note || "", recurring || null, id, userId],
+            [type, rounded, category, date, note || "", recurring || null, id, userId],
           );
-          return Response.json({ id, type, amount, category, date, note: note || "", recurring: recurring || null });
+          return Response.json({ id, type, amount: rounded, category, date, note: note || "", recurring: recurring || null });
         } catch (e: any) {
           if (e instanceof Response) return e;
           return Response.json({ error: e.message }, { status: 500 });

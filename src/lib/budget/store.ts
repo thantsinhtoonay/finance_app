@@ -66,12 +66,20 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
       ]);
 
       if (txRes.ok) {
-        const transactions = await txRes.json();
+        const rows = await txRes.json();
+        const transactions = rows.map((t: any) => ({
+          ...t,
+          amount: Number(t.amount),
+        }));
         set({ transactions });
       }
 
       if (budgetRes.ok) {
-        const categoryBudgets = await budgetRes.json();
+        const rows = await budgetRes.json();
+        const categoryBudgets = rows.map((b: any) => ({
+          ...b,
+          limit: Number(b.limit),
+        }));
         if (categoryBudgets.length > 0) {
           set({ categoryBudgets });
         }
@@ -79,7 +87,7 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
 
       if (settingsRes.ok) {
         const { monthlyGoal } = await settingsRes.json();
-        set({ monthlyGoal });
+        set({ monthlyGoal: Number(monthlyGoal) });
       }
 
       set({ loaded: true });

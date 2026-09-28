@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Pencil, Target } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,12 @@ type Props = {
 export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(goal));
+  const committedRef = useRef(false);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!editing) setDraft(String(goal));
+  }, [goal, editing]);
 
   const towardGoal = Math.max(0, remaining);
   const pct = goal > 0 ? clampPercent((towardGoal / goal) * 100) : 0;
@@ -26,10 +31,13 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
   const surplus = Math.max(0, remaining - goal);
 
   function commit() {
+    if (committedRef.current) return;
+    committedRef.current = true;
     const next = parseAmount(draft);
     if (next !== null) onChangeGoal(next);
     else setDraft(String(goal));
     setEditing(false);
+    setTimeout(() => { committedRef.current = false; }, 300);
   }
 
   return (

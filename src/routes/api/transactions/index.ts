@@ -35,8 +35,9 @@ export const Route = createFileRoute("/api/transactions/")({
           const body = await request.json();
           const { type, amount, category, date, note, recurring } = body;
 
-          if (!type || !amount || !category || !date) {
-            return Response.json({ error: "Missing required fields" }, { status: 400 });
+          const amountNum = Number(amount);
+          if (!type || !Number.isFinite(amountNum) || amountNum <= 0 || !category || !date) {
+            return Response.json({ error: "Missing or invalid required fields" }, { status: 400 });
           }
 
           const id = crypto.randomUUID();
@@ -44,9 +45,9 @@ export const Route = createFileRoute("/api/transactions/")({
           await sql.query(
             `INSERT INTO transactions (id, user_id, type, amount, category, date, note, recurring)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [id, userId, type, amount, category, date, note || "", recurring || null],
+            [id, userId, type, Math.round(amountNum), category, date, note || "", recurring || null],
           );
-          return Response.json({ id, type, amount, category, date, note: note || "", recurring: recurring || null });
+          return Response.json({ id, type, amount: Math.round(amountNum), category, date, note: note || "", recurring: recurring || null });
         } catch (e: any) {
           if (e instanceof Response) return e;
           return Response.json({ error: e.message }, { status: 500 });

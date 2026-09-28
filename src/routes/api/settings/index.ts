@@ -38,19 +38,21 @@ export const Route = createFileRoute("/api/settings/")({
           const body = await request.json();
           const { monthlyGoal } = body;
 
-          if (monthlyGoal === undefined) {
-            return Response.json({ error: "Missing monthlyGoal" }, { status: 400 });
+          const goalNum = Number(monthlyGoal);
+          if (monthlyGoal === undefined || !Number.isFinite(goalNum) || goalNum < 0) {
+            return Response.json({ error: "Missing or invalid monthlyGoal" }, { status: 400 });
           }
 
           const sql = await getSql();
+          const rounded = Math.round(goalNum);
           await sql.query(
             `INSERT INTO user_settings (user_id, monthly_goal)
              VALUES ($1, $2)
              ON CONFLICT (user_id)
              DO UPDATE SET monthly_goal = $2, updated_at = CURRENT_TIMESTAMP`,
-            [userId, monthlyGoal],
+            [userId, rounded],
           );
-          return Response.json({ monthlyGoal });
+          return Response.json({ monthlyGoal: rounded });
         } catch (e: any) {
           if (e instanceof Response) return e;
           return Response.json({ error: e.message }, { status: 500 });

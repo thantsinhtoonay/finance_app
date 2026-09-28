@@ -158,7 +158,7 @@ export function TransactionDialog({
               inputMode="decimal"
               placeholder="0"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => setAmount(e.target.value.replace(/[^0-9,]/g, ""))}
               className="text-2xl font-bold tabular-nums h-14"
               autoFocus
             />

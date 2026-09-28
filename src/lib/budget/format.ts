@@ -54,7 +54,7 @@ export function formatSigned(value: number, type: "income" | "expense"): string 
 }
 
 export function parseAmount(raw: string): number | null {
-  const cleaned = raw.replace(/[^0-9.]/g, "");
+  const cleaned = raw.replace(/[^0-9]/g, "");
   if (!cleaned) return null;
   const n = Number(cleaned);
   if (!Number.isFinite(n) || n <= 0) return null;

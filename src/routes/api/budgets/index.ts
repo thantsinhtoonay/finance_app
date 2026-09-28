@@ -35,19 +35,21 @@ export const Route = createFileRoute("/api/budgets/")({
           const body = await request.json();
           const { categoryId, limit } = body;
 
-          if (!categoryId || limit === undefined) {
-            return Response.json({ error: "Missing categoryId or limit" }, { status: 400 });
+          const limitNum = Number(limit);
+          if (!categoryId || limit === undefined || !Number.isFinite(limitNum) || limitNum < 0) {
+            return Response.json({ error: "Missing or invalid categoryId or limit" }, { status: 400 });
           }
 
           const sql = await getSql();
+          const rounded = Math.round(limitNum);
           await sql.query(
             `INSERT INTO category_budgets (id, user_id, category_id, budget_limit)
              VALUES ($1, $2, $3, $4)
              ON CONFLICT (user_id, category_id)
              DO UPDATE SET budget_limit = $4`,
-            [crypto.randomUUID(), userId, categoryId, limit],
+            [crypto.randomUUID(), userId, categoryId, rounded],
           );
-          return Response.json({ categoryId, limit });
+          return Response.json({ categoryId, limit: rounded });
         } catch (e: any) {
           if (e instanceof Response) return e;
           return Response.json({ error: e.message }, { status: 500 });

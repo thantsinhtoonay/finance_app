@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Pencil, AlertTriangle, Layers } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -68,7 +68,12 @@ function CategoryBudgetRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(budget?.limit ?? ""));
+  const committedRef = useRef(false);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!editing) setDraft(String(budget?.limit ?? ""));
+  }, [budget?.limit, editing]);
 
   const limit = budget?.limit ?? 0;
   const pct = limit > 0 ? clampPercent((category.amount / limit) * 100) : 0;
@@ -76,9 +81,12 @@ function CategoryBudgetRow({
   const nearLimit = limit > 0 && category.amount > limit * 0.8 && !overBudget;
 
   function commit() {
+    if (committedRef.current) return;
+    committedRef.current = true;
     const next = parseAmount(draft);
     if (next !== null && next > 0) onSetBudget(category.id, next);
     setEditing(false);
+    setTimeout(() => { committedRef.current = false; }, 300);
   }
 
   return (
