@@ -39,7 +39,7 @@ function DialogContent({
           "bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl shadow-black/20",
           "data-[state=open]:animate-glass-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-          "max-sm:inset-x-0 max-sm:bottom-0 max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85dvh] max-sm:overflow-y-auto",
+          "max-sm:inset-x-0 max-sm:bottom-0 max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[85dvh] max-sm:overflow-y-auto max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]",
           "sm:top-1/2 sm:left-1/2 sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl",
           className,
         )}

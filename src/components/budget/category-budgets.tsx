@@ -118,7 +118,7 @@ function CategoryBudgetRow({
                 autoFocus
                 inputMode="decimal"
                 value={draft}
-                onChange={(e) => setDraft(e.target.value)}
+                onChange={(e) => setDraft(e.target.value.replace(/[^0-9,]/g, ""))}
                 onBlur={commit}
                 className="h-9 w-24 text-xs font-semibold tabular-nums"
               />

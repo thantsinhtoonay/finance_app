@@ -82,7 +82,7 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
               autoFocus
               inputMode="decimal"
               value={draft}
-              onChange={(e) => setDraft(e.target.value)}
+              onChange={(e) => setDraft(e.target.value.replace(/[^0-9,]/g, ""))}
               onBlur={commit}
               aria-label={t("savings_target")}
               className="text-lg font-bold tabular-nums"

@@ -33,7 +33,7 @@ import { useSettingsStore, applyTheme } from "@/lib/settings/store";
 import type { Theme } from "@/lib/settings/types";
 import { useBudgetStore } from "@/lib/budget/store";
 import { cn } from "@/lib/utils";
-import { LanguageSelector } from "@/lib/i18n/components/language-selector";
+import { LanguageSwitch } from "@/lib/i18n";
 import { useTranslation } from "@/lib/i18n/store";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { authClient } from "@/lib/auth/client";
@@ -918,8 +918,7 @@ function DataSettings({ onBack }: { onBack: () => void }) {
 }
 
 function LanguageSettings({ onBack }: { onBack: () => void }) {
-  const { t, language, isBurmese } = useTranslation();
-  const { LanguageSwitch } = require("@/lib/i18n");
+  const { t, isBurmese } = useTranslation();
 
   return (
     <div className="flex flex-col gap-4">
