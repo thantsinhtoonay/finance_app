@@ -16,8 +16,16 @@ export const en: TranslationKeys = {
   
   // Navigation
   nav_home: "Home",
+  nav_history: "History",
   nav_yearly: "Yearly",
   nav_settings: "Settings",
+  
+  // History
+  history_title: "History",
+  history_subtitle: "Review past months",
+  history_this_month: "This month",
+  list_transactions: "Transactions",
+  stat_remaining: "Remaining",
   
   // Dashboard
   dashboard_remaining: "Remaining this month",

@@ -16,8 +16,16 @@ export const my: TranslationKeys = {
   
   // Navigation
   nav_home: "ပင်မ",
+  nav_history: "မှတ်တမ်း",
   nav_yearly: "နှစ်စဉ်",
   nav_settings: "ဆက်တင်",
+  
+  // History
+  history_title: "မှတ်တမ်း",
+  history_subtitle: "ယခင်လများကို ပြန်ကြည့်ရန်",
+  history_this_month: "ယခုလ",
+  list_transactions: "ငွေစာရင်းများ",
+  stat_remaining: "ကျန်ငွေ",
   
   // Dashboard
   dashboard_remaining: "ယခုလကျန်ငွေ",

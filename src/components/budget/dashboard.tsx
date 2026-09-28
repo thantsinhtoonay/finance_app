@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  History,
   Keyboard,
   RotateCcw,
   Settings as SettingsIcon,
@@ -29,6 +30,7 @@ import { CategoryBudgets } from "@/components/budget/category-budgets";
 import { SavingsGoal } from "@/components/budget/savings-goal";
 import { TransactionDialog } from "@/components/budget/transaction-dialog";
 import { TransactionList } from "@/components/budget/transaction-list";
+import { TransactionHistory } from "@/components/budget/history";
 import { YearlyOverview } from "@/components/budget/yearly-overview";
 
 import { BottomNav } from "@/components/budget/bottom-nav";
@@ -57,11 +59,10 @@ import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Filter = "all" | TxType;
-type View = "dashboard" | "yearly" | "settings";
+type View = "dashboard" | "history" | "yearly" | "settings";
 
 export function Dashboard() {
   const [filter, setFilter] = useState<Filter>("all");
-  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
@@ -93,8 +94,8 @@ export function Dashboard() {
     [transactions, selectedMonth, categoryBudgets],
   );
   const items = useMemo(
-    () => monthTransactions(transactions, selectedMonth, filter, search),
-    [transactions, selectedMonth, filter, search],
+    () => monthTransactions(transactions, selectedMonth, filter),
+    [transactions, selectedMonth, filter],
   );
 
   const leftover = summary.remaining - monthlyGoal;
@@ -107,13 +108,6 @@ export function Dashboard() {
   function openAdd() {
     setEditing(null);
     setDialogOpen(true);
-  }
-
-  function handleSearch() {
-    setView("dashboard");
-    setTimeout(() => {
-      document.getElementById("search-input")?.focus();
-    }, 100);
   }
 
   function openEdit(tx: Transaction) {
@@ -172,14 +166,10 @@ export function Dashboard() {
       if (e.key === "n" || e.key === "N") {
         e.preventDefault();
         openAdd();
-      } else if (e.key === "/") {
-        e.preventDefault();
-        document.getElementById("search-input")?.focus();
       } else if (e.key === "Escape") {
         setDialogOpen(false);
         setPendingDelete(null);
         setShowShortcuts(false);
-        setSearch("");
       } else if (e.key === "?" && !e.shiftKey) {
         setShowShortcuts((s) => !s);
       }
@@ -230,6 +220,15 @@ export function Dashboard() {
                 <CalendarDays className="size-3.5" />
                 {t("time_yearly")}
               </Button>
+              <Button
+                variant={view === "history" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setView("history")}
+                className="rounded-full px-3 text-xs"
+              >
+                <History className="size-3.5" />
+                {t("nav_history")}
+              </Button>
             </div>
 
             <LanguageIconToggle />
@@ -258,6 +257,17 @@ export function Dashboard() {
               className="py-6"
             >
               <SettingsPage onBack={() => setView("dashboard")} />
+            </motion.div>
+          ) : view === "history" ? (
+            <motion.div
+              key="history"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="py-6"
+            >
+              <TransactionHistory onEdit={openEdit} onDelete={setPendingDelete} onAdd={openAdd} />
             </motion.div>
           ) : view === "yearly" ? (
             <motion.div
@@ -373,9 +383,7 @@ export function Dashboard() {
             <TransactionList
               items={items}
               filter={filter}
-              search={search}
               onFilter={setFilter}
-              onSearch={setSearch}
               onEdit={openEdit}
               onDelete={setPendingDelete}
               onAdd={openAdd}
@@ -437,7 +445,6 @@ export function Dashboard() {
           </AlertDialogHeader>
           <div className="flex flex-col gap-2 text-sm">
             <ShortcutRow keys="N" desc={t("transaction_add")} />
-            <ShortcutRow keys="/" desc={t("transaction_search")} />
             <ShortcutRow keys="?" desc={t("close")} />
             <ShortcutRow keys="Esc" desc={t("close")} />
           </div>
@@ -448,7 +455,7 @@ export function Dashboard() {
       </AlertDialog>
     </div>
 
-      <BottomNav active={view} onChange={setView} onAdd={openAdd} onSearch={handleSearch} />
+      <BottomNav active={view} onChange={setView} onAdd={openAdd} />
     </>
   );
 }

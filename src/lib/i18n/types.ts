@@ -53,8 +53,16 @@ export interface TranslationKeys {
   
   // Navigation
   nav_home: string;
+  nav_history: string;
   nav_yearly: string;
   nav_settings: string;
+
+  // History
+  history_title: string;
+  history_subtitle: string;
+  history_this_month: string;
+  list_transactions: string;
+  stat_remaining: string;
   
   // Dashboard
   dashboard_remaining: string;

@@ -1,36 +1,35 @@
-import { Home, Search, Plus, Activity, CircleUserRound } from "lucide-react";
+import { Home, Plus, Activity, CircleUserRound, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/lib/i18n/store";
+import type { TranslationKeys } from "@/lib/i18n/types";
 
-type View = "dashboard" | "yearly" | "settings";
+type View = "dashboard" | "history" | "yearly" | "settings";
 
 type Props = {
   active: View;
   onChange: (view: View) => void;
   onAdd: () => void;
-  onSearch: () => void;
 };
 
 type NavItem = {
-  id: View | "search";
+  id: View;
   icon: typeof Home;
-  action?: "search";
+  labelKey: keyof TranslationKeys;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "dashboard", icon: Home },
-  { id: "search", icon: Search, action: "search" },
-  { id: "yearly", icon: Activity },
-  { id: "settings", icon: CircleUserRound },
+  { id: "dashboard", icon: Home, labelKey: "nav_home" },
+  { id: "history", icon: History, labelKey: "nav_history" },
+  { id: "yearly", icon: Activity, labelKey: "nav_yearly" },
+  { id: "settings", icon: CircleUserRound, labelKey: "nav_settings" },
 ];
 
-export function BottomNav({ active, onChange, onAdd, onSearch }: Props) {
+export function BottomNav({ active, onChange, onAdd }: Props) {
+  const { t } = useTranslation();
+
   function handleClick(item: NavItem) {
-    if (item.action === "search") {
-      onSearch();
-      return;
-    }
-    onChange(item.id as View);
+    onChange(item.id);
   }
 
   return (
@@ -42,6 +41,7 @@ export function BottomNav({ active, onChange, onAdd, onSearch }: Props) {
             <NavButton
               key={item.id}
               item={item}
+              label={t(item.labelKey)}
               isActive={active === item.id}
               onClick={() => handleClick(item)}
             />
@@ -59,6 +59,7 @@ export function BottomNav({ active, onChange, onAdd, onSearch }: Props) {
             <NavButton
               key={item.id}
               item={item}
+              label={t(item.labelKey)}
               isActive={active === item.id}
               onClick={() => handleClick(item)}
             />
@@ -71,10 +72,12 @@ export function BottomNav({ active, onChange, onAdd, onSearch }: Props) {
 
 function NavButton({
   item,
+  label,
   isActive,
   onClick,
 }: {
   item: NavItem;
+  label: string;
   isActive: boolean;
   onClick: () => void;
 }) {
@@ -86,7 +89,8 @@ function NavButton({
         "relative flex flex-col items-center justify-center size-11 rounded-xl transition-colors",
         isActive ? "text-foreground" : "text-muted-foreground active:text-foreground",
       )}
-      aria-label={item.id}
+      aria-label={label}
+      title={label}
     >
       <Icon className="size-6" strokeWidth={isActive ? 2.5 : 2} />
       {isActive && (

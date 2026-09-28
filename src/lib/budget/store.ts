@@ -286,15 +286,10 @@ export function monthTransactions(
   transactions: Transaction[],
   month: string,
   filter: "all" | TxType = "all",
-  search: string = "",
 ): Transaction[] {
-  const q = search.toLowerCase().trim();
   return transactions
     .filter((t) => t.date.startsWith(month))
     .filter((t) => (filter === "all" ? true : t.type === filter))
-    .filter((t) =>
-      q ? t.note.toLowerCase().includes(q) || categoryById(t.category).label.toLowerCase().includes(q) : true,
-    )
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.id < b.id ? 1 : -1));
 }
 

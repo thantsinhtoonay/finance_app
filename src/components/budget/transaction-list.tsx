@@ -1,8 +1,7 @@
-import { MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,9 +21,7 @@ type Filter = "all" | TxType;
 type Props = {
   items: Transaction[];
   filter: Filter;
-  search: string;
   onFilter: (filter: Filter) => void;
-  onSearch: (search: string) => void;
   onEdit: (tx: Transaction) => void;
   onDelete: (tx: Transaction) => void;
   onAdd: () => void;
@@ -33,9 +30,7 @@ type Props = {
 export function TransactionList({
   items,
   filter,
-  search,
   onFilter,
-  onSearch,
   onEdit,
   onDelete,
   onAdd,
@@ -55,20 +50,10 @@ export function TransactionList({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold tracking-label text-muted-foreground uppercase">
-                {t("transaction_search")}
+                {t("list_transactions")}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">{t("transaction_edit")}</p>
             </div>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="search-input"
-              placeholder={t("transaction_search")}
-              value={search}
-              onChange={(e) => onSearch(e.target.value)}
-              className="h-11 w-full pl-9 rounded-xl"
-            />
           </div>
           <div className="flex gap-1 rounded-xl bg-secondary p-1">
             {FILTERS.map((f) => (
@@ -95,15 +80,7 @@ export function TransactionList({
             animate={{ opacity: 1, y: 0 }}
             className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-xl bg-secondary/30 px-6 text-center"
           >
-            <p className="text-sm text-muted-foreground">
-              {search
-                ? t("msg_no_transactions")
-                : filter === "all"
-                  ? t("msg_no_transactions")
-                  : filter === "income"
-                    ? t("msg_no_transactions")
-                    : t("msg_no_transactions")}
-            </p>
+            <p className="text-sm text-muted-foreground">{t("msg_no_transactions")}</p>
             <Button variant="outline" onClick={onAdd} className="rounded-xl">
               {t("add")}
             </Button>
