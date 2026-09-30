@@ -55,6 +55,27 @@ export const Route = createFileRoute("/api/budgets/")({
           return Response.json({ error: e.message }, { status: 500 });
         }
       },
+      DELETE: async ({ request }: { request: Request }) => {
+        try {
+          const userId = await requireUser();
+          const body = await request.json();
+          const { categoryId } = body;
+
+          if (!categoryId || typeof categoryId !== "string") {
+            return Response.json({ error: "Missing categoryId" }, { status: 400 });
+          }
+
+          const sql = await getSql();
+          await sql.query(
+            `DELETE FROM category_budgets WHERE user_id = $1 AND category_id = $2`,
+            [userId, categoryId],
+          );
+          return Response.json({ ok: true });
+        } catch (e: any) {
+          if (e instanceof Response) return e;
+          return Response.json({ error: e.message }, { status: 500 });
+        }
+      },
     },
   },
 });

@@ -100,6 +100,8 @@ export const en: TranslationKeys = {
   budget_remaining: "Remaining",
   budget_warning: "Approaching limit",
   budget_exceeded: "Budget exceeded",
+  budget_set: "Set budget",
+  budget_remove: "Remove budget",
   
   // Savings
   savings_goal: "Savings Goal",

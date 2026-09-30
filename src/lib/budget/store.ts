@@ -25,7 +25,7 @@ type BudgetState = {
   setMonthlyGoal: (goal: number) => Promise<void>;
   setSelectedMonth: (month: string) => void;
   setCategoryBudget: (categoryId: string, limit: number) => Promise<void>;
-  removeCategoryBudget: (categoryId: string) => void;
+  removeCategoryBudget: (categoryId: string) => Promise<void>;
   loadFromServer: () => Promise<void>;
   resetData: () => Promise<void>;
 };
@@ -189,10 +189,21 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
     }
   },
 
-  removeCategoryBudget: (categoryId) => {
+  removeCategoryBudget: async (categoryId) => {
+    const prev = get().categoryBudgets;
     set((s) => ({
       categoryBudgets: s.categoryBudgets.filter((b) => b.categoryId !== categoryId),
     }));
+
+    try {
+      const res = await apiFetch("/api/budgets/", {
+        method: "DELETE",
+        body: JSON.stringify({ categoryId }),
+      });
+      if (!res.ok) set({ categoryBudgets: prev });
+    } catch {
+      set({ categoryBudgets: prev });
+    }
   },
 
   resetData: async () => {

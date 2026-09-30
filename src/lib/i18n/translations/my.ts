@@ -100,6 +100,8 @@ export const my: TranslationKeys = {
   budget_remaining: "ကျန်ရှိ",
   budget_warning: "ကန့်သတ်ချက်နီးကပ်နေသည်",
   budget_exceeded: "ဘတ်ဂျက်ကျော်လွန်သည်",
+  budget_set: "ဘတ်ဂျက် သတ်မှတ်ရန်",
+  budget_remove: "ဘတ်ဂျက် ဖယ်ရှားရန်",
   
   // Savings
   savings_goal: "ငွေစုပန်းတိုင်",

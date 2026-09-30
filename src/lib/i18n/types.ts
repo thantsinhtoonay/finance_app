@@ -137,6 +137,8 @@ export interface TranslationKeys {
   budget_remaining: string;
   budget_warning: string;
   budget_exceeded: string;
+  budget_set: string;
+  budget_remove: string;
   
   // Savings
   savings_goal: string;
