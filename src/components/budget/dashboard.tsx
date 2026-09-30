@@ -4,8 +4,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  History,
   Keyboard,
+  Plus,
   RotateCcw,
   Settings as SettingsIcon,
   Trash2,
@@ -220,16 +220,17 @@ export function Dashboard() {
                 <CalendarDays className="size-3.5" />
                 {t("time_yearly")}
               </Button>
-              <Button
-                variant={view === "history" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setView("history")}
-                className="rounded-full px-3 text-xs"
-              >
-                <History className="size-3.5" />
-                {t("nav_history")}
-              </Button>
             </div>
+
+            <Button
+              size="sm"
+              onClick={openAdd}
+              className="hidden sm:flex gap-1.5 rounded-full px-4 gradient-gold text-white shadow-md shadow-primary/25"
+              aria-label={t("transaction_add")}
+            >
+              <Plus className="size-4" />
+              {t("add")}
+            </Button>
 
             <LanguageIconToggle />
             <Button
