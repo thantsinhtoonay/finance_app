@@ -139,6 +139,22 @@ export interface TranslationKeys {
   budget_exceeded: string;
   budget_set: string;
   budget_remove: string;
+
+  // User guide
+  guide_title: string;
+  guide_subtitle: string;
+  guide_step1_title: string;
+  guide_step1_desc: string;
+  guide_step2_title: string;
+  guide_step2_desc: string;
+  guide_step3_title: string;
+  guide_step3_desc: string;
+  guide_step4_title: string;
+  guide_step4_desc: string;
+  guide_step5_title: string;
+  guide_step5_desc: string;
+  guide_step6_title: string;
+  guide_step6_desc: string;
   
   // Savings
   savings_goal: string;

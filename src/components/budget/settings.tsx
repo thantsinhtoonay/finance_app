@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { authClient } from "@/lib/auth/client";
+import { UserGuide } from "@/components/budget/user-guide";
 
 type SettingsView = "main" | "account" | "theme" | "privacy" | "data";
 
@@ -565,6 +566,9 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
           )}
         </CardContent>
       </Card>
+
+      {/* User Guide */}
+      <UserGuide />
 
       {/* Sign Out */}
       <Card>

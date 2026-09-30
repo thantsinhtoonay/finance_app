@@ -9,6 +9,7 @@ import { authClient } from "@/lib/auth/client";
 import { MyanmarSkyline } from "@/components/ui/myanmar-skyline";
 import { LanguageSwitch } from "@/lib/i18n";
 import { useTranslation } from "@/lib/i18n/store";
+import { UserGuide } from "@/components/budget/user-guide";
 
 export const Route = createFileRoute("/register")({
   component: RegisterPage,
@@ -171,6 +172,8 @@ function RegisterPage() {
             </form>
           </CardContent>
         </Card>
+
+        <UserGuide className="mt-4" />
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           {t("auth_have_account")}{" "}

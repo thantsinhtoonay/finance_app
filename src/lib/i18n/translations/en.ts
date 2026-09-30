@@ -102,6 +102,28 @@ export const en: TranslationKeys = {
   budget_exceeded: "Budget exceeded",
   budget_set: "Set budget",
   budget_remove: "Remove budget",
+
+  // User guide
+  guide_title: "User Guide",
+  guide_subtitle: "How to get started with Shal Su",
+  guide_step1_title: "Create your account",
+  guide_step1_desc:
+    "Sign up with your email and password — your data stays safe in your own account.",
+  guide_step2_title: "Record income & expenses",
+  guide_step2_desc:
+    "Tap the + button, pick a category, then enter the amount and date.",
+  guide_step3_title: "Set monthly budgets",
+  guide_step3_desc:
+    "Set a spending limit for each category and watch the progress bar.",
+  guide_step4_title: "Set a savings goal",
+  guide_step4_desc:
+    "Choose a target amount and deadline to stay motivated.",
+  guide_step5_title: "Review history & yearly",
+  guide_step5_desc:
+    "Browse past months and see your full-year spending at a glance.",
+  guide_step6_title: "Personalize your settings",
+  guide_step6_desc:
+    "Switch theme and language, hide amounts, and export JSON/CSV backups.",
   
   // Savings
   savings_goal: "Savings Goal",
