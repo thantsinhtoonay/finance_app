@@ -14,6 +14,26 @@ export const en: TranslationKeys = {
   error: "Error",
   success: "Success",
   
+  // Auth
+  auth_signin_subtitle: "Sign in to your account",
+  auth_register_subtitle: "Create your account",
+  auth_full_name: "Full Name",
+  auth_email: "Email",
+  auth_password: "Password",
+  auth_confirm_password: "Confirm Password",
+  auth_signin: "Sign In",
+  auth_signing_in: "Signing in...",
+  auth_signup: "Sign Up",
+  auth_create_account: "Create Account",
+  auth_creating_account: "Creating account...",
+  auth_no_account: "Don't have an account?",
+  auth_have_account: "Already have an account?",
+  auth_error_invalid: "Invalid email or password",
+  auth_error_mismatch: "Passwords do not match",
+  auth_error_min_length: "Password must be at least 6 characters",
+  auth_error_unexpected: "An unexpected error occurred",
+  auth_error_register: "Registration failed",
+
   // Navigation
   nav_home: "Home",
   nav_history: "History",

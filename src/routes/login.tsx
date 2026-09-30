@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { authClient } from "@/lib/auth/client";
 import { MyanmarSkyline } from "@/components/ui/myanmar-skyline";
 import { LanguageSwitch } from "@/lib/i18n";
+import { useTranslation } from "@/lib/i18n/store";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,12 +35,12 @@ function LoginPage() {
       });
 
       if (signInError) {
-        setError(signInError.message || "Invalid email or password");
+        setError(t("auth_error_invalid"));
       } else {
         navigate({ to: "/" });
       }
     } catch (err) {
-      setError("An unexpected error occurred");
+      setError(t("auth_error_unexpected"));
     } finally {
       setLoading(false);
     }
@@ -58,7 +60,7 @@ function LoginPage() {
             className="size-24 rounded-full object-cover mb-4 shadow-lg"
           />
           <h1 className="text-2xl font-bold text-foreground">Shal Su</h1>
-          <p className="text-muted-foreground mt-1">Sign in to your account</p>
+          <p className="text-muted-foreground mt-1">{t("auth_signin_subtitle")}</p>
         </div>
 
         <div className="mb-6 flex justify-center">
@@ -75,7 +77,7 @@ function LoginPage() {
               )}
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("auth_email")}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -91,7 +93,7 @@ function LoginPage() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t("auth_password")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -118,16 +120,16 @@ function LoginPage() {
                 className="w-full gradient-gold text-white font-semibold"
                 disabled={loading}
               >
-                {loading ? "Signing in..." : "Sign In"}
+                {loading ? t("auth_signing_in") : t("auth_signin")}
               </Button>
             </form>
           </CardContent>
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Don't have an account?{" "}
+          {t("auth_no_account")}{" "}
           <Link to="/register" className="text-primary hover:underline font-medium">
-            Sign up
+            {t("auth_signup")}
           </Link>
         </p>
       </div>

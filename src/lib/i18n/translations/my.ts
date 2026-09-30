@@ -14,6 +14,26 @@ export const my: TranslationKeys = {
   error: "အမှား",
   success: "အောင်မြင်သည်",
   
+  // Auth
+  auth_signin_subtitle: "သင့်အကောင့်သို့ ဝင်ရောက်ပါ",
+  auth_register_subtitle: "သင့်အကောင့်ကို ဖန်တီးပါ",
+  auth_full_name: "အမည်အပြည့်အစုံ",
+  auth_email: "အီးမေးလ်",
+  auth_password: "စကားဝှက်",
+  auth_confirm_password: "စကားဝှက် အတည်ပြုပါ",
+  auth_signin: "ဝင်ရောက်ရန်",
+  auth_signing_in: "ဝင်ရောက်နေသည်...",
+  auth_signup: "စာရင်းသွင်းရန်",
+  auth_create_account: "အကောင့်ဖန်တီးရန်",
+  auth_creating_account: "အကောင့်ဖန်တီးနေသည်...",
+  auth_no_account: "အကောင့်မရှိသေးပါဘူးလား?",
+  auth_have_account: "အကောင့်ရှိပြီးသားလား?",
+  auth_error_invalid: "အီးမေးလ် သို့မဟုတ် စကားဝှက် မမှန်ကန်ပါ",
+  auth_error_mismatch: "စကားဝှက်များ မတူညီပါ",
+  auth_error_min_length: "စကားဝှက်သည် အနည်းဆုံး စာလုံး ၆ လုံး ရှိရမည်",
+  auth_error_unexpected: "မျှော်လင့်မထားသော အမှားတစ်ခု ဖြစ်ပွားခဲ့သည်",
+  auth_error_register: "စာရင်းသွင်းမှု မအောင်မြင်ပါ",
+
   // Navigation
   nav_home: "ပင်မ",
   nav_history: "မှတ်တမ်း",

@@ -51,6 +51,26 @@ export interface TranslationKeys {
   error: string;
   success: string;
   
+  // Auth
+  auth_signin_subtitle: string;
+  auth_register_subtitle: string;
+  auth_full_name: string;
+  auth_email: string;
+  auth_password: string;
+  auth_confirm_password: string;
+  auth_signin: string;
+  auth_signing_in: string;
+  auth_signup: string;
+  auth_create_account: string;
+  auth_creating_account: string;
+  auth_no_account: string;
+  auth_have_account: string;
+  auth_error_invalid: string;
+  auth_error_mismatch: string;
+  auth_error_min_length: string;
+  auth_error_unexpected: string;
+  auth_error_register: string;
+
   // Navigation
   nav_home: string;
   nav_history: string;

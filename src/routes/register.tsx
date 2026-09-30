@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { authClient } from "@/lib/auth/client";
 import { MyanmarSkyline } from "@/components/ui/myanmar-skyline";
 import { LanguageSwitch } from "@/lib/i18n";
+import { useTranslation } from "@/lib/i18n/store";
 
 export const Route = createFileRoute("/register")({
   component: RegisterPage,
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/register")({
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,12 +30,12 @@ function RegisterPage() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("auth_error_mismatch"));
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError(t("auth_error_min_length"));
       return;
     }
 
@@ -47,12 +49,12 @@ function RegisterPage() {
       });
 
       if (signUpError) {
-        setError(signUpError.message || "Registration failed");
+        setError(signUpError.message || t("auth_error_register"));
       } else {
         navigate({ to: "/" });
       }
     } catch (err) {
-      setError("An unexpected error occurred");
+      setError(t("auth_error_unexpected"));
     } finally {
       setLoading(false);
     }
@@ -72,7 +74,7 @@ function RegisterPage() {
             className="size-24 rounded-full object-cover mb-4 shadow-lg"
           />
           <h1 className="text-2xl font-bold text-foreground">Shal Su</h1>
-          <p className="text-muted-foreground mt-1">Create your account</p>
+          <p className="text-muted-foreground mt-1">{t("auth_register_subtitle")}</p>
         </div>
 
         <div className="mb-6 flex justify-center">
@@ -89,7 +91,7 @@ function RegisterPage() {
               )}
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">{t("auth_full_name")}</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -105,7 +107,7 @@ function RegisterPage() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("auth_email")}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -121,7 +123,7 @@ function RegisterPage() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t("auth_password")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -144,7 +146,7 @@ function RegisterPage() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">{t("auth_confirm_password")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -164,16 +166,16 @@ function RegisterPage() {
                 className="w-full gradient-gold text-white font-semibold"
                 disabled={loading}
               >
-                {loading ? "Creating account..." : "Create Account"}
+                {loading ? t("auth_creating_account") : t("auth_create_account")}
               </Button>
             </form>
           </CardContent>
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Already have an account?{" "}
+          {t("auth_have_account")}{" "}
           <Link to="/login" className="text-primary hover:underline font-medium">
-            Sign in
+            {t("auth_signin")}
           </Link>
         </p>
       </div>
