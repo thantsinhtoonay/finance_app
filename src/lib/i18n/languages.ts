@@ -29,21 +29,22 @@ const englishTypography: TypographyConfig = {
   },
 };
 
+// Burmese keeps the same sizes/spacing/line-heights as English — only the font differs
 const burmeseTypography: TypographyConfig = {
   fontFamily: '"Padauk", "Myanmar3", "Unicode Myanmar", ui-sans-serif, system-ui, sans-serif',
   lineHeight: {
-    tight: "1.6",
-    normal: "1.8",
-    relaxed: "2.0",
+    tight: "1.25",
+    normal: "1.5",
+    relaxed: "1.75",
   },
   fontSize: {
-    xs: "0.8125rem",
-    sm: "0.9375rem",
-    base: "1.0625rem",
-    lg: "1.1875rem",
-    xl: "1.3125rem",
-    "2xl": "1.625rem",
-    "3xl": "2rem",
+    xs: "0.75rem",
+    sm: "0.875rem",
+    base: "1rem",
+    lg: "1.125rem",
+    xl: "1.25rem",
+    "2xl": "1.5rem",
+    "3xl": "1.875rem",
   },
   fontWeight: {
     normal: 400,
@@ -52,9 +53,9 @@ const burmeseTypography: TypographyConfig = {
     bold: 700,
   },
   letterSpacing: {
-    tight: "0em",
-    normal: "0.01em",
-    wide: "0.02em",
+    tight: "-0.025em",
+    normal: "0em",
+    wide: "0.025em",
   },
 };
 

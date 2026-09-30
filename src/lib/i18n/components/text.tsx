@@ -22,10 +22,10 @@ export function Text({
   children,
   ...props
 }: TextProps) {
-  const { typography, isBurmese } = useTranslation();
+  const { typography } = useTranslation();
   
-  // Auto-adjust leading for Burmese if not explicitly set
-  const effectiveLeading = leading || (isBurmese ? "relaxed" : "normal");
+  // Same leading for all languages — only the font family differs
+  const effectiveLeading = leading || "normal";
   
   const sizeClasses = {
     xs: "text-xs",
