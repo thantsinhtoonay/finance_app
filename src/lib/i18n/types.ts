@@ -86,6 +86,7 @@ export interface TranslationKeys {
   
   // Categories
   category_food: string;
+  category_grocery: string;
   category_transport: string;
   category_housing: string;
   category_utilities: string;
@@ -93,9 +94,21 @@ export interface TranslationKeys {
   category_shopping: string;
   category_health: string;
   category_education: string;
+  category_personal: string;
+  category_subscription: string;
+  category_travel: string;
+  category_fitness: string;
+  category_gift: string;
+  category_insurance: string;
+  category_fees: string;
   category_salary: string;
   category_freelance: string;
+  category_business: string;
   category_investment: string;
+  category_rental: string;
+  category_bonus: string;
+  category_refund: string;
+  category_gift_income: string;
   category_other: string;
   
   // Budget

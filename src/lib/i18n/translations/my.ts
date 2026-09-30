@@ -49,6 +49,7 @@ export const my: TranslationKeys = {
   
   // Categories
   category_food: "အစားအစာနှင့် အဖျော်ယမကာ",
+  category_grocery: "ကုန်စုံဆိုင်",
   category_transport: "သယ်ယူပို့ဆောင်ရေး",
   category_housing: "နေအိမ်",
   category_utilities: "အသုံးအဆောင်",
@@ -56,9 +57,21 @@ export const my: TranslationKeys = {
   category_shopping: "စျေးဝယ်ရေး",
   category_health: "ကျန်းမာရေး",
   category_education: "ပညာရေး",
+  category_personal: "တစ်ကိုယ်ရေ ဂရုစိုက်မှု",
+  category_subscription: "စာရင်းသွင်းကြေး",
+  category_travel: "ခရီးသွား",
+  category_fitness: "အားကစားနှင့် လေ့ကျင့်ခန်း",
+  category_gift: "လက်ဆောင်နှင့် လှူဒါန်းမှု",
+  category_insurance: "အာမခံ",
+  category_fees: "ဘဏ်အခကြေးငွေ",
   category_salary: "လုပ်ခလစာ",
   category_freelance: "အလွတ်တန်းလုပ်ငန်း",
+  category_business: "စီးပွားရေး",
   category_investment: "ရင်းနှီးမြှုပ်နှံမှု",
+  category_rental: "အငှားခများ",
+  category_bonus: "အပိုဆု",
+  category_refund: "ငွေပြန်အမ်းများ",
+  category_gift_income: "ရရှိသော လက်ဆောင်များ",
   category_other: "အခြား",
   
   // Budget

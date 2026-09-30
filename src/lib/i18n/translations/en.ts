@@ -49,6 +49,7 @@ export const en: TranslationKeys = {
   
   // Categories
   category_food: "Food & Drinks",
+  category_grocery: "Groceries",
   category_transport: "Transport",
   category_housing: "Housing",
   category_utilities: "Utilities",
@@ -56,9 +57,21 @@ export const en: TranslationKeys = {
   category_shopping: "Shopping",
   category_health: "Health",
   category_education: "Education",
+  category_personal: "Personal Care",
+  category_subscription: "Subscriptions",
+  category_travel: "Travel",
+  category_fitness: "Fitness & Sports",
+  category_gift: "Gifts & Donations",
+  category_insurance: "Insurance",
+  category_fees: "Bank Fees",
   category_salary: "Salary",
   category_freelance: "Freelance",
+  category_business: "Business",
   category_investment: "Investment",
+  category_rental: "Rental Income",
+  category_bonus: "Bonus",
+  category_refund: "Refunds & Cashback",
+  category_gift_income: "Gifts Received",
   category_other: "Other",
   
   // Budget
