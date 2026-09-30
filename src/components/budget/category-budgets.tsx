@@ -152,7 +152,7 @@ function CategoryBudgetRow({
                 onBlur={commit}
                 className="h-9 w-24 text-xs font-semibold tabular-nums"
               />
-              <Button type="submit" size="icon" className="size-9 gradient-gold text-white">
+              <Button type="submit" size="icon" className="size-9">
                 <Check className="size-4" />
               </Button>
             </form>

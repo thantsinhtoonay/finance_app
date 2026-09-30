@@ -139,7 +139,7 @@ function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
                   >
                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </button>
@@ -164,7 +164,7 @@ function RegisterPage() {
 
               <Button
                 type="submit"
-                className="w-full gradient-gold text-white font-semibold"
+                className="w-full font-semibold"
                 disabled={loading}
               >
                 {loading ? t("auth_creating_account") : t("auth_create_account")}

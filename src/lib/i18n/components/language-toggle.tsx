@@ -75,7 +75,7 @@ export function LanguageToggle({
         {/* Background slider */}
         <div
           className={cn(
-            "absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-primary transition-all duration-300 ease-out",
+            "absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full gradient-gold shadow-md shadow-primary/30 transition-all duration-300 ease-out",
             language === "my" ? "left-[calc(50%+2px)]" : "left-1"
           )}
         />
@@ -173,7 +173,7 @@ export function LanguageIconToggle({
       <button
         onClick={toggleLanguage}
         className={cn(
-          "flex size-10 items-center justify-center rounded-xl border border-border bg-card transition-all duration-300 hover:border-primary/50 hover:shadow-md",
+          "flex size-10 items-center justify-center rounded-full border border-border/50 bg-secondary/60 backdrop-blur transition-all duration-300 hover:border-primary/50 hover:text-primary hover:shadow-md",
           "active:scale-95"
         )}
         aria-label={`Switch to ${language === "en" ? "Burmese" : "English"}`}

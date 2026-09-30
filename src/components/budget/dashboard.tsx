@@ -225,7 +225,7 @@ export function Dashboard() {
             <Button
               size="sm"
               onClick={openAdd}
-              className="hidden sm:flex gap-1.5 rounded-full px-4 gradient-gold text-white shadow-md shadow-primary/25"
+              className="hidden sm:flex gap-1.5 rounded-full px-4"
               aria-label={t("transaction_add")}
             >
               <Plus className="size-4" />
@@ -236,7 +236,7 @@ export function Dashboard() {
             <Button
               variant="ghost"
               size="icon"
-              className="size-10 hidden sm:flex rounded-full hover:bg-secondary/60"
+              className="size-10 hidden sm:flex rounded-full"
               onClick={() => setView("settings")}
               aria-label={t("nav_settings")}
             >

@@ -14,7 +14,7 @@ function SelectTrigger({
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        "flex h-11 w-full items-center justify-between gap-2 rounded-xl glass-input px-3 text-sm",
+        "group flex h-11 w-full items-center justify-between gap-2 rounded-xl glass-input px-3 text-sm",
         "placeholder:text-muted-foreground/60",
         "focus-visible:outline-none focus-visible:ring-0",
         "disabled:cursor-not-allowed disabled:opacity-50",

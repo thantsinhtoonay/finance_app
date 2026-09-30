@@ -37,13 +37,13 @@ export function UserGuide({ className, defaultOpen = false }: Props) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <Card className={className}>
+    <Card className={cn("overflow-hidden", className)}>
       <CardContent className="p-0">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className="flex w-full items-center gap-3 px-5 py-4 text-left"
+          className="flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-secondary/50"
         >
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
             <BookOpen className="size-4 text-primary" />
@@ -54,8 +54,8 @@ export function UserGuide({ className, defaultOpen = false }: Props) {
           </div>
           <ChevronDown
             className={cn(
-              "size-4 shrink-0 text-muted-foreground transition-transform",
-              open && "rotate-180",
+              "size-4 shrink-0 text-muted-foreground transition-transform duration-300",
+              open && "rotate-180 text-primary",
             )}
           />
         </button>

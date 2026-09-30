@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   Camera,
   Check,
+  ChevronRight,
   CreditCard,
   Download,
   Eye,
@@ -52,7 +53,7 @@ export function Settings({ onBack }: Props) {
       <header className="sticky top-0 z-10 -mx-4 mb-4 border-b border-border/20 bg-background/95 px-4 py-3 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 sm:-mx-6 sm:px-6">
         <div className="flex items-center gap-3">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button variant="ghost" size="icon" onClick={onBack} className="size-10 rounded-full hover:bg-secondary/60">
+            <Button variant="ghost" size="icon" onClick={onBack} className="size-10 rounded-full">
               <ArrowLeft className="size-5" />
             </Button>
           </motion.div>
@@ -126,7 +127,7 @@ function SettingsMain({
               alt="Profile"
               className="size-16 rounded-2xl object-cover ring-2 ring-primary/30 shadow-lg shadow-primary/10"
             />
-            <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-primary flex items-center justify-center shadow-md">
+            <div className="absolute -bottom-1 -right-1 size-5 rounded-full gradient-gold flex items-center justify-center shadow-md">
               <Check className="size-3 text-white" />
             </div>
           </div>
@@ -154,7 +155,7 @@ function SettingsMain({
                 key={item.label}
                 onClick={item.onClick}
                 className={cn(
-                  "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl transition-all duration-200 hover:bg-secondary/50 text-left",
+                  "group flex items-center gap-4 w-full px-4 py-3.5 rounded-xl transition-all duration-200 hover:bg-secondary/50 text-left",
                   i > 0 && "border-t border-border/50",
                 )}
               >
@@ -165,7 +166,7 @@ function SettingsMain({
                   <p className="text-sm font-semibold">{item.label}</p>
                   <p className="text-xs text-muted-foreground truncate">{item.description}</p>
                 </div>
-                <span className="text-muted-foreground transition-transform duration-200 group-hover:translate-x-1">›</span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-primary" />
               </button>
             );
           })}
@@ -366,7 +367,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="size-9">
+        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
           <ArrowLeft className="size-5" />
         </Button>
         <h2 className="text-lg font-bold">{t("settings_account")}</h2>
@@ -425,7 +426,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
               size="sm"
               onClick={handleUpdateName}
               disabled={!name.trim() || name === user?.displayName}
-              className="gradient-gold text-white px-4"
+              className="px-4"
             >
               {saved ? <Check className="size-4" /> : <Pencil className="size-4" />}
             </Button>
@@ -434,11 +435,11 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
       </Card>
 
       {/* Change Password */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardContent className="p-0">
           <button
             onClick={() => toggleSection("password")}
-            className="flex items-center gap-3 w-full px-5 py-4 text-left"
+            className="flex items-center gap-3 w-full px-5 py-4 text-left transition-colors hover:bg-secondary/50"
           >
             <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
               <Key className="size-4 text-primary" />
@@ -447,7 +448,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
               <p className="text-sm font-semibold">Change Password</p>
               <p className="text-xs text-muted-foreground">Update your password regularly</p>
             </div>
-            <span className={cn("text-muted-foreground transition-transform", expandedSection === "password" && "rotate-90")}>›</span>
+            <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300", expandedSection === "password" && "rotate-90 text-primary")} />
           </button>
           {expandedSection === "password" && (
             <form onSubmit={handleChangePassword} className="px-5 pb-5 flex flex-col gap-3 border-t border-border/50">
@@ -473,7 +474,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                     required
                     className="h-10 pl-8 pr-9 text-sm"
                   />
-                  <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
                     {showCurrentPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                   </button>
                 </div>
@@ -490,7 +491,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                     required
                     className="h-10 pl-8 pr-9 text-sm"
                   />
-                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
                     {showNewPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                   </button>
                 </div>
@@ -509,7 +510,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                   />
                 </div>
               </div>
-              <Button type="submit" disabled={passwordLoading} className="gradient-gold text-white mt-1">
+              <Button type="submit" disabled={passwordLoading} className="mt-1">
                 {passwordLoading ? "Changing..." : "Update Password"}
               </Button>
             </form>
@@ -518,11 +519,11 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
       </Card>
 
       {/* Change Email */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardContent className="p-0">
           <button
             onClick={() => toggleSection("email")}
-            className="flex items-center gap-3 w-full px-5 py-4 text-left"
+            className="flex items-center gap-3 w-full px-5 py-4 text-left transition-colors hover:bg-secondary/50"
           >
             <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
               <Mail className="size-4 text-primary" />
@@ -531,7 +532,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
               <p className="text-sm font-semibold">Change Email</p>
               <p className="text-xs text-muted-foreground">{user?.primaryEmail || "No email set"}</p>
             </div>
-            <span className={cn("text-muted-foreground transition-transform", expandedSection === "email" && "rotate-90")}>›</span>
+            <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300", expandedSection === "email" && "rotate-90 text-primary")} />
           </button>
           {expandedSection === "email" && (
             <form onSubmit={handleChangeEmail} className="px-5 pb-5 flex flex-col gap-3 border-t border-border/50">
@@ -559,7 +560,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                   />
                 </div>
               </div>
-              <Button type="submit" disabled={emailLoading} className="gradient-gold text-white mt-1">
+              <Button type="submit" disabled={emailLoading} className="mt-1">
                 {emailLoading ? "Updating..." : "Update Email"}
               </Button>
             </form>
@@ -571,17 +572,17 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
       <UserGuide />
 
       {/* Sign Out */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardContent className="p-0">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-5 py-4 rounded-xl hover:bg-red-50 transition-colors text-left"
+            className="flex items-center gap-3 w-full px-5 py-4 rounded-xl hover:bg-destructive/10 transition-colors text-left"
           >
-            <div className="flex items-center justify-center size-9 rounded-lg bg-red-100">
-              <LogOut className="size-4 text-red-500" />
+            <div className="flex items-center justify-center size-9 rounded-lg bg-destructive/10">
+              <LogOut className="size-4 text-destructive" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-red-600">Sign Out</p>
+              <p className="text-sm font-semibold text-destructive">Sign Out</p>
               <p className="text-xs text-muted-foreground">Sign out of your account</p>
             </div>
           </button>
@@ -589,24 +590,24 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-destructive/30">
+      <Card className="overflow-hidden border-destructive/30">
         <CardContent className="p-0">
           <button
             onClick={() => toggleSection("delete")}
-            className="flex items-center gap-3 w-full px-5 py-4 text-left"
+            className="flex items-center gap-3 w-full px-5 py-4 text-left transition-colors hover:bg-destructive/5"
           >
-            <div className="flex items-center justify-center size-9 rounded-lg bg-red-100">
-              <Trash2 className="size-4 text-red-500" />
+            <div className="flex items-center justify-center size-9 rounded-lg bg-destructive/10">
+              <Trash2 className="size-4 text-destructive" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-red-600">Delete Account</p>
+              <p className="text-sm font-semibold text-destructive">Delete Account</p>
               <p className="text-xs text-muted-foreground">Permanently delete your account and all data</p>
             </div>
-            <span className={cn("text-muted-foreground transition-transform", expandedSection === "delete" && "rotate-90")}>›</span>
+            <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300", expandedSection === "delete" && "rotate-90 text-destructive")} />
           </button>
           {expandedSection === "delete" && (
             <form onSubmit={handleDeleteAccount} className="px-5 pb-5 flex flex-col gap-3 border-t border-destructive/20">
-              <div className="mt-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-xs text-red-600">
+              <div className="mt-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
                 {deleteConfirm
                   ? "This action is irreversible. All your data will be permanently deleted."
                   : "This will permanently delete your account and all associated data."}
@@ -628,7 +629,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                     required
                     className="h-10 pl-8 pr-9 text-sm"
                   />
-                  <button type="button" onClick={() => setShowDeletePassword(!showDeletePassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <button type="button" onClick={() => setShowDeletePassword(!showDeletePassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
                     {showDeletePassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                   </button>
                 </div>
@@ -662,7 +663,7 @@ function ThemeSettings({ onBack }: { onBack: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="size-9">
+        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
           <ArrowLeft className="size-5" />
         </Button>
         <h2 className="text-lg font-bold">Appearance</h2>
@@ -686,7 +687,7 @@ function ThemeSettings({ onBack }: { onBack: () => void }) {
               >
                 <div className={cn(
                   "flex items-center justify-center size-10 rounded-xl transition-all duration-300",
-                  isActive ? "bg-primary text-white shadow-md shadow-primary/25" : "glass-toggle text-muted-foreground",
+                  isActive ? "gradient-gold text-white shadow-md shadow-primary/25" : "glass-toggle text-muted-foreground",
                 )}>
                   <Icon className="size-5" />
                 </div>
@@ -695,7 +696,7 @@ function ThemeSettings({ onBack }: { onBack: () => void }) {
                   <p className="text-xs text-muted-foreground">{t.description}</p>
                 </div>
                 {isActive && (
-                  <div className="flex items-center justify-center size-6 rounded-full bg-primary text-white animate-scale-in">
+                  <div className="flex items-center justify-center size-6 rounded-full gradient-gold text-white animate-scale-in shadow-md shadow-primary/30">
                     <Check className="size-4" />
                   </div>
                 )}
@@ -748,7 +749,7 @@ function PrivacySettings({ onBack }: { onBack: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="size-9">
+        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
           <ArrowLeft className="size-5" />
         </Button>
         <h2 className="text-lg font-bold">Privacy</h2>
@@ -844,7 +845,7 @@ function DataSettings({ onBack }: { onBack: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="size-9">
+        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
           <ArrowLeft className="size-5" />
         </Button>
         <h2 className="text-lg font-bold">Data & Export</h2>
@@ -872,8 +873,8 @@ function DataSettings({ onBack }: { onBack: () => void }) {
             onClick={handleExportCsv}
             className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left"
           >
-            <div className="flex items-center justify-center size-10 rounded-xl bg-emerald-50">
-              <Download className="size-5 text-emerald-600" />
+            <div className="flex items-center justify-center size-10 rounded-xl bg-emerald-500/10">
+              <Download className="size-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold">Export as CSV</p>
@@ -889,13 +890,13 @@ function DataSettings({ onBack }: { onBack: () => void }) {
 
           <button
             onClick={handleClearData}
-            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-red-50 transition-colors text-left"
+            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-destructive/10 transition-colors text-left"
           >
-            <div className="flex items-center justify-center size-10 rounded-xl bg-red-100">
-              <Trash2 className="size-5 text-red-500" />
+            <div className="flex items-center justify-center size-10 rounded-xl bg-destructive/10">
+              <Trash2 className="size-5 text-destructive" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-red-600">Clear All Data</p>
+              <p className="text-sm font-semibold text-destructive">Clear All Data</p>
               <p className="text-xs text-muted-foreground">Delete all transactions and reset settings</p>
             </div>
           </button>

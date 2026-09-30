@@ -49,7 +49,7 @@ export function BottomNav({ active, onChange, onAdd }: Props) {
 
           <button
             onClick={onAdd}
-            className="flex items-center justify-center size-12 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-600/40 active:scale-90 transition-transform"
+            className="flex items-center justify-center size-12 rounded-full gradient-gold text-white shadow-lg shadow-primary/40 ring-1 ring-white/20 active:scale-90 transition-transform"
             aria-label="Add transaction"
           >
             <Plus className="size-6" strokeWidth={2.5} />
@@ -87,7 +87,9 @@ function NavButton({
       onClick={onClick}
       className={cn(
         "relative flex flex-col items-center justify-center size-11 rounded-xl transition-colors",
-        isActive ? "text-foreground" : "text-muted-foreground active:text-foreground",
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground active:text-foreground",
       )}
       aria-label={label}
       title={label}
@@ -96,7 +98,7 @@ function NavButton({
       {isActive && (
         <motion.span
           layoutId="navDot"
-          className="absolute -bottom-1 size-1.5 rounded-full bg-foreground"
+          className="absolute -bottom-1 size-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(184,134,11,0.6)]"
           transition={{ type: "spring", stiffness: 500, damping: 35 }}
         />
       )}

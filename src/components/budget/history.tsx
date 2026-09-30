@@ -88,7 +88,7 @@ export function TransactionHistory({ onEdit, onDelete, onAdd }: Props) {
                 <button
                   type="button"
                   onClick={() => setSelectedMonth(monthKey())}
-                  className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                  className="mt-0.5 flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/10"
                 >
                   <RotateCcw className="size-3" />
                   {t("history_this_month")}

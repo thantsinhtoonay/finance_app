@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Repeat } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -138,15 +139,25 @@ export function TransactionDialog({
                 type="button"
                 onClick={() => handleType(option)}
                 className={cn(
-                  "h-11 rounded-lg text-sm font-semibold capitalize transition-all duration-200",
-                  type === option
-                    ? option === "income"
-                      ? "bg-emerald-500 text-white shadow-md"
-                      : "bg-primary text-white shadow-md"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary",
+                  "relative h-11 overflow-hidden rounded-lg text-sm font-semibold capitalize transition-colors duration-200",
+                  type === option ? "text-white" : "text-muted-foreground hover:text-foreground hover:bg-secondary/80",
                 )}
               >
-                {option === "expense" ? t("transaction_expense") : t("transaction_income")}
+                {type === option && (
+                  <motion.span
+                    layoutId="txTypePill"
+                    className={cn(
+                      "absolute inset-0 shadow-md",
+                      option === "income"
+                        ? "bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-emerald-500/30"
+                        : "gradient-gold shadow-primary/25",
+                    )}
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">
+                  {option === "expense" ? t("transaction_expense") : t("transaction_income")}
+                </span>
               </button>
             ))}
           </div>
@@ -248,7 +259,7 @@ export function TransactionDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">
               {t("cancel")}
             </Button>
-            <Button type="submit" className="gradient-gold text-white shadow-lg shadow-primary/25 rounded-xl">
+            <Button type="submit" className="shadow-lg shadow-primary/30">
               {editing ? t("dialog_save_changes") : t("dialog_add_entry")}
             </Button>
           </div>

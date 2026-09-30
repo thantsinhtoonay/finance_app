@@ -71,7 +71,7 @@ export function SignInButtons() {
           key={p.providerId}
           type="button"
           onClick={() => signIn(p.providerId, { callbackURL: "/" })}
-          className="w-full cursor-pointer rounded-md border border-neutral-300 px-4 py-2 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900"
+          className="w-full cursor-pointer rounded-xl border border-border/60 bg-card/50 px-4 py-2.5 text-sm font-semibold backdrop-blur transition-all duration-300 hover:border-primary/40 hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
         >
           Continue with {p.label}
         </button>

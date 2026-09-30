@@ -55,20 +55,29 @@ export function TransactionList({
               <p className="mt-1 text-sm text-muted-foreground">{t("transaction_edit")}</p>
             </div>
           </div>
-          <div className="flex gap-1 rounded-xl bg-secondary p-1">
+          <div className="flex gap-1 rounded-xl border border-border/40 bg-secondary/70 p-1 backdrop-blur">
             {FILTERS.map((f) => (
               <button
                 key={f.id}
                 type="button"
                 onClick={() => onFilter(f.id)}
                 className={cn(
-                  "h-10 flex-1 min-w-0 rounded-lg px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold transition-all duration-200 overflow-hidden text-ellipsis whitespace-nowrap",
+                  "relative h-10 flex-1 min-w-0 overflow-hidden rounded-lg px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold transition-colors duration-200",
                   filter === f.id
-                    ? "bg-primary text-white shadow-md"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/80",
+                    ? "text-white"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
                 )}
               >
-                {f.label}
+                {filter === f.id && (
+                  <motion.span
+                    layoutId="txFilterPill"
+                    className="absolute inset-0 rounded-lg gradient-gold shadow-md shadow-primary/25"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10 truncate block text-ellipsis whitespace-nowrap">
+                  {f.label}
+                </span>
               </button>
             ))}
           </div>

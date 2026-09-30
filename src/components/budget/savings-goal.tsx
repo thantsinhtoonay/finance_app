@@ -87,7 +87,7 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
               aria-label={t("savings_target")}
               className="text-lg font-bold tabular-nums"
             />
-            <Button type="submit" size="icon" className="gradient-gold text-white" aria-label={t("save")}>
+            <Button type="submit" size="icon" aria-label={t("save")}>
               <Check />
             </Button>
           </form>
