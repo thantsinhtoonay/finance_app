@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { authClient } from "@/lib/auth/client";
 import { MyanmarSkyline } from "@/components/ui/myanmar-skyline";
+import { LanguageSwitch } from "@/lib/i18n";
 
 export const Route = createFileRoute("/register")({
   component: RegisterPage,
@@ -72,6 +73,10 @@ function RegisterPage() {
           />
           <h1 className="text-2xl font-bold text-foreground">Shal Su</h1>
           <p className="text-muted-foreground mt-1">Create your account</p>
+        </div>
+
+        <div className="mb-6 flex justify-center">
+          <LanguageSwitch size="sm" showLabels={true} />
         </div>
 
         <Card>

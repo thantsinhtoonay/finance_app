@@ -1,16 +1,14 @@
-import { useRef, useState } from "react";
+﻿import { useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
-  Bell,
   Camera,
   Check,
   CreditCard,
   Download,
   Eye,
   EyeOff,
-  Globe,
   Key,
   Lock,
   LogOut,
@@ -33,12 +31,11 @@ import { useSettingsStore, applyTheme } from "@/lib/settings/store";
 import type { Theme } from "@/lib/settings/types";
 import { useBudgetStore } from "@/lib/budget/store";
 import { cn } from "@/lib/utils";
-import { LanguageSwitch } from "@/lib/i18n";
 import { useTranslation } from "@/lib/i18n/store";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { authClient } from "@/lib/auth/client";
 
-type SettingsView = "main" | "account" | "theme" | "privacy" | "data" | "language";
+type SettingsView = "main" | "account" | "theme" | "privacy" | "data";
 
 type Props = {
   onBack: () => void;
@@ -68,7 +65,6 @@ export function Settings({ onBack }: Props) {
         {view === "theme" && <ThemeSettings onBack={() => setView("main")} />}
         {view === "privacy" && <PrivacySettings onBack={() => setView("main")} />}
         {view === "data" && <DataSettings onBack={() => setView("main")} />}
-        {view === "language" && <LanguageSettings onBack={() => setView("main")} />}
       </div>
     </div>
   );
@@ -87,7 +83,7 @@ function SettingsMain({
   const theme = useSettingsStore((s) => s.theme);
   const privacy = useSettingsStore((s) => s.privacy);
   const user = useCurrentUser();
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
 
   const displayName = user?.displayName || "User";
   const displayEmail = user?.primaryEmail || account.email || "No email";
@@ -98,12 +94,6 @@ function SettingsMain({
       label: t("settings_account"),
       description: `${displayName} · ${displayEmail}`,
       onClick: () => onNavigate("account"),
-    },
-    {
-      icon: Globe,
-      label: t("settings_language"),
-      description: language === "en" ? "English" : "မြန်မာ",
-      onClick: () => onNavigate("language"),
     },
     {
       icon: Palette,
@@ -913,76 +903,6 @@ function DataSettings({ onBack }: { onBack: () => void }) {
           {transactions.length} transactions · {categoryBudgets.length} category budgets
         </p>
       </div>
-    </div>
-  );
-}
-
-function LanguageSettings({ onBack }: { onBack: () => void }) {
-  const { t, isBurmese } = useTranslation();
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="size-9">
-          <ArrowLeft className="size-5" />
-        </Button>
-        <h2 className="text-lg font-bold">{t("settings_language")}</h2>
-      </div>
-
-      <Card>
-        <CardContent className="p-5">
-          <div className="flex flex-col gap-6">
-            <p className="text-sm text-muted-foreground">
-              Choose your preferred language. Burmese text uses different typography for better readability.
-            </p>
-            
-            {/* Beautiful Language Toggle */}
-            <div className="flex justify-center">
-              <LanguageSwitch size="lg" showLabels={true} />
-            </div>
-            
-            {/* Typography Preview */}
-            <div className="rounded-xl glass-toggle p-4">
-              <h3 className="text-sm font-semibold mb-3">Typography Preview</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Font Family</span>
-                  <span className="text-xs font-medium">
-                    {isBurmese ? "Padauk" : "Inter"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Line Height</span>
-                  <span className="text-xs font-medium">
-                    {isBurmese ? "1.8 (relaxed)" : "1.5 (normal)"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Font Size</span>
-                  <span className="text-xs font-medium">
-                    {isBurmese ? "6.25% larger" : "Standard"}
-                  </span>
-                </div>
-              </div>
-              
-              {/* Sample text */}
-              <div className="mt-4 pt-4 border-t border-border">
-                <p className="text-sm" style={{ lineHeight: isBurmese ? "1.8" : "1.5" }}>
-                  {isBurmese 
-                    ? "မြန်မာဘာသာစကားသည် ပိုမိုကြီးမားသော မျဉ်းအမြင့်နှင့် ဖတ်ရလွယ်ကူရန် အရွယ်အစားပိုကြီးသော ဖောင့်များလိုအပ်ပါသည်။"
-                    : "The quick brown fox jumps over the lazy dog. This text demonstrates the typography differences between English and Burmese scripts."}
-                </p>
-              </div>
-            </div>
-            
-            <div className="rounded-xl glass-toggle px-4 py-3 border border-primary/10">
-              <p className="text-xs text-muted-foreground">
-                <strong className="text-primary">Note:</strong> Burmese script requires more vertical space and larger font sizes for proper readability. The app automatically adjusts line height and font size when Burmese is selected.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
