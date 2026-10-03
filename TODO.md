@@ -29,7 +29,7 @@
 - [x] Add dark theme support — `.dark` class, Light/Dark/System setting
 - [x] Change currency to Myanmar Kyat — `format.ts`
 - [x] Set up GitHub repository — `origin/main`
-- [x] Deploy to hosting — Vercel production `shal-su.vercel.app` (git auto-deploy from `origin/main`; `northline-app` is the secondary CLI-linked project)
+- [x] Deploy to hosting — Vercel production, primary domain **`https://www.thantsin.website`** (apex `thantsin.website` 308-redirects to www; `shal-su.vercel.app` kept as fallback; git auto-deploy from `origin/main`)
 
 ### Recently shipped
 - [x] Full i18n (Burmese/English) — settings, nav, auth pages, categories, history
@@ -98,8 +98,8 @@
 - [ ] Offline support (localStorage persists, but no service worker)
 
 ### Housekeeping
+- [x] Custom domain — bought `thantsin.website` (Z.com) → primary **`www.thantsin.website`**, apex redirects 308; origins trusted in Better Auth
 - [ ] Delete 4 leftover QA test accounts in prod DB (`idor-a/b`, `final/final2 @test.local`) — emails unrecoverable, needs `DATABASE_URL` from Vercel dashboard (env values are redacted to CLI/API)
-- [ ] Decide on custom domain — `shal.su` / `shal-su.site` / `shal-su.app` (blocked on you)
 - [ ] Stop local dev server (port 8080) when not in use
 
 ### Documentation
@@ -119,7 +119,7 @@
 5. **Recurring reminders** — recurring transactions exist but nothing surfaces upcoming bills; add a "upcoming bills" widget or notifications.
 6. **Tests** — unit tests for store logic (parseAmount, summarizeMonth, budget reducers) before more features.
 7. **Accessibility sweep** — dialog focus trap, aria-labels on icon-only buttons, contrast check in dark mode.
-8. **Custom domain** — purchase + point at Vercel (options `shal.su` / `shal-su.site` / `shal-su.app` — blocked on you).
+8. **Custom domain** — ~~blocked on you~~ done: bought `thantsin.website` (Z.com), primary `www.thantsin.website`.
 
 ## Ideas
 
