@@ -104,14 +104,24 @@ const LOCAL_DEV_ORIGINS: string[] = [
   "http://[::1]:8080",
 ];
 
+// Custom production domain(s) (Vercel project `shal-su`). In allowedHosts so the
+// dynamic baseURL can derive the origin/redirect_uri from the request host, and
+// in trustedOrigins so credentialed POSTs (sign-up/sign-in) aren't FORBIDDEN.
+const CUSTOM_APP_ORIGINS: string[] = [
+  "https://thantsin.website",
+  "https://www.thantsin.website",
+];
+
 // Build allowedHosts: always include local dev + preview hosts.
 // If BETTER_AUTH_URL is set, extract its hostname too.
 function extractHostname(url: string): string | null {
   try { return new URL(url).hostname; } catch { return null; }
 }
-const extraHosts: string[] = explicitBaseURL
-  ? [extractHostname(explicitBaseURL), "localhost", "127.0.0.1", "[::1]"].filter(Boolean) as string[]
-  : ["localhost", "127.0.0.1", "[::1]"];
+const extraHosts: string[] = [
+  ...(explicitBaseURL ? [extractHostname(explicitBaseURL)] : []),
+  "localhost", "127.0.0.1", "[::1]",
+  ...CUSTOM_APP_ORIGINS.map((origin) => extractHostname(origin)),
+].filter(Boolean) as string[];
 
 const baseURL = {
   allowedHosts: [...previewAllowedHosts, ...extraHosts],
@@ -124,6 +134,8 @@ const baseURL = {
 const trustedOrigins: string[] = [
   // If explicit URL is set, trust it
   ...(explicitBaseURL ? [explicitBaseURL] : []),
+  // Custom production domains
+  ...CUSTOM_APP_ORIGINS,
   // Trust all Vercel preview aliases (*.vercel.app)
   "https://*.vercel.app",
   "http://*.vercel.app",
