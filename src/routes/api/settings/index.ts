@@ -1,24 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getRequest } from "@tanstack/react-start/server";
-import { auth } from "@/lib/auth/server";
-import { assertSameSiteRequest } from "@/lib/auth/isolation.server";
+import { requireApiUser } from "@/lib/auth/api-guard.server";
 import { getSql } from "@/lib/db";
-
-async function requireUser(): Promise<string> {
-  assertSameSiteRequest();
-  const request = getRequest();
-  if (!request) throw new Response("Unauthorized", { status: 401 });
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session?.user) throw new Response("Unauthorized", { status: 401 });
-  return session.user.id;
-}
 
 export const Route = createFileRoute("/api/settings/")({
   server: {
     handlers: {
       GET: async () => {
         try {
-          const userId = await requireUser();
+          const userId = await requireApiUser();
           const sql = await getSql();
           const rows = await sql.query(
             `SELECT monthly_goal as "monthlyGoal"
@@ -37,7 +26,7 @@ export const Route = createFileRoute("/api/settings/")({
       },
       PUT: async ({ request }: { request: Request }) => {
         try {
-          const userId = await requireUser();
+          const userId = await requireApiUser();
           const body = await request.json();
           const { monthlyGoal } = body;
 

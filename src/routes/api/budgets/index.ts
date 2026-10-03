@@ -1,25 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getRequest } from "@tanstack/react-start/server";
-import { auth } from "@/lib/auth/server";
-import { assertSameSiteRequest } from "@/lib/auth/isolation.server";
+import { requireApiUser } from "@/lib/auth/api-guard.server";
 import { isValidCategoryId } from "@/lib/budget/validation";
 import { getSql } from "@/lib/db";
-
-async function requireUser(): Promise<string> {
-  assertSameSiteRequest();
-  const request = getRequest();
-  if (!request) throw new Response("Unauthorized", { status: 401 });
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session?.user) throw new Response("Unauthorized", { status: 401 });
-  return session.user.id;
-}
 
 export const Route = createFileRoute("/api/budgets/")({
   server: {
     handlers: {
       GET: async () => {
         try {
-          const userId = await requireUser();
+          const userId = await requireApiUser();
           const sql = await getSql();
           const rows = await sql.query(
             `SELECT category_id as "categoryId", budget_limit as "limit"
@@ -35,7 +24,7 @@ export const Route = createFileRoute("/api/budgets/")({
       },
       PUT: async ({ request }: { request: Request }) => {
         try {
-          const userId = await requireUser();
+          const userId = await requireApiUser();
           const body = await request.json();
           const { categoryId, limit } = body;
 
@@ -65,7 +54,7 @@ export const Route = createFileRoute("/api/budgets/")({
       },
       DELETE: async ({ request }: { request: Request }) => {
         try {
-          const userId = await requireUser();
+          const userId = await requireApiUser();
           const raw = await request.text();
 
           let categoryId: unknown;

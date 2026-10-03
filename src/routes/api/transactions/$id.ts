@@ -1,18 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getRequest } from "@tanstack/react-start/server";
-import { auth } from "@/lib/auth/server";
-import { assertSameSiteRequest } from "@/lib/auth/isolation.server";
+import { requireApiUser } from "@/lib/auth/api-guard.server";
 import { parseTransactionInput } from "@/lib/budget/validation";
 import { getSql } from "@/lib/db";
-
-async function requireUser(): Promise<string> {
-  assertSameSiteRequest();
-  const request = getRequest();
-  if (!request) throw new Response("Unauthorized", { status: 401 });
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session?.user) throw new Response("Unauthorized", { status: 401 });
-  return session.user.id;
-}
 
 /** Keep a deleted/moved occurrence from being re-generated for its series. */
 async function addTombstone(
@@ -39,7 +28,7 @@ export const Route = createFileRoute("/api/transactions/$id")({
         ),
       PUT: async ({ request, params }: { request: Request; params: { id: string } }) => {
         try {
-          const userId = await requireUser();
+          const userId = await requireApiUser();
           const { id } = params;
           const body = await request.json().catch(() => null);
           const parsed = parseTransactionInput(body);
@@ -87,7 +76,7 @@ export const Route = createFileRoute("/api/transactions/$id")({
       },
       DELETE: async ({ params }: { request: Request; params: { id: string } }) => {
         try {
-          const userId = await requireUser();
+          const userId = await requireApiUser();
           const { id } = params;
           const sql = await getSql();
 

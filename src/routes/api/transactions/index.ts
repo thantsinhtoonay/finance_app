@@ -1,20 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getRequest } from "@tanstack/react-start/server";
-import { auth } from "@/lib/auth/server";
-import { assertSameSiteRequest } from "@/lib/auth/isolation.server";
+import { requireApiUser } from "@/lib/auth/api-guard.server";
 import { dueOccurrences } from "@/lib/budget/recurring";
 import { parseTransactionInput } from "@/lib/budget/validation";
 import { getSql } from "@/lib/db";
 import type { RecurringFrequency } from "@/lib/budget/types";
-
-async function requireUser(): Promise<string> {
-  assertSameSiteRequest();
-  const request = getRequest();
-  if (!request) throw new Response("Unauthorized", { status: 401 });
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session?.user) throw new Response("Unauthorized", { status: 401 });
-  return session.user.id;
-}
 
 type AnchorRow = {
   id: string;
@@ -85,7 +74,7 @@ export const Route = createFileRoute("/api/transactions/")({
     handlers: {
       GET: async () => {
         try {
-          const userId = await requireUser();
+          const userId = await requireApiUser();
           const sql = await getSql();
           await materializeRecurring(sql, userId);
           const rows = await sql.query(
@@ -102,7 +91,7 @@ export const Route = createFileRoute("/api/transactions/")({
       },
       POST: async ({ request }: { request: Request }) => {
         try {
-          const userId = await requireUser();
+          const userId = await requireApiUser();
           const body = await request.json().catch(() => null);
           const parsed = parseTransactionInput(body);
           if (!parsed.ok) {
@@ -126,7 +115,7 @@ export const Route = createFileRoute("/api/transactions/")({
       },
       DELETE: async () => {
         try {
-          const userId = await requireUser();
+          const userId = await requireApiUser();
           const sql = await getSql();
           await sql.query(`DELETE FROM transactions WHERE user_id = $1`, [userId]);
           // Fresh start: drop delete-suppression records too.
