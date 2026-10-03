@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getRequest } from "@tanstack/react-start/server";
 import { auth } from "@/lib/auth/server";
+import { assertSameSiteRequest } from "@/lib/auth/isolation.server";
 import { dueOccurrences } from "@/lib/budget/recurring";
+import { parseTransactionInput } from "@/lib/budget/validation";
 import { getSql } from "@/lib/db";
 import type { RecurringFrequency } from "@/lib/budget/types";
 
 async function requireUser(): Promise<string> {
+  assertSameSiteRequest();
   const request = getRequest();
   if (!request) throw new Response("Unauthorized", { status: 401 });
   const session = await auth.api.getSession({ headers: request.headers });
@@ -93,31 +96,32 @@ export const Route = createFileRoute("/api/transactions/")({
           return Response.json(rows);
         } catch (e: any) {
           if (e instanceof Response) return e;
-          return Response.json({ error: e.message }, { status: 500 });
+          console.error("[api/transactions] GET failed:", e);
+          return Response.json({ error: "Internal server error" }, { status: 500 });
         }
       },
       POST: async ({ request }: { request: Request }) => {
         try {
           const userId = await requireUser();
-          const body = await request.json();
-          const { type, amount, category, date, note, recurring } = body;
-
-          const amountNum = Number(amount);
-          if (!type || !Number.isFinite(amountNum) || amountNum <= 0 || !category || !date) {
-            return Response.json({ error: "Missing or invalid required fields" }, { status: 400 });
+          const body = await request.json().catch(() => null);
+          const parsed = parseTransactionInput(body);
+          if (!parsed.ok) {
+            return Response.json({ error: parsed.error }, { status: 400 });
           }
+          const { type, amount, category, date, note, recurring } = parsed.value;
 
           const id = crypto.randomUUID();
           const sql = await getSql();
           await sql.query(
             `INSERT INTO transactions (id, user_id, type, amount, category, date, note, recurring, series_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [id, userId, type, Math.round(amountNum), category, date, note || "", recurring || null, recurring ? id : null],
+            [id, userId, type, Math.round(amount), category, date, note, recurring, recurring ? id : null],
           );
-          return Response.json({ id, type, amount: Math.round(amountNum), category, date, note: note || "", recurring: recurring || null });
+          return Response.json({ id, type, amount: Math.round(amount), category, date, note, recurring });
         } catch (e: any) {
           if (e instanceof Response) return e;
-          return Response.json({ error: e.message }, { status: 500 });
+          console.error("[api/transactions] POST failed:", e);
+          return Response.json({ error: "Internal server error" }, { status: 500 });
         }
       },
       DELETE: async () => {
@@ -130,7 +134,8 @@ export const Route = createFileRoute("/api/transactions/")({
           return Response.json({ success: true });
         } catch (e: any) {
           if (e instanceof Response) return e;
-          return Response.json({ error: e.message }, { status: 500 });
+          console.error("[api/transactions] DELETE failed:", e);
+          return Response.json({ error: "Internal server error" }, { status: 500 });
         }
       },
     },

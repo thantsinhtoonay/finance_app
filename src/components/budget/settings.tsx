@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useSettingsStore, applyTheme } from "@/lib/settings/store";
 import type { Theme } from "@/lib/settings/types";
-import { useBudgetStore } from "@/lib/budget/store";
+import { useBudgetStore, exportToCsv } from "@/lib/budget/store";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
@@ -827,14 +827,7 @@ function DataSettings({ onBack }: { onBack: () => void }) {
   }
 
   function handleExportCsv() {
-    const header = "Date,Type,Category,Amount,Note,Recurring";
-    const rows = [...transactions]
-      .sort((a, b) => (a.date < b.date ? -1 : 1))
-      .map((t) => {
-        const note = t.note.replace(/"/g, '""');
-        return `${t.date},${t.type},"${t.category}",${t.amount},"${note}",${t.recurring || ""}`;
-      });
-    const csv = [header, ...rows].join("\n");
+    const csv = exportToCsv(transactions);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

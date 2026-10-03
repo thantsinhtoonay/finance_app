@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getRequest } from "@tanstack/react-start/server";
 import { auth } from "@/lib/auth/server";
+import { assertSameSiteRequest } from "@/lib/auth/isolation.server";
+import { isValidCategoryId } from "@/lib/budget/validation";
 import { getSql } from "@/lib/db";
 
 async function requireUser(): Promise<string> {
+  assertSameSiteRequest();
   const request = getRequest();
   if (!request) throw new Response("Unauthorized", { status: 401 });
   const session = await auth.api.getSession({ headers: request.headers });
@@ -26,7 +29,8 @@ export const Route = createFileRoute("/api/budgets/")({
           return Response.json(rows);
         } catch (e: any) {
           if (e instanceof Response) return e;
-          return Response.json({ error: e.message }, { status: 500 });
+          console.error("[api/budgets] request failed:", e);
+          return Response.json({ error: "Internal server error" }, { status: 500 });
         }
       },
       PUT: async ({ request }: { request: Request }) => {
@@ -35,8 +39,11 @@ export const Route = createFileRoute("/api/budgets/")({
           const body = await request.json();
           const { categoryId, limit } = body;
 
-          const limitNum = Number(limit);
-          if (!categoryId || limit === undefined || !Number.isFinite(limitNum) || limitNum < 0) {
+          const limitNum =
+            typeof limit === "number" || (typeof limit === "string" && limit.trim() !== "")
+              ? Number(limit)
+              : NaN;
+          if (!isValidCategoryId(categoryId) || limit === undefined || !Number.isFinite(limitNum) || limitNum < 0) {
             return Response.json({ error: "Missing or invalid categoryId or limit" }, { status: 400 });
           }
 
@@ -52,7 +59,8 @@ export const Route = createFileRoute("/api/budgets/")({
           return Response.json({ categoryId, limit: rounded });
         } catch (e: any) {
           if (e instanceof Response) return e;
-          return Response.json({ error: e.message }, { status: 500 });
+          console.error("[api/budgets] request failed:", e);
+          return Response.json({ error: "Internal server error" }, { status: 500 });
         }
       },
       DELETE: async ({ request }: { request: Request }) => {
@@ -71,7 +79,7 @@ export const Route = createFileRoute("/api/budgets/")({
 
           const sql = await getSql();
           if (categoryId !== undefined && categoryId !== null) {
-            if (typeof categoryId !== "string") {
+            if (!isValidCategoryId(categoryId)) {
               return Response.json({ error: "Missing categoryId" }, { status: 400 });
             }
             await sql.query(
@@ -86,7 +94,8 @@ export const Route = createFileRoute("/api/budgets/")({
           return Response.json({ ok: true, all: true });
         } catch (e: any) {
           if (e instanceof Response) return e;
-          return Response.json({ error: e.message }, { status: 500 });
+          console.error("[api/budgets] request failed:", e);
+          return Response.json({ error: "Internal server error" }, { status: 500 });
         }
       },
     },

@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getRequest } from "@tanstack/react-start/server";
 import { auth } from "@/lib/auth/server";
+import { assertSameSiteRequest } from "@/lib/auth/isolation.server";
 import { getSql } from "@/lib/db";
 
 async function requireUser(): Promise<string> {
+  assertSameSiteRequest();
   const request = getRequest();
   if (!request) throw new Response("Unauthorized", { status: 401 });
   const session = await auth.api.getSession({ headers: request.headers });
@@ -29,7 +31,8 @@ export const Route = createFileRoute("/api/settings/")({
           return Response.json(rows[0]);
         } catch (e: any) {
           if (e instanceof Response) return e;
-          return Response.json({ error: e.message }, { status: 500 });
+          console.error("[api/settings] request failed:", e);
+          return Response.json({ error: "Internal server error" }, { status: 500 });
         }
       },
       PUT: async ({ request }: { request: Request }) => {
@@ -38,7 +41,11 @@ export const Route = createFileRoute("/api/settings/")({
           const body = await request.json();
           const { monthlyGoal } = body;
 
-          const goalNum = Number(monthlyGoal);
+          const goalNum =
+            typeof monthlyGoal === "number" ||
+            (typeof monthlyGoal === "string" && monthlyGoal.trim() !== "")
+              ? Number(monthlyGoal)
+              : NaN;
           if (monthlyGoal === undefined || !Number.isFinite(goalNum) || goalNum < 0) {
             return Response.json({ error: "Missing or invalid monthlyGoal" }, { status: 400 });
           }
@@ -55,7 +62,8 @@ export const Route = createFileRoute("/api/settings/")({
           return Response.json({ monthlyGoal: rounded });
         } catch (e: any) {
           if (e instanceof Response) return e;
-          return Response.json({ error: e.message }, { status: 500 });
+          console.error("[api/settings] request failed:", e);
+          return Response.json({ error: "Internal server error" }, { status: 500 });
         }
       },
     },
