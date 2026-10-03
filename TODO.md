@@ -29,7 +29,7 @@
 - [x] Add dark theme support — `.dark` class, Light/Dark/System setting
 - [x] Change currency to Myanmar Kyat — `format.ts`
 - [x] Set up GitHub repository — `origin/main`
-- [x] Deploy to hosting — Vercel production, alias `northline-app-mu.vercel.app`
+- [x] Deploy to hosting — Vercel production `shal-su.vercel.app` (git auto-deploy from `origin/main`; `northline-app` is the secondary CLI-linked project)
 
 ### Recently shipped
 - [x] Full i18n (Burmese/English) — settings, nav, auth pages, categories, history
@@ -39,6 +39,27 @@
 - [x] Mobile polish — safe-area, floating bottom nav, stat-card wrapping
 - [x] Burmese typography parity with English (Padauk only)
 - [x] Budget Limit improvements — pre-set budgets, remove support, DELETE API
+
+### Bug fixes (`ae130f2`) — all 9 verified in prod
+- [x] Privacy settings row (div → semantic buttons)
+- [x] Change-email enabled (`changeEmail` handler)
+- [x] "Clear all data" resets savings goal + category budgets (not just transactions)
+- [x] Save rollback on failed transaction update
+- [x] Recurring transactions actually generate — `0003_recurring.sql`, `recurring.ts`, GET materialization, idempotent + tombstones (12 tests)
+- [x] API routes return JSON 405 (not HTML) for wrong methods; `/api/auth/*` DELETE handled by Better Auth
+- [x] Themed branded 404 page
+- [x] CSV export: stable sort (copy before sort) + formula-injection escaping (`csvCell`)
+- [x] Real sign-in error message instead of silent failure
+
+### Security hardening (`280b213`, `8171a0e`) — security review complete
+- [x] Strict input validation on API routes — `src/lib/budget/validation.ts` (bad type/date/category/amount → clean 400)
+- [x] Generic 500 responses — no more `e.message` (DB internals) leaking to clients
+- [x] Same-site guard on all API routes — shared `requireApiUser()`; cross-site fetch → 403 (was 500), anon → 401
+- [x] Security headers via `vercel.json` — nosniff, Referrer-Policy, Permissions-Policy, CSP `frame-ancestors`
+- [x] CSV formula/quote injection escaping
+- [x] TanStack Start/Router patched for Vercel XSS advisory (`1d62ed0`)
+- [x] Audit verified: IDOR isolation, sign-in rate limiting (429), origin checks, parameterized SQL, no secrets in git, preview bridge origin-gated
+- [x] QA test-user cleanup in prod (leftover inert accounts noted below)
 
 ## Backlog (remaining)
 
@@ -67,14 +88,19 @@
 ### Technical
 - [x] ~~Database backend (PostgreSQL)~~ — Neon + `migrate.mjs`
 - [x] ~~Authentication system~~ — Better Auth, multi-user, session-gated API
-- [ ] Unit tests for store logic
+- [ ] Unit tests for store logic — validation + recurring covered (72 tests total); `parseAmount`, `summarizeMonth`, budget reducers still untested
 - [ ] Integration tests
-- [ ] E2E tests with Playwright
+- [ ] E2E tests with Playwright — 27-check PowerShell suite + Playwright smoke exist (temp scripts); promote to repo-hosted `*.spec.ts`
 - [ ] Performance optimization (routes chunk 747KB > 500KB warning)
 - [ ] Bundle analysis
 - [ ] SEO improvements
 - [ ] PWA manifest (only `favicon.svg` exists — no icons/manifest)
 - [ ] Offline support (localStorage persists, but no service worker)
+
+### Housekeeping
+- [ ] Delete 4 leftover QA test accounts in prod DB (`idor-a/b`, `final/final2 @test.local`) — emails unrecoverable, needs `DATABASE_URL` from Vercel dashboard (env values are redacted to CLI/API)
+- [ ] Decide on custom domain — `shal.su` / `shal-su.site` / `shal-su.app` (blocked on you)
+- [ ] Stop local dev server (port 8080) when not in use
 
 ### Documentation
 - [ ] API documentation
@@ -93,7 +119,7 @@
 5. **Recurring reminders** — recurring transactions exist but nothing surfaces upcoming bills; add a "upcoming bills" widget or notifications.
 6. **Tests** — unit tests for store logic (parseAmount, summarizeMonth, budget reducers) before more features.
 7. **Accessibility sweep** — dialog focus trap, aria-labels on icon-only buttons, contrast check in dark mode.
-8. **Custom domain** — purchase + point at Vercel (blocked on you).
+8. **Custom domain** — purchase + point at Vercel (options `shal.su` / `shal-su.site` / `shal-su.app` — blocked on you).
 
 ## Ideas
 
