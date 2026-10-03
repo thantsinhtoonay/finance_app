@@ -38,7 +38,7 @@ export const Route = createRootRoute({
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <ThemeInit />
         <I18nInit />
         <PreviewHostBridge />

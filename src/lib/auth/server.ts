@@ -216,10 +216,17 @@ export const auth = betterAuth({
   // for HTTP headers (431 errors). PGLite is fast enough to query each time.
   session: { cookieCache: { enabled: false } },
 
-  // Allow users to delete their own account.
+  // Allow users to delete their own account, and to change their email
+  // directly (no verification email sender is configured in this app, so the
+  // unverified email/password users — the only real flow here — are updated
+  // immediately when `updateEmailWithoutVerification` is on).
   user: {
     deleteUser: {
       enabled: true,
+    },
+    changeEmail: {
+      enabled: true,
+      updateEmailWithoutVerification: true,
     },
   },
 

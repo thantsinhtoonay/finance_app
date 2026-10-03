@@ -58,19 +58,32 @@ export const Route = createFileRoute("/api/budgets/")({
       DELETE: async ({ request }: { request: Request }) => {
         try {
           const userId = await requireUser();
-          const body = await request.json();
-          const { categoryId } = body;
+          const raw = await request.text();
 
-          if (!categoryId || typeof categoryId !== "string") {
-            return Response.json({ error: "Missing categoryId" }, { status: 400 });
+          let categoryId: unknown;
+          if (raw && raw.trim()) {
+            try {
+              ({ categoryId } = JSON.parse(raw));
+            } catch {
+              return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+            }
           }
 
           const sql = await getSql();
-          await sql.query(
-            `DELETE FROM category_budgets WHERE user_id = $1 AND category_id = $2`,
-            [userId, categoryId],
-          );
-          return Response.json({ ok: true });
+          if (categoryId !== undefined && categoryId !== null) {
+            if (typeof categoryId !== "string") {
+              return Response.json({ error: "Missing categoryId" }, { status: 400 });
+            }
+            await sql.query(
+              `DELETE FROM category_budgets WHERE user_id = $1 AND category_id = $2`,
+              [userId, categoryId],
+            );
+            return Response.json({ ok: true });
+          }
+
+          // No categoryId → clear ALL budgets ("Clear All Data").
+          await sql.query(`DELETE FROM category_budgets WHERE user_id = $1`, [userId]);
+          return Response.json({ ok: true, all: true });
         } catch (e: any) {
           if (e instanceof Response) return e;
           return Response.json({ error: e.message }, { status: 500 });

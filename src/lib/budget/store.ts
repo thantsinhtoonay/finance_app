@@ -5,7 +5,6 @@ import type {
   CategoryBudget,
   CategoryTotal,
   MonthSummary,
-  RecurringFrequency,
   Transaction,
   TxType,
   YearlySummary,
@@ -72,6 +71,8 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
           amount: Number(t.amount),
         }));
         set({ transactions });
+      } else {
+        console.error("Failed to load transactions:", txRes.status);
       }
 
       if (budgetRes.ok) {
@@ -83,11 +84,15 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
         if (categoryBudgets.length > 0) {
           set({ categoryBudgets });
         }
+      } else {
+        console.error("Failed to load budgets:", budgetRes.status);
       }
 
       if (settingsRes.ok) {
         const { monthlyGoal } = await settingsRes.json();
         set({ monthlyGoal: Number(monthlyGoal) });
+      } else {
+        console.error("Failed to load settings:", settingsRes.status);
       }
 
       set({ loaded: true });
@@ -112,8 +117,12 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
         set((s) => ({
           transactions: s.transactions.map((t) => (t.id === id ? saved : t)),
         }));
+      } else {
+        console.error("Failed to save transaction:", res.status);
+        set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) }));
       }
-    } catch {
+    } catch (err) {
+      console.error("Failed to save transaction:", err);
       set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) }));
     }
   },
@@ -223,31 +232,28 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
     });
 
     try {
-      await apiFetch("/api/transactions/", { method: "DELETE" });
+      // Clear everything server-side: transactions, per-category budgets, and
+      // the monthly goal — otherwise a reload resurrects them.
+      const results = await Promise.all([
+        apiFetch("/api/transactions/", { method: "DELETE" }),
+        apiFetch("/api/budgets/", { method: "DELETE" }),
+        apiFetch("/api/settings/", {
+          method: "PUT",
+          body: JSON.stringify({ monthlyGoal: 0 }),
+        }),
+      ]);
+      const failed = results.filter((r) => !r.ok);
+      if (failed.length > 0) {
+        console.error(
+          "Clear all data: some server data could not be deleted:",
+          failed.map((r) => r.status),
+        );
+      }
     } catch (err) {
       console.error("Failed to clear data from server:", err);
     }
   },
 }));
-
-function getNextRecurringDate(lastDate: string, frequency: RecurringFrequency): string {
-  const d = new Date(lastDate + "T00:00:00");
-  switch (frequency) {
-    case "weekly":
-      d.setDate(d.getDate() + 7);
-      break;
-    case "biweekly":
-      d.setDate(d.getDate() + 14);
-      break;
-    case "monthly":
-      d.setMonth(d.getMonth() + 1);
-      break;
-    case "yearly":
-      d.setFullYear(d.getFullYear() + 1);
-      break;
-  }
-  return d.toISOString().slice(0, 10);
-}
 
 export function summarizeMonth(
   transactions: Transaction[],
@@ -374,7 +380,7 @@ export function exportToCsv(transactions: Transaction[], month?: string): string
     : transactions;
 
   const header = "Date,Type,Category,Amount,Note,Recurring";
-  const rows = txs
+  const rows = [...txs]
     .sort((a, b) => (a.date < b.date ? -1 : 1))
     .map((t) => {
       const cat = categoryById(t.category);

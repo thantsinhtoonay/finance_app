@@ -761,11 +761,19 @@ function PrivacySettings({ onBack }: { onBack: () => void }) {
             const Icon = t.icon;
             const isEnabled = privacy[t.key];
             return (
-              <button
+              <div
                 key={t.key}
+                role="button"
+                tabIndex={0}
                 onClick={() => setPrivacy({ [t.key]: !isEnabled })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setPrivacy({ [t.key]: !isEnabled });
+                  }
+                }}
                 className={cn(
-                  "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl transition-all duration-200 hover:bg-secondary/50 text-left",
+                  "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl transition-all duration-200 hover:bg-secondary/50 text-left cursor-pointer",
                   i > 0 && "border-t border-border/50",
                 )}
               >
@@ -783,7 +791,7 @@ function PrivacySettings({ onBack }: { onBack: () => void }) {
                   checked={isEnabled}
                   onCheckedChange={(checked) => setPrivacy({ [t.key]: checked })}
                 />
-              </button>
+              </div>
             );
           })}
         </CardContent>
@@ -820,7 +828,7 @@ function DataSettings({ onBack }: { onBack: () => void }) {
 
   function handleExportCsv() {
     const header = "Date,Type,Category,Amount,Note,Recurring";
-    const rows = transactions
+    const rows = [...transactions]
       .sort((a, b) => (a.date < b.date ? -1 : 1))
       .map((t) => {
         const note = t.note.replace(/"/g, '""');
@@ -837,7 +845,11 @@ function DataSettings({ onBack }: { onBack: () => void }) {
   }
 
   function handleClearData() {
-    if (confirm("Delete ALL transaction history? This cannot be undone.")) {
+    if (
+      confirm(
+        "Delete ALL data — transactions, category budgets, and savings goal? This cannot be undone.",
+      )
+    ) {
       resetData();
     }
   }

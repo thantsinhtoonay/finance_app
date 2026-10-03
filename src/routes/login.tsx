@@ -36,7 +36,7 @@ function LoginPage() {
       });
 
       if (signInError) {
-        setError(t("auth_error_invalid"));
+        setError(signInError.message || t("auth_error_invalid"));
       } else {
         navigate({ to: "/" });
       }
