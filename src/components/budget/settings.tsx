@@ -1,4 +1,5 @@
 ﻿import { useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -10,7 +11,10 @@ import {
   Download,
   Eye,
   EyeOff,
+  Key,
   Lock,
+  LogOut,
+  Mail,
   Moon,
   Palette,
   Pencil,
@@ -29,30 +33,18 @@ import { useSettingsStore, applyTheme } from "@/lib/settings/store";
 import type { Theme } from "@/lib/settings/types";
 import { CURRENCIES } from "@/lib/settings/types";
 import { currencySymbol } from "@/lib/budget/format";
-import { useBudgetStore } from "@/lib/budget/store";
+import { useBudgetStore, exportToCsv } from "@/lib/budget/store";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { authClient } from "@/lib/auth/client";
 import { UserGuide } from "@/components/budget/user-guide";
 
-type SettingsView =
-  | "main"
-  | "account"
-  | "theme"
-  | "currency"
-  | "privacy"
-  | "data";
+type SettingsView = "main" | "account" | "theme" | "currency" | "privacy" | "data";
 
 type Props = {
   onBack: () => void;
 };
-
-/** Never surface the synthetic `tg-…@shalsu.telegram` address in the UI. */
-function accountEmailLabel(primaryEmail: string | null | undefined, fallback: string): string {
-  if (primaryEmail && !primaryEmail.endsWith("@shalsu.telegram")) return primaryEmail;
-  return fallback;
-}
 
 export function Settings({ onBack }: Props) {
   const [view, setView] = useState<SettingsView>("main");
@@ -73,7 +65,7 @@ export function Settings({ onBack }: Props) {
       </header>
 
       <div className="px-0 pb-4">
-        {view === "main" && <SettingsMain onNavigate={setView} localAvatarUrl={localAvatarUrl} />}
+        {view === "main" && <SettingsMain onNavigate={setView} onBack={onBack} localAvatarUrl={localAvatarUrl} />}
         {view === "account" && <AccountSettings onBack={() => setView("main")} onAvatarUploaded={setLocalAvatarUrl} />}
         {view === "theme" && <ThemeSettings onBack={() => setView("main")} />}
         {view === "currency" && <CurrencySettings onBack={() => setView("main")} />}
@@ -86,9 +78,11 @@ export function Settings({ onBack }: Props) {
 
 function SettingsMain({
   onNavigate,
+  onBack,
   localAvatarUrl,
 }: {
   onNavigate: (view: SettingsView) => void;
+  onBack: () => void;
   localAvatarUrl: string | null;
 }) {
   const account = useSettingsStore((s) => s.account);
@@ -99,7 +93,7 @@ function SettingsMain({
   const { t } = useTranslation();
 
   const displayName = user?.displayName || "User";
-  const displayEmail = accountEmailLabel(user?.primaryEmail, account.email || "No email");
+  const displayEmail = user?.primaryEmail || account.email || "No email";
   const currencyName = CURRENCIES.find((c) => c.code === currency)?.name ?? "Myanmar Kyat";
 
   const menuItems = [
@@ -198,6 +192,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
   const user = useCurrentUser();
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const [name, setName] = useState(user?.displayName || "");
   const [saved, setSaved] = useState(false);
@@ -205,6 +200,40 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
   const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
   // Track the effective display image (local takes priority over session)
   const displayImage = localAvatarUrl || user?.profileImageUrl || null;
+
+  // Change password state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // Change email state
+  const [newEmail, setNewEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [emailSuccess, setEmailSuccess] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+
+  // Delete account state
+  const [deletePassword, setDeletePassword] = useState("");
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  function toggleSection(section: string) {
+    setExpandedSection(expandedSection === section ? null : section);
+    setPasswordError("");
+    setPasswordSuccess("");
+    setEmailError("");
+    setEmailSuccess("");
+    setDeleteError("");
+  }
 
   async function handleUpdateName() {
     if (!name.trim()) return;
@@ -242,6 +271,110 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
     };
     reader.readAsDataURL(file);
   }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      return;
+    }
+    if (currentPassword === newPassword) {
+      setPasswordError("New password must be different from current");
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword,
+        newPassword,
+      });
+      if (error) {
+        setPasswordError(error.message || "Failed to change password");
+      } else {
+        setPasswordSuccess("Password changed successfully");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmNewPassword("");
+      }
+    } catch {
+      setPasswordError("An unexpected error occurred");
+    } finally {
+      setPasswordLoading(false);
+    }
+  }
+
+  async function handleChangeEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailError("");
+    setEmailSuccess("");
+
+    if (!newEmail.trim()) {
+      setEmailError("Email is required");
+      return;
+    }
+
+    setEmailLoading(true);
+    try {
+      const { error } = await authClient.changeEmail({
+        newEmail: newEmail.trim(),
+      });
+      if (error) {
+        setEmailError(error.message || "Failed to change email");
+      } else {
+        setEmailSuccess("Email updated successfully");
+        setNewEmail("");
+      }
+    } catch {
+      setEmailError("An unexpected error occurred");
+    } finally {
+      setEmailLoading(false);
+    }
+  }
+
+  async function handleDeleteAccount(e: React.FormEvent) {
+    e.preventDefault();
+    setDeleteError("");
+
+    if (!deleteConfirm) {
+      setDeleteConfirm(true);
+      return;
+    }
+
+    setDeleteLoading(true);
+    try {
+      const { error } = await authClient.deleteUser({
+        password: deletePassword,
+      });
+      if (error) {
+        setDeleteError(error.message || "Failed to delete account");
+        setDeleteLoading(false);
+      } else {
+        navigate({ to: "/login" });
+      }
+    } catch {
+      setDeleteError("An unexpected error occurred");
+      setDeleteLoading(false);
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await authClient.signOut();
+      navigate({ to: "/login" });
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  }
+
+  const avatarInitial = (user?.displayName || name || "U").charAt(0).toUpperCase();
 
   return (
     <div className="flex flex-col gap-4">
@@ -281,7 +414,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
         />
         <div className="text-center">
           <p className="font-semibold text-lg">{user?.displayName || "User"}</p>
-          <p className="text-sm text-muted-foreground">{accountEmailLabel(user?.primaryEmail, "Telegram")}</p>
+          <p className="text-sm text-muted-foreground">{user?.primaryEmail || "No email"}</p>
         </div>
       </div>
 
@@ -313,9 +446,213 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
         </CardContent>
       </Card>
 
+      {/* Change Password */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          <button
+            onClick={() => toggleSection("password")}
+            className="flex items-center gap-3 w-full px-5 py-4 text-left transition-colors hover:bg-secondary/50"
+          >
+            <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
+              <Key className="size-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Change Password</p>
+              <p className="text-xs text-muted-foreground">Update your password regularly</p>
+            </div>
+            <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300", expandedSection === "password" && "rotate-90 text-primary")} />
+          </button>
+          {expandedSection === "password" && (
+            <form onSubmit={handleChangePassword} className="px-5 pb-5 flex flex-col gap-3 border-t border-border/50">
+              {passwordError && (
+                <div className="mt-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
+                  {passwordError}
+                </div>
+              )}
+              {passwordSuccess && (
+                <div className="mt-3 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-2 text-xs text-green-600">
+                  {passwordSuccess}
+                </div>
+              )}
+              <div className="flex flex-col gap-2 mt-3">
+                <Label className="text-xs font-medium text-muted-foreground">Current Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="h-10 pl-8 pr-9 text-sm"
+                  />
+                  <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
+                    {showCurrentPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-medium text-muted-foreground">New Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="h-10 pl-8 pr-9 text-sm"
+                  />
+                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
+                    {showNewPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-medium text-muted-foreground">Confirm New Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showNewPassword ? "text" : "password"}
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="h-10 pl-8 text-sm"
+                  />
+                </div>
+              </div>
+              <Button type="submit" disabled={passwordLoading} className="mt-1">
+                {passwordLoading ? "Changing..." : "Update Password"}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Change Email */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          <button
+            onClick={() => toggleSection("email")}
+            className="flex items-center gap-3 w-full px-5 py-4 text-left transition-colors hover:bg-secondary/50"
+          >
+            <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
+              <Mail className="size-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Change Email</p>
+              <p className="text-xs text-muted-foreground">{user?.primaryEmail || "No email set"}</p>
+            </div>
+            <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300", expandedSection === "email" && "rotate-90 text-primary")} />
+          </button>
+          {expandedSection === "email" && (
+            <form onSubmit={handleChangeEmail} className="px-5 pb-5 flex flex-col gap-3 border-t border-border/50">
+              {emailError && (
+                <div className="mt-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
+                  {emailError}
+                </div>
+              )}
+              {emailSuccess && (
+                <div className="mt-3 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-2 text-xs text-green-600">
+                  {emailSuccess}
+                </div>
+              )}
+              <div className="flex flex-col gap-2 mt-3">
+                <Label className="text-xs font-medium text-muted-foreground">New Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="new@email.com"
+                    required
+                    className="h-10 pl-8 text-sm"
+                  />
+                </div>
+              </div>
+              <Button type="submit" disabled={emailLoading} className="mt-1">
+                {emailLoading ? "Updating..." : "Update Email"}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+
       {/* User Guide */}
       <UserGuide />
 
+      {/* Sign Out */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-5 py-4 rounded-xl hover:bg-destructive/10 transition-colors text-left"
+          >
+            <div className="flex items-center justify-center size-9 rounded-lg bg-destructive/10">
+              <LogOut className="size-4 text-destructive" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-destructive">Sign Out</p>
+              <p className="text-xs text-muted-foreground">Sign out of your account</p>
+            </div>
+          </button>
+        </CardContent>
+      </Card>
+
+      {/* Danger Zone */}
+      <Card className="overflow-hidden border-destructive/30">
+        <CardContent className="p-0">
+          <button
+            onClick={() => toggleSection("delete")}
+            className="flex items-center gap-3 w-full px-5 py-4 text-left transition-colors hover:bg-destructive/5"
+          >
+            <div className="flex items-center justify-center size-9 rounded-lg bg-destructive/10">
+              <Trash2 className="size-4 text-destructive" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-destructive">Delete Account</p>
+              <p className="text-xs text-muted-foreground">Permanently delete your account and all data</p>
+            </div>
+            <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300", expandedSection === "delete" && "rotate-90 text-destructive")} />
+          </button>
+          {expandedSection === "delete" && (
+            <form onSubmit={handleDeleteAccount} className="px-5 pb-5 flex flex-col gap-3 border-t border-destructive/20">
+              <div className="mt-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
+                {deleteConfirm
+                  ? "This action is irreversible. All your data will be permanently deleted."
+                  : "This will permanently delete your account and all associated data."}
+              </div>
+              {deleteError && (
+                <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
+                  {deleteError}
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-medium text-muted-foreground">Enter your password to confirm</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type={showDeletePassword ? "text" : "password"}
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="h-10 pl-8 pr-9 text-sm"
+                  />
+                  <button type="button" onClick={() => setShowDeletePassword(!showDeletePassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
+                    {showDeletePassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                  </button>
+                </div>
+              </div>
+              <Button type="submit" disabled={deleteLoading} variant="destructive" className="mt-1">
+                {deleteLoading ? "Deleting..." : deleteConfirm ? "Yes, Delete My Account" : "Delete Account"}
+              </Button>
+            </form>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -536,34 +873,39 @@ function PrivacySettings({ onBack }: { onBack: () => void }) {
 
 function DataSettings({ onBack }: { onBack: () => void }) {
   const transactions = useBudgetStore((s) => s.transactions);
+  const monthlyGoal = useBudgetStore((s) => s.monthlyGoal);
   const categoryBudgets = useBudgetStore((s) => s.categoryBudgets);
   const resetData = useBudgetStore((s) => s.resetData);
-  const [sendState, setSendState] = useState<
-    "idle" | "sending" | "sent" | "nolink" | "error"
-  >("idle");
+  const [exported, setExported] = useState(false);
 
-  async function sendExport(kind: "csv-all" | "backup-json") {
-    setSendState("sending");
-    try {
-      const res = await fetch("/api/export/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind }),
-      });
-      if (res.ok) {
-        setSendState("sent");
-        window.setTimeout(
-          () => setSendState((s) => (s === "sent" ? "idle" : s)),
-          3000,
-        );
-      } else if (res.status === 409) {
-        setSendState("nolink");
-      } else {
-        setSendState("error");
-      }
-    } catch {
-      setSendState("error");
-    }
+  function handleExportJson() {
+    const data = {
+      version: 1,
+      transactions,
+      monthlyGoal,
+      categoryBudgets,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `northline-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setExported(true);
+    setTimeout(() => setExported(false), 2000);
+  }
+
+  function handleExportCsv() {
+    const csv = exportToCsv(transactions);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `northline-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function handleClearData() {
@@ -587,51 +929,34 @@ function DataSettings({ onBack }: { onBack: () => void }) {
 
       <Card>
         <CardContent className="flex flex-col gap-3 p-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-label">Export to Telegram</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-label">Export</p>
 
           <button
-            onClick={() => sendExport("backup-json")}
-            disabled={sendState === "sending"}
-            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left disabled:opacity-60"
+            onClick={handleExportJson}
+            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left"
           >
             <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10">
               <Download className="size-5 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold">Send JSON backup</p>
+              <p className="text-sm font-semibold">Export as JSON</p>
               <p className="text-xs text-muted-foreground">Full backup with settings</p>
             </div>
-            {sendState === "sent" && <Check className="size-4 text-emerald-500" />}
+            {exported && <Check className="size-4 text-emerald-500" />}
           </button>
 
           <button
-            onClick={() => sendExport("csv-all")}
-            disabled={sendState === "sending"}
-            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left disabled:opacity-60"
+            onClick={handleExportCsv}
+            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left"
           >
             <div className="flex items-center justify-center size-10 rounded-xl bg-emerald-500/10">
               <Download className="size-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold">Send CSV export</p>
-              <p className="text-xs text-muted-foreground">All transactions, spreadsheet-ready</p>
+              <p className="text-sm font-semibold">Export as CSV</p>
+              <p className="text-xs text-muted-foreground">Spreadsheet-compatible format</p>
             </div>
           </button>
-
-          {sendState === "sending" && (
-            <p className="text-xs text-muted-foreground">Sending to Telegram...</p>
-          )}
-          {sendState === "sent" && (
-            <p className="text-xs text-emerald-600 dark:text-emerald-400">Sent to Telegram.</p>
-          )}
-          {sendState === "nolink" && (
-            <p className="text-xs text-amber-600 dark:text-amber-400">
-              Link Telegram in Settings first.
-            </p>
-          )}
-          {sendState === "error" && (
-            <p className="text-xs text-destructive">Couldn't send to Telegram. Try again.</p>
-          )}
         </CardContent>
       </Card>
 

@@ -29,10 +29,9 @@
 - [x] Add dark theme support — `.dark` class, Light/Dark/System setting
 - [x] Change currency to Myanmar Kyat — `format.ts`
 - [x] Set up GitHub repository — `origin/main`
-- [x] Deploy to hosting — Vercel production, primary domain **`https://shal-su.vercel.app`** (custom `thantsin.website` domains removed from Vercel; git auto-deploy from `origin/main`)
+- [x] Deploy to hosting — Vercel production, primary domain **`https://www.thantsin.website`** (apex `thantsin.website` 308-redirects to www; `shal-su.vercel.app` kept as fallback; git auto-deploy from `origin/main`)
 
 ### Recently shipped
-- [x] Telegram-only Mini App conversion (`4f840e6`) — email/password sign-in/sign-up removed; auto account creation from validated Mini App `initData` (`POST /api/auth/telegram/webapp`); landing page outside Telegram; bot `/start` + menu button open the app
 - [x] Full i18n (Burmese/English) — settings, nav, auth pages, categories, history
 - [x] Language switch on Sign In / Sign Up pages
 - [x] History view (month selector + that month's transactions)
@@ -99,7 +98,7 @@
 - [ ] Offline support (localStorage persists, but no service worker)
 
 ### Housekeeping
-- [x] Custom domain — ~~bought `thantsin.website` (Z.com)~~ removed from Vercel (`4f840e6`); app lives at **`shal-su.vercel.app`** — Z.com registration cancellation pending on user side
+- [x] Custom domain — bought `thantsin.website` (Z.com) → primary **`www.thantsin.website`**, apex redirects 308; origins trusted in Better Auth
 - [ ] Delete 4 leftover QA test accounts in prod DB (`idor-a/b`, `final/final2 @test.local`) — emails unrecoverable, needs `DATABASE_URL` from Vercel dashboard (env values are redacted to CLI/API)
 - [ ] Stop local dev server (port 8080) when not in use
 
@@ -120,7 +119,7 @@
 5. **Recurring reminders** — recurring transactions exist but nothing surfaces upcoming bills; add a "upcoming bills" widget or notifications.
 6. **Tests** — unit tests for store logic (parseAmount, summarizeMonth, budget reducers) before more features.
 7. **Accessibility sweep** — dialog focus trap, aria-labels on icon-only buttons, contrast check in dark mode.
-8. ~~**Custom domain**~~ done then removed — app is Telegram-only at `shal-su.vercel.app`; cancel the Z.com `thantsin.website` registration when convenient.
+8. **Custom domain** — ~~blocked on you~~ done: bought `thantsin.website` (Z.com), primary `www.thantsin.website`.
 
 ## Ideas
 

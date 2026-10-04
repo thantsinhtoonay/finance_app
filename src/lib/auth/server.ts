@@ -38,7 +38,6 @@ import { Pool } from "pg";
 import { ensureDbReady, getPglite } from "../db";
 import { emailAndPasswordEnabled } from "./email-password";
 import { GATE_PROVIDER_ID, gateIdentitySessions } from "./gate-session.server";
-import { telegramAuthPlugin } from "./telegram-plugin.server";
 import { GROK_PROVIDERS } from "./providers";
 import { pgliteDialect } from "./pglite-dialect";
 import {
@@ -105,11 +104,12 @@ const LOCAL_DEV_ORIGINS: string[] = [
   "http://[::1]:8080",
 ];
 
-// Custom production origin (Vercel project `shal-su`). In allowedHosts so the
+// Custom production domain(s) (Vercel project `shal-su`). In allowedHosts so the
 // dynamic baseURL can derive the origin/redirect_uri from the request host, and
-// in trustedOrigins so credentialed POSTs (telegram/webapp sign-in) aren't FORBIDDEN.
+// in trustedOrigins so credentialed POSTs (sign-up/sign-in) aren't FORBIDDEN.
 const CUSTOM_APP_ORIGINS: string[] = [
-  "https://shal-su.vercel.app",
+  "https://thantsin.website",
+  "https://www.thantsin.website",
 ];
 
 // Build allowedHosts: always include local dev + preview hosts.
@@ -265,9 +265,6 @@ export const auth = betterAuth({
 
   plugins: [
     gateIdentitySessions(),
-
-    // Deep-link Telegram sign-in / linking (routes under /api/auth/telegram/*).
-    telegramAuthPlugin(),
 
     // One genericOAuth provider per upstream (when auth is on), all federating
     // to the broker with the SAME client and differing only by the `idp` hint.
