@@ -187,6 +187,7 @@ export const en: TranslationKeys = {
   dialog_save_changes: "Save changes",
   dialog_error_zero_amount: "Enter an amount greater than zero.",
   dialog_error_no_date: "Choose a date.",
+  dialog_error_income_first: "Add income first — expenses are locked until you record your first income.",
 
   // Recurring
   recurring_weekly: "Weekly",

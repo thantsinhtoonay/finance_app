@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireApiUser } from "@/lib/auth/api-guard.server";
+import { hasIncomeExcept, incomeRequired } from "@/lib/budget/income-gate.server";
 import { parseTransactionInput } from "@/lib/budget/validation";
 import { getSql } from "@/lib/db";
 
@@ -51,6 +52,12 @@ export const Route = createFileRoute("/api/transactions/$id")({
             return Response.json({ error: "Not found" }, { status: 404 });
           }
           const row = existing[0];
+
+          // Income-first gate: editing into an expense (or editing an expense)
+          // requires another income row to exist — the row itself never counts.
+          if (type === "expense" && !(await hasIncomeExcept(sql, userId, id))) {
+            return incomeRequired();
+          }
 
           // Moving an occurrence off its date must stop the series from
           // re-filling the old slot (anchors restart from their new date).

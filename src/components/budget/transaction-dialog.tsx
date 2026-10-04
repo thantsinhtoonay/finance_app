@@ -32,6 +32,7 @@ type Props = {
   month: string;
   summary: MonthSummary;
   editing: Transaction | null;
+  hasIncome: boolean;
   onSubmit: (draft: {
     type: TxType;
     amount: number;
@@ -48,6 +49,7 @@ export function TransactionDialog({
   month,
   summary,
   editing,
+  hasIncome,
   onSubmit,
 }: Props) {
   const { t } = useTranslation();
@@ -101,6 +103,10 @@ export function TransactionDialog({
     }
     if (!date) {
       setError(t("dialog_error_no_date"));
+      return;
+    }
+    if (type === "expense" && !hasIncome) {
+      setError(t("dialog_error_income_first"));
       return;
     }
     onSubmit({
@@ -178,7 +184,15 @@ export function TransactionDialog({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label htmlFor="category" className="text-sm font-semibold">{t("dialog_category")}</Label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select
+                value={category}
+                onValueChange={(v) => {
+                  // Radix fires an empty reset when the option list swaps on a
+                  // type switch; "" is never a valid category — keep the last
+                  // choice (handleType already set the correct default).
+                  if (v) setCategory(v);
+                }}
+              >
                 <SelectTrigger id="category" aria-label={t("dialog_category")} className="h-11">
                   <SelectValue />
                 </SelectTrigger>

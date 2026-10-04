@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireApiUser } from "@/lib/auth/api-guard.server";
+import { hasIncomeExcept, incomeRequired } from "@/lib/budget/income-gate.server";
 import { dueOccurrences } from "@/lib/budget/recurring";
 import { parseTransactionInput } from "@/lib/budget/validation";
 import { getSql } from "@/lib/db";
@@ -101,6 +102,10 @@ export const Route = createFileRoute("/api/transactions/")({
 
           const id = crypto.randomUUID();
           const sql = await getSql();
+          // Income-first gate: no expense may exist before the first income.
+          if (type === "expense" && !(await hasIncomeExcept(sql, userId))) {
+            return incomeRequired();
+          }
           await sql.query(
             `INSERT INTO transactions (id, user_id, type, amount, category, date, note, recurring, series_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,

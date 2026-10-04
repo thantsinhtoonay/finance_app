@@ -218,6 +218,7 @@ export interface TranslationKeys {
   dialog_save_changes: string;
   dialog_error_zero_amount: string;
   dialog_error_no_date: string;
+  dialog_error_income_first: string;
 
   // Recurring
   recurring_weekly: string;

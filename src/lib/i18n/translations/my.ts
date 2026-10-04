@@ -122,6 +122,7 @@ export const my: TranslationKeys = {
   dialog_save_changes: "သိမ်းဆည်းရန်",
   dialog_error_zero_amount: "သုညထက်မက ငွေပမာဏထည့်ပါ။",
   dialog_error_no_date: "ရက်စွဲရွေးပါ။",
+  dialog_error_income_first: "အရင် ဝင်ငွေ မှတ်တမ်း အရင်ထည့်ပါ — ဝင်ငွေ မထည့်ရသေးမချင်း အသုံးစရိတ် မထည့်နိုင်ပါ။",
 
   // Recurring
   recurring_weekly: "အပတ်စဉ်",

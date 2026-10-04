@@ -403,6 +403,10 @@ export function Dashboard() {
         month={selectedMonth}
         summary={summary}
         editing={editing}
+        hasIncome={
+          !loaded ||
+          transactions.some((tx) => tx.type === "income" && (!editing || tx.id !== editing.id))
+        }
         onSubmit={(draft) => {
           if (editing) updateTransaction(editing.id, draft);
           else addTransaction(draft);
