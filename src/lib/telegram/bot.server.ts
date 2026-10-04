@@ -33,6 +33,26 @@ export function botStartUrl(code: string): string | null {
 }
 
 /**
+ * Canonical web-app origin: BETTER_AUTH_URL once it points at the deployed
+ * domain, otherwise the production fallback (inline `web_app` buttons must be
+ * https — Telegram rejects anything else at send time).
+ */
+export function appUrl(): string {
+  const base = env("BETTER_AUTH_URL");
+  if (base && /^https?:\/\//.test(base)) return base.replace(/\/+$/, "");
+  return "https://shal-su.vercel.app";
+}
+
+/** Inline "Open Shal Su" button — `undefined` when the app URL isn't https. */
+export function openAppButton():
+  | { inline_keyboard: { text: string; web_app: { url: string } }[][] }
+  | undefined {
+  const url = appUrl();
+  if (!url.startsWith("https://")) return undefined;
+  return { inline_keyboard: [[{ text: "Open Shal Su", web_app: { url } }]] };
+}
+
+/**
  * Webhook auth: Telegram echoes `secret_token` back in
  * `X-Telegram-Bot-Api-Secret-Token`. Fails closed when the secret is unset.
  */
@@ -60,8 +80,16 @@ async function telegramApi<T>(method: string, payload: unknown): Promise<T> {
   return data.result;
 }
 
-export async function sendMessage(chatId: string, text: string): Promise<void> {
-  await telegramApi("sendMessage", { chat_id: chatId, text });
+export async function sendMessage(
+  chatId: string,
+  text: string,
+  replyMarkup?: object,
+): Promise<void> {
+  await telegramApi("sendMessage", {
+    chat_id: chatId,
+    text,
+    ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
+  });
 }
 
 export async function sendDocument(

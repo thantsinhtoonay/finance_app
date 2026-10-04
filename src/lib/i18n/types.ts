@@ -79,6 +79,10 @@ export interface TranslationKeys {
   auth_telegram_conflict: string;
   auth_telegram_throttled: string;
   auth_telegram_unavailable: string;
+  landing_subtitle: string;
+  landing_hint: string;
+  landing_open_telegram: string;
+  landing_auth_error: string;
 
   // Navigation
   nav_home: string;

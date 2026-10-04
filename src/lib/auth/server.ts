@@ -105,12 +105,11 @@ const LOCAL_DEV_ORIGINS: string[] = [
   "http://[::1]:8080",
 ];
 
-// Custom production domain(s) (Vercel project `shal-su`). In allowedHosts so the
+// Custom production origin (Vercel project `shal-su`). In allowedHosts so the
 // dynamic baseURL can derive the origin/redirect_uri from the request host, and
-// in trustedOrigins so credentialed POSTs (sign-up/sign-in) aren't FORBIDDEN.
+// in trustedOrigins so credentialed POSTs (telegram/webapp sign-in) aren't FORBIDDEN.
 const CUSTOM_APP_ORIGINS: string[] = [
-  "https://thantsin.website",
-  "https://www.thantsin.website",
+  "https://shal-su.vercel.app",
 ];
 
 // Build allowedHosts: always include local dev + preview hosts.

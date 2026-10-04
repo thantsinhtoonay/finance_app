@@ -42,6 +42,11 @@ export const en: TranslationKeys = {
   auth_telegram_conflict: "This Telegram account is linked to a different account.",
   auth_telegram_throttled: "Too many attempts. Wait a minute and try again.",
   auth_telegram_unavailable: "Telegram sign-in isn't available right now.",
+  landing_subtitle: "Your personal finance companion",
+  landing_hint:
+    "Shal Su works inside Telegram. Open the bot to sign in — your account is created automatically the first time.",
+  landing_open_telegram: "Open in Telegram",
+  landing_auth_error: "Couldn't sign you in automatically. Try opening the bot again.",
 
   // Navigation
   nav_home: "Home",

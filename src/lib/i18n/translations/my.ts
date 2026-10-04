@@ -167,6 +167,11 @@ export const my: TranslationKeys = {
   auth_telegram_conflict: "ဤ Telegram အကောင့်သည် အခြားအကောင့်နှင့် ချိတ်ဆက်ထားပါသည်။",
   auth_telegram_throttled: "ကြိုးစားမှု များလွန်းပါသည်။ တစ်မိနစ် စောင့်ပြီး ထပ်ကြိုးစားပါ။",
   auth_telegram_unavailable: "Telegram ဝင်ရောက်ရေးစနစ် လက်ရှိ မရရှိနိုင်ပါ။",
+  landing_subtitle: "သင့်ငွေစာရင်း လုပ်ဖော်ကိုင်ဖက်",
+  landing_hint:
+    "Shal Su သည် Telegram အတွင်းတွင် အလုပ်လုပ်ပါသည်။ Bot ကို ဖွင့်၍ ဝင်ရောက်ပါ — ပထမဆုံးအကြိမ်တွင် သင့်အကောင့်ကို အလိုအလျောက် ဖန်တီးပေးပါမည်။",
+  landing_open_telegram: "Telegram တွင် ဖွင့်ရန်",
+  landing_auth_error: "အလိုအလျောက် ဝင်ရောက်၍ မရပါ။ Bot ကို ထပ်မံ ဖွင့်ကြည့်ပါ။",
   nav_history: "မှတ်တမ်း",
 
   // Navigation / History / List

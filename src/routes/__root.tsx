@@ -58,6 +58,11 @@ export const Route = createRootRoute({
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
     ],
+    scripts: [
+      // Telegram Mini App SDK — sets window.Telegram before the entry route's
+      // sign-in effect runs. `defer` so a slow telegram.org can't block render.
+      { src: "https://telegram.org/js/telegram-web-app.js?63", defer: true },
+    ],
   }),
   component: RootShell,
 });

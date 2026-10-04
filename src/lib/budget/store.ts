@@ -35,7 +35,9 @@ async function apiFetch(url: string, options?: RequestInit) {
     headers: { "Content-Type": "application/json", ...options?.headers },
   });
   if (res.status === 401) {
-    window.location.href = "/login";
+    // Telegram-only app: back to the entry route, which auto-signs-in via
+    // Mini App initData (or shows the landing page outside Telegram).
+    window.location.href = "/";
     throw new Error("Unauthorized");
   }
   return res;

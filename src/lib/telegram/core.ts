@@ -156,6 +156,11 @@ export function telegramUnlinkedMessage(): string {
   return `❎ Telegram unlinked from Shal Su. You can relink any time from Settings.`;
 }
 
+/** Bot message for `/start` and first-open welcome (Open button attached by sender). */
+export function webAppWelcomeMessage(displayName: string): string {
+  return `👋 Welcome, ${displayName}!\n\nTap the button below to open Shal Su — track income, expenses, budgets, and savings.`;
+}
+
 // ── Export naming ───────────────────────────────────────────────────────────
 
 export type ExportKind = "csv-month" | "csv-all" | "backup-json";
