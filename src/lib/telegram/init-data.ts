@@ -10,8 +10,12 @@ import { secretsMatch } from "./core.ts";
  *
  * data-check-string = every `key=value` pair EXCEPT `hash`, sorted
  * alphabetically, joined with "\n". Values are the decoded (percent-unescape)
- * query values. `signature` (Ed25519, Bot API 7.2+) is an ordinary field here —
- * only the third-party Ed25519 check excludes it.
+ * query values. `signature` (Ed25519, Bot API 7.2+) is an ordinary field here
+ * (the official wording is "all received fields"; only the third-party Ed25519
+ * check excludes it) — but since some implementations disagreed historically,
+ * a hash computed WITHOUT `signature` is also accepted as a fallback. Both
+ * variants prove the remaining fields were signed with the bot token, so
+ * accepting either cannot weaken the trust check.
  *
  * `auth_date` is enforced (≤ maxAge) so a captured payload can't be replayed
  * forever; the window is generous (default 7 days) because a Mini App window can
@@ -46,16 +50,33 @@ export function validateTelegramInitData(
   if (!hash) return { ok: false, reason: "malformed" };
 
   const pairs: string[] = [];
+  const pairsWithoutSignature: string[] = [];
+  let hasSignature = false;
   for (const [key, value] of params.entries()) {
     if (key === "hash") continue;
-    pairs.push(`${key}=${value}`);
+    const pair = `${key}=${value}`;
+    pairs.push(pair);
+    if (key === "signature") {
+      hasSignature = true;
+    } else {
+      pairsWithoutSignature.push(pair);
+    }
   }
   if (pairs.length === 0) return { ok: false, reason: "malformed" };
-  pairs.sort();
 
   const secretKey = createHmac("sha256", botToken).update("WebAppData").digest();
+  pairs.sort();
   const expected = createHmac("sha256", secretKey).update(pairs.join("\n")).digest("hex");
-  if (!secretsMatch(expected, hash)) return { ok: false, reason: "bad_hash" };
+  let hashOk = secretsMatch(expected, hash);
+  if (!hashOk && hasSignature) {
+    // Fallback: hash computed with `signature` excluded (see header comment).
+    pairsWithoutSignature.sort();
+    const expectedAlt = createHmac("sha256", secretKey)
+      .update(pairsWithoutSignature.join("\n"))
+      .digest("hex");
+    hashOk = secretsMatch(expectedAlt, hash);
+  }
+  if (!hashOk) return { ok: false, reason: "bad_hash" };
 
   const now = options?.now ?? Math.floor(Date.now() / 1000);
   const maxAge = options?.maxAgeSeconds ?? DEFAULT_MAX_AGE_SECONDS;

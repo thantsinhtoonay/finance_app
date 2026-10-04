@@ -69,10 +69,19 @@ function Home() {
           window.location.reload();
           return;
         }
+        let detail = String(res.status);
+        try {
+          const body = (await res.json()) as { status?: string; reason?: string };
+          if (body?.status) {
+            detail += ` ${body.status}${body.reason ? "/" + body.reason : ""}`;
+          }
+        } catch {
+          // non-JSON error body — status alone is the detail
+        }
+        setAuthError(`${t("landing_auth_error")} (${detail})`);
       } catch {
-        // fall through to the landing page below
+        setAuthError(`${t("landing_auth_error")} (network)`);
       }
-      setAuthError(t("landing_auth_error"));
       setLanding(true);
     })();
   }, [user, isPending, t]);

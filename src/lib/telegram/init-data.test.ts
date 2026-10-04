@@ -74,11 +74,34 @@ describe("validateTelegramInitData", () => {
     assert.deepEqual(result, { ok: false, reason: "bad_hash" });
   });
 
-  it("includes `signature` in the HMAC chain (appending a bogus one breaks it)", () => {
-    const raw = sign(validFields());
-    const withBogusSignature = `${raw}&signature=MEUCIQDx_fake`;
-    const result = validateTelegramInitData(withBogusSignature, BOT_TOKEN, { now: NOW });
-    assert.deepEqual(result, { ok: false, reason: "bad_hash" });
+  it("accepts a hash computed over the signature field (canonical rule)", () => {
+    const fields = validFields({ signature: "MEUCIQDx_real" });
+    const user = okUser(validateTelegramInitData(sign(fields), BOT_TOKEN, { now: NOW }));
+    assert.equal(user.id, 987654321);
+  });
+
+  it("accepts a hash computed without the signature field (fallback rule)", () => {
+    const fields = validFields();
+    const noSigHash = sign(fields); // hash over fields WITHOUT signature
+    const raw = new URLSearchParams(noSigHash);
+    raw.set("signature", "MEUCIQDx_real");
+    const user = okUser(validateTelegramInitData(raw.toString(), BOT_TOKEN, { now: NOW }));
+    assert.equal(user.id, 987654321);
+  });
+
+  it("ignores a bogus signature but never a tampered core field", () => {
+    const fields = validFields();
+    const noSigHash = sign(fields);
+    const raw = new URLSearchParams(noSigHash);
+    raw.set("signature", "bogus-signature");
+    assert.equal(validateTelegramInitData(raw.toString(), BOT_TOKEN, { now: NOW }).ok, true);
+
+    const tampered = new URLSearchParams(raw.toString());
+    tampered.set("user", JSON.stringify({ id: 111, first_name: "Mall" }));
+    assert.deepEqual(validateTelegramInitData(tampered.toString(), BOT_TOKEN, { now: NOW }), {
+      ok: false,
+      reason: "bad_hash",
+    });
   });
 
   it("rejects empty inputs, missing hash, or hash-only payloads", () => {

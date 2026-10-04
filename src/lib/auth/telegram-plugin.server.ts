@@ -52,12 +52,18 @@ export function telegramAuthPlugin() {
         },
         async (ctx) => {
           if (!telegramConfigured()) {
+            console.warn(`${LOG} unconfigured: TELEGRAM_BOT_TOKEN missing`);
             ctx.setStatus(503);
             return ctx.json({ status: "unconfigured" as const });
           }
 
           const validated = validateTelegramInitData(ctx.body.initData, telegramToken()!);
           if (!validated.ok) {
+            console.warn(
+              `${LOG} rejected initData: ${validated.reason}` +
+                ` origin=${ctx.request?.headers.get("origin") ?? "none"}` +
+                ` len=${ctx.body.initData.length}`,
+            );
             ctx.setStatus(401);
             return ctx.json({ status: "invalid" as const, reason: validated.reason });
           }
@@ -156,6 +162,9 @@ export function telegramAuthPlugin() {
           if (created) {
             notify(chatId, webAppWelcomeMessage(displayName));
           }
+          console.log(
+            `${LOG} ok tg=${tgId} user=${user.id} created=${created} session=${!session?.user || session.user.id !== user.id}`,
+          );
           return ctx.json({
             status: "ok" as const,
             signedIn: true,
