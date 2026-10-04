@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron/monthly-summary",
+      "schedule": "30 17 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

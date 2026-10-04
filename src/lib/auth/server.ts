@@ -38,6 +38,7 @@ import { Pool } from "pg";
 import { ensureDbReady, getPglite } from "../db";
 import { emailAndPasswordEnabled } from "./email-password";
 import { GATE_PROVIDER_ID, gateIdentitySessions } from "./gate-session.server";
+import { telegramAuthPlugin } from "./telegram-plugin.server";
 import { GROK_PROVIDERS } from "./providers";
 import { pgliteDialect } from "./pglite-dialect";
 import {
@@ -265,6 +266,9 @@ export const auth = betterAuth({
 
   plugins: [
     gateIdentitySessions(),
+
+    // Deep-link Telegram sign-in / linking (routes under /api/auth/telegram/*).
+    telegramAuthPlugin(),
 
     // One genericOAuth provider per upstream (when auth is on), all federating
     // to the broker with the SAME client and differing only by the `idp` hint.

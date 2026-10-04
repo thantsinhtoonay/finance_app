@@ -70,6 +70,15 @@ export interface TranslationKeys {
   auth_error_min_length: string;
   auth_error_unexpected: string;
   auth_error_register: string;
+  auth_telegram_continue: string;
+  auth_telegram_open: string;
+  auth_telegram_waiting: string;
+  auth_telegram_hint: string;
+  auth_telegram_or: string;
+  auth_telegram_expired: string;
+  auth_telegram_conflict: string;
+  auth_telegram_throttled: string;
+  auth_telegram_unavailable: string;
 
   // Navigation
   nav_home: string;
@@ -169,6 +178,13 @@ export interface TranslationKeys {
   settings_currency: string;
   settings_privacy: string;
   settings_data: string;
+  settings_telegram: string;
+  settings_telegram_desc: string;
+  settings_telegram_not_linked: string;
+  settings_telegram_link_desc: string;
+  settings_telegram_unlink: string;
+  settings_telegram_unlinked: string;
+  settings_telegram_unavailable: string;
   settings_language: string;
   settings_theme: string;
   settings_theme_light: string;

@@ -10,6 +10,7 @@ import { MyanmarSkyline } from "@/components/ui/myanmar-skyline";
 import { LanguageSwitch } from "@/lib/i18n";
 import { useTranslation } from "@/lib/i18n/store";
 import { UserGuide } from "@/components/budget/user-guide";
+import { TelegramSignIn } from "@/components/auth/telegram-sign-in";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -69,7 +70,17 @@ function LoginPage() {
         </div>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="flex flex-col gap-4 p-6">
+            <TelegramSignIn onComplete={() => navigate({ to: "/" })} />
+
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">
+                {t("auth_telegram_or")}
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               {error && (
                 <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">

@@ -38,13 +38,11 @@ import { Settings as SettingsPage } from "@/components/budget/settings";
 import { LanguageIconToggle } from "@/lib/i18n/components/language-toggle";
 import { useSettingsStore } from "@/lib/settings/store";
 import {
-  downloadFile,
-  exportToCsv,
   monthTransactions,
   summarizeMonth,
   useBudgetStore,
 } from "@/lib/budget/store";
-import type { AppData, Transaction, TxType } from "@/lib/budget/types";
+import type { Transaction, TxType } from "@/lib/budget/types";
 import {
   formatMoney,
   formatMonth,
@@ -113,50 +111,6 @@ export function Dashboard() {
   function openEdit(tx: Transaction) {
     setEditing(tx);
     setDialogOpen(true);
-  }
-
-  function handleExportCsv() {
-    const csv = exportToCsv(transactions, selectedMonth);
-    const filename = `northline-${selectedMonth}.csv`;
-    downloadFile(csv, filename, "text/csv;charset=utf-8");
-  }
-
-  function handleExportJson() {
-    const data: AppData = {
-      version: 1,
-      transactions,
-      monthlyGoal,
-      categoryBudgets,
-      exportedAt: new Date().toISOString(),
-    };
-    downloadFile(JSON.stringify(data, null, 2), "northline-backup.json", "application/json");
-  }
-
-  function handleImportJson(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const data = JSON.parse(reader.result as string) as AppData;
-        if (data.version !== 1 || !Array.isArray(data.transactions)) {
-          alert("Invalid backup file format.");
-          return;
-        }
-        if (!confirm(`Import ${data.transactions.length} transactions? This will replace current data.`)) {
-          return;
-        }
-        useBudgetStore.setState({
-          transactions: data.transactions,
-          monthlyGoal: data.monthlyGoal,
-          categoryBudgets: data.categoryBudgets,
-        });
-      } catch {
-        alert("Failed to parse backup file.");
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
   }
 
   const handleKeyDown = useCallback(

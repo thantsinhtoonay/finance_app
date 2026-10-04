@@ -14,7 +14,10 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiBudgetsIndexRouteImport } from './routes/api/budgets/index'
+import { Route as ApiCronMonthlySummaryRouteImport } from './routes/api/cron/monthly-summary'
+import { Route as ApiExportSendRouteImport } from './routes/api/export/send'
 import { Route as ApiSettingsIndexRouteImport } from './routes/api/settings/index'
+import { Route as ApiTelegramWebhookRouteImport } from './routes/api/telegram/webhook'
 import { Route as ApiTransactionsIndexRouteImport } from './routes/api/transactions/index'
 import { Route as ApiTransactionsIdRouteImport } from './routes/api/transactions/$id'
 
@@ -43,9 +46,24 @@ const ApiBudgetsIndexRoute = ApiBudgetsIndexRouteImport.update({
   path: '/api/budgets/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronMonthlySummaryRoute = ApiCronMonthlySummaryRouteImport.update({
+  id: '/api/cron/monthly-summary',
+  path: '/api/cron/monthly-summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExportSendRoute = ApiExportSendRouteImport.update({
+  id: '/api/export/send',
+  path: '/api/export/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSettingsIndexRoute = ApiSettingsIndexRouteImport.update({
   id: '/api/settings/',
   path: '/api/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTelegramWebhookRoute = ApiTelegramWebhookRouteImport.update({
+  id: '/api/telegram/webhook',
+  path: '/api/telegram/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTransactionsIndexRoute = ApiTransactionsIndexRouteImport.update({
@@ -64,6 +82,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/monthly-summary': typeof ApiCronMonthlySummaryRoute
+  '/api/export/send': typeof ApiExportSendRoute
+  '/api/telegram/webhook': typeof ApiTelegramWebhookRoute
   '/api/transactions/$id': typeof ApiTransactionsIdRoute
   '/api/budgets/': typeof ApiBudgetsIndexRoute
   '/api/settings/': typeof ApiSettingsIndexRoute
@@ -74,6 +95,9 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/monthly-summary': typeof ApiCronMonthlySummaryRoute
+  '/api/export/send': typeof ApiExportSendRoute
+  '/api/telegram/webhook': typeof ApiTelegramWebhookRoute
   '/api/transactions/$id': typeof ApiTransactionsIdRoute
   '/api/budgets': typeof ApiBudgetsIndexRoute
   '/api/settings': typeof ApiSettingsIndexRoute
@@ -85,6 +109,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/monthly-summary': typeof ApiCronMonthlySummaryRoute
+  '/api/export/send': typeof ApiExportSendRoute
+  '/api/telegram/webhook': typeof ApiTelegramWebhookRoute
   '/api/transactions/$id': typeof ApiTransactionsIdRoute
   '/api/budgets/': typeof ApiBudgetsIndexRoute
   '/api/settings/': typeof ApiSettingsIndexRoute
@@ -97,6 +124,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/api/auth/$'
+    | '/api/cron/monthly-summary'
+    | '/api/export/send'
+    | '/api/telegram/webhook'
     | '/api/transactions/$id'
     | '/api/budgets/'
     | '/api/settings/'
@@ -107,6 +137,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/api/auth/$'
+    | '/api/cron/monthly-summary'
+    | '/api/export/send'
+    | '/api/telegram/webhook'
     | '/api/transactions/$id'
     | '/api/budgets'
     | '/api/settings'
@@ -117,6 +150,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/api/auth/$'
+    | '/api/cron/monthly-summary'
+    | '/api/export/send'
+    | '/api/telegram/webhook'
     | '/api/transactions/$id'
     | '/api/budgets/'
     | '/api/settings/'
@@ -128,6 +164,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCronMonthlySummaryRoute: typeof ApiCronMonthlySummaryRoute
+  ApiExportSendRoute: typeof ApiExportSendRoute
+  ApiTelegramWebhookRoute: typeof ApiTelegramWebhookRoute
   ApiTransactionsIdRoute: typeof ApiTransactionsIdRoute
   ApiBudgetsIndexRoute: typeof ApiBudgetsIndexRoute
   ApiSettingsIndexRoute: typeof ApiSettingsIndexRoute
@@ -171,11 +210,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBudgetsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/monthly-summary': {
+      id: '/api/cron/monthly-summary'
+      path: '/api/cron/monthly-summary'
+      fullPath: '/api/cron/monthly-summary'
+      preLoaderRoute: typeof ApiCronMonthlySummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/export/send': {
+      id: '/api/export/send'
+      path: '/api/export/send'
+      fullPath: '/api/export/send'
+      preLoaderRoute: typeof ApiExportSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/settings/': {
       id: '/api/settings/'
       path: '/api/settings'
       fullPath: '/api/settings/'
       preLoaderRoute: typeof ApiSettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/telegram/webhook': {
+      id: '/api/telegram/webhook'
+      path: '/api/telegram/webhook'
+      fullPath: '/api/telegram/webhook'
+      preLoaderRoute: typeof ApiTelegramWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/transactions/': {
@@ -200,6 +260,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCronMonthlySummaryRoute: ApiCronMonthlySummaryRoute,
+  ApiExportSendRoute: ApiExportSendRoute,
+  ApiTelegramWebhookRoute: ApiTelegramWebhookRoute,
   ApiTransactionsIdRoute: ApiTransactionsIdRoute,
   ApiBudgetsIndexRoute: ApiBudgetsIndexRoute,
   ApiSettingsIndexRoute: ApiSettingsIndexRoute,

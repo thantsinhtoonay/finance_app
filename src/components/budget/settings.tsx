@@ -1,4 +1,4 @@
-﻿import { useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
@@ -12,12 +12,14 @@ import {
   Eye,
   EyeOff,
   Key,
+  Loader2,
   Lock,
   LogOut,
   Mail,
   Moon,
   Palette,
   Pencil,
+  Send,
   Shield,
   Sun,
   Monitor,
@@ -33,14 +35,22 @@ import { useSettingsStore, applyTheme } from "@/lib/settings/store";
 import type { Theme } from "@/lib/settings/types";
 import { CURRENCIES } from "@/lib/settings/types";
 import { currencySymbol } from "@/lib/budget/format";
-import { useBudgetStore, exportToCsv } from "@/lib/budget/store";
+import { useBudgetStore } from "@/lib/budget/store";
+import { TelegramSignIn } from "@/components/auth/telegram-sign-in";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { authClient } from "@/lib/auth/client";
 import { UserGuide } from "@/components/budget/user-guide";
 
-type SettingsView = "main" | "account" | "theme" | "currency" | "privacy" | "data";
+type SettingsView =
+  | "main"
+  | "account"
+  | "theme"
+  | "currency"
+  | "telegram"
+  | "privacy"
+  | "data";
 
 type Props = {
   onBack: () => void;
@@ -69,6 +79,7 @@ export function Settings({ onBack }: Props) {
         {view === "account" && <AccountSettings onBack={() => setView("main")} onAvatarUploaded={setLocalAvatarUrl} />}
         {view === "theme" && <ThemeSettings onBack={() => setView("main")} />}
         {view === "currency" && <CurrencySettings onBack={() => setView("main")} />}
+        {view === "telegram" && <TelegramSettings onBack={() => setView("main")} />}
         {view === "privacy" && <PrivacySettings onBack={() => setView("main")} />}
         {view === "data" && <DataSettings onBack={() => setView("main")} />}
       </div>
@@ -114,6 +125,12 @@ function SettingsMain({
       label: t("settings_currency"),
       description: `${currencySymbol(currency)} · ${currencyName}`,
       onClick: () => onNavigate("currency"),
+    },
+    {
+      icon: Send,
+      label: t("settings_telegram"),
+      description: t("settings_telegram_desc"),
+      onClick: () => onNavigate("telegram"),
     },
     {
       icon: Shield,
@@ -871,41 +888,157 @@ function PrivacySettings({ onBack }: { onBack: () => void }) {
   );
 }
 
-function DataSettings({ onBack }: { onBack: () => void }) {
-  const transactions = useBudgetStore((s) => s.transactions);
-  const monthlyGoal = useBudgetStore((s) => s.monthlyGoal);
-  const categoryBudgets = useBudgetStore((s) => s.categoryBudgets);
-  const resetData = useBudgetStore((s) => s.resetData);
-  const [exported, setExported] = useState(false);
+function TelegramSettings({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState<{
+    loading: boolean;
+    configured: boolean;
+    linked: boolean;
+    username: string;
+    displayName: string;
+  }>({ loading: true, configured: false, linked: false, username: "", displayName: "" });
+  const [unlinking, setUnlinking] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  function handleExportJson() {
-    const data = {
-      version: 1,
-      transactions,
-      monthlyGoal,
-      categoryBudgets,
-      exportedAt: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `northline-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setExported(true);
-    setTimeout(() => setExported(false), 2000);
+  async function load() {
+    try {
+      const res = await fetch("/api/auth/telegram/status");
+      if (res.status === 401) {
+        setStatus({ loading: false, configured: true, linked: false, username: "", displayName: "" });
+        return;
+      }
+      const data = (await res.json().catch(() => ({}))) as {
+        configured?: boolean;
+        linked?: boolean;
+        username?: string;
+        displayName?: string;
+      };
+      setStatus({
+        loading: false,
+        configured: Boolean(data.configured),
+        linked: Boolean(data.linked),
+        username: data.username ?? "",
+        displayName: data.displayName ?? "",
+      });
+    } catch {
+      setStatus((s) => ({ ...s, loading: false }));
+    }
   }
 
-  function handleExportCsv() {
-    const csv = exportToCsv(transactions);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `northline-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleUnlink() {
+    setUnlinking(true);
+    setNotice(null);
+    try {
+      const res = await fetch("/api/auth/telegram/unlink", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      if (res.ok) setNotice(t("settings_telegram_unlinked"));
+      await load();
+    } catch {
+      /* keep the linked state on network failure */
+    } finally {
+      setUnlinking(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3 mb-2">
+        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
+          <ArrowLeft className="size-5" />
+        </Button>
+        <h2 className="text-lg font-bold">{t("settings_telegram")}</h2>
+      </div>
+
+      {status.loading ? (
+        <div className="flex justify-center py-8">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : !status.configured ? (
+        <Card>
+          <CardContent className="p-5 text-sm text-muted-foreground">
+            {t("settings_telegram_unavailable")}
+          </CardContent>
+        </Card>
+      ) : status.linked ? (
+        <Card>
+          <CardContent className="flex flex-col gap-3 p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+                <Send className="size-5 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">
+                  {status.displayName || "Telegram"}
+                  {status.username ? ` (@${status.username})` : ""}
+                </p>
+                <p className="text-xs text-muted-foreground">{t("settings_telegram_desc")}</p>
+              </div>
+              <Check className="size-4 text-emerald-500" />
+            </div>
+            {notice && (
+              <p className="text-xs text-emerald-600 dark:text-emerald-400">{notice}</p>
+            )}
+            <Button
+              variant="outline"
+              onClick={handleUnlink}
+              disabled={unlinking}
+              className="w-full"
+            >
+              {unlinking && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {t("settings_telegram_unlink")}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="flex flex-col gap-4 p-5">
+            <p className="text-xs text-muted-foreground">{t("settings_telegram_link_desc")}</p>
+            <TelegramSignIn onComplete={() => load()} />
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function DataSettings({ onBack }: { onBack: () => void }) {
+  const transactions = useBudgetStore((s) => s.transactions);
+  const categoryBudgets = useBudgetStore((s) => s.categoryBudgets);
+  const resetData = useBudgetStore((s) => s.resetData);
+  const [sendState, setSendState] = useState<
+    "idle" | "sending" | "sent" | "nolink" | "error"
+  >("idle");
+
+  async function sendExport(kind: "csv-all" | "backup-json") {
+    setSendState("sending");
+    try {
+      const res = await fetch("/api/export/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind }),
+      });
+      if (res.ok) {
+        setSendState("sent");
+        window.setTimeout(
+          () => setSendState((s) => (s === "sent" ? "idle" : s)),
+          3000,
+        );
+      } else if (res.status === 409) {
+        setSendState("nolink");
+      } else {
+        setSendState("error");
+      }
+    } catch {
+      setSendState("error");
+    }
   }
 
   function handleClearData() {
@@ -929,34 +1062,51 @@ function DataSettings({ onBack }: { onBack: () => void }) {
 
       <Card>
         <CardContent className="flex flex-col gap-3 p-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-label">Export</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-label">Export to Telegram</p>
 
           <button
-            onClick={handleExportJson}
-            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left"
+            onClick={() => sendExport("backup-json")}
+            disabled={sendState === "sending"}
+            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left disabled:opacity-60"
           >
             <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10">
               <Download className="size-5 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold">Export as JSON</p>
+              <p className="text-sm font-semibold">Send JSON backup</p>
               <p className="text-xs text-muted-foreground">Full backup with settings</p>
             </div>
-            {exported && <Check className="size-4 text-emerald-500" />}
+            {sendState === "sent" && <Check className="size-4 text-emerald-500" />}
           </button>
 
           <button
-            onClick={handleExportCsv}
-            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left"
+            onClick={() => sendExport("csv-all")}
+            disabled={sendState === "sending"}
+            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left disabled:opacity-60"
           >
             <div className="flex items-center justify-center size-10 rounded-xl bg-emerald-500/10">
               <Download className="size-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold">Export as CSV</p>
-              <p className="text-xs text-muted-foreground">Spreadsheet-compatible format</p>
+              <p className="text-sm font-semibold">Send CSV export</p>
+              <p className="text-xs text-muted-foreground">All transactions, spreadsheet-ready</p>
             </div>
           </button>
+
+          {sendState === "sending" && (
+            <p className="text-xs text-muted-foreground">Sending to Telegram...</p>
+          )}
+          {sendState === "sent" && (
+            <p className="text-xs text-emerald-600 dark:text-emerald-400">Sent to Telegram.</p>
+          )}
+          {sendState === "nolink" && (
+            <p className="text-xs text-amber-600 dark:text-amber-400">
+              Link Telegram in Settings first.
+            </p>
+          )}
+          {sendState === "error" && (
+            <p className="text-xs text-destructive">Couldn't send to Telegram. Try again.</p>
+          )}
         </CardContent>
       </Card>
 
