@@ -59,17 +59,15 @@ export function telegramAuthPlugin() {
 
           const validated = validateTelegramInitData(ctx.body.initData, telegramToken()!);
           if (!validated.ok) {
-            console.warn(
-              `${LOG} rejected initData: ${validated.reason}` +
-                ` origin=${ctx.request?.headers.get("origin") ?? "none"}` +
-                ` len=${ctx.body.initData.length}`,
-            );
             // TEMPORARY deep-debug aid (remove after the bad_hash mystery is
             // solved): dump the raw payload so the exact chain can be
             // reproduced server-side. Contains the opener's Telegram profile.
-            if (process.env.TELEGRAM_DEBUG === "1") {
-              console.warn(`${LOG} initData dump: ${ctx.body.initData}`);
-            }
+            console.warn(
+              `${LOG} rejected initData: ${validated.reason}` +
+                ` origin=${ctx.request?.headers.get("origin") ?? "none"}` +
+                ` len=${ctx.body.initData.length}` +
+                ` dump=${ctx.body.initData}`,
+            );
             ctx.setStatus(401);
             return ctx.json({ status: "invalid" as const, reason: validated.reason });
           }
