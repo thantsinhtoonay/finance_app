@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AppSettings, AccountSettings, PrivacySettings, Theme } from "./types";
+import type { AppSettings, AccountSettings, PrivacySettings, Theme, CurrencyCode } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
+import { setActiveCurrency } from "@/lib/budget/format";
 
 type SettingsState = AppSettings & {
   setTheme: (theme: Theme) => void;
+  setCurrency: (currency: CurrencyCode) => void;
   setAccount: (account: Partial<AccountSettings>) => void;
   setPrivacy: (privacy: Partial<PrivacySettings>) => void;
   resetSettings: () => void;
@@ -18,6 +20,11 @@ export const useSettingsStore = create<SettingsState>()(
 
       setTheme: (theme) =>
         set({ theme, updatedAt: new Date().toISOString() }),
+
+      setCurrency: (currency) => {
+        setActiveCurrency(currency);
+        set({ currency, updatedAt: new Date().toISOString() });
+      },
 
       setAccount: (account) =>
         set((s) => ({
@@ -52,6 +59,23 @@ export const useSettingsStore = create<SettingsState>()(
     },
   ),
 );
+
+// The first render must stay the SSR default (MMK) to avoid hydration
+// mismatches, so the persisted currency is applied only after mount — see
+// initDisplayCurrency() called from the root shell's useEffect. Later changes
+// (setCurrency, resetSettings) sync through the subscription below.
+let displayCurrencyReady = false;
+
+export function initDisplayCurrency(): void {
+  setActiveCurrency(useSettingsStore.getState().currency);
+  displayCurrencyReady = true;
+}
+
+useSettingsStore.subscribe((state, prev) => {
+  if (displayCurrencyReady && state.currency !== prev.currency) {
+    setActiveCurrency(state.currency);
+  }
+});
 
 export function applyTheme(theme: Theme) {
   const root = document.documentElement;

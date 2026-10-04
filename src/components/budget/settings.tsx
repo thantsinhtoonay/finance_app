@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
+  Banknote,
   Camera,
   Check,
   ChevronRight,
@@ -30,6 +31,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useSettingsStore, applyTheme } from "@/lib/settings/store";
 import type { Theme } from "@/lib/settings/types";
+import { CURRENCIES } from "@/lib/settings/types";
+import { currencySymbol } from "@/lib/budget/format";
 import { useBudgetStore, exportToCsv } from "@/lib/budget/store";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
@@ -37,7 +40,7 @@ import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { authClient } from "@/lib/auth/client";
 import { UserGuide } from "@/components/budget/user-guide";
 
-type SettingsView = "main" | "account" | "theme" | "privacy" | "data";
+type SettingsView = "main" | "account" | "theme" | "currency" | "privacy" | "data";
 
 type Props = {
   onBack: () => void;
@@ -65,6 +68,7 @@ export function Settings({ onBack }: Props) {
         {view === "main" && <SettingsMain onNavigate={setView} onBack={onBack} localAvatarUrl={localAvatarUrl} />}
         {view === "account" && <AccountSettings onBack={() => setView("main")} onAvatarUploaded={setLocalAvatarUrl} />}
         {view === "theme" && <ThemeSettings onBack={() => setView("main")} />}
+        {view === "currency" && <CurrencySettings onBack={() => setView("main")} />}
         {view === "privacy" && <PrivacySettings onBack={() => setView("main")} />}
         {view === "data" && <DataSettings onBack={() => setView("main")} />}
       </div>
@@ -83,12 +87,14 @@ function SettingsMain({
 }) {
   const account = useSettingsStore((s) => s.account);
   const theme = useSettingsStore((s) => s.theme);
+  const currency = useSettingsStore((s) => s.currency);
   const privacy = useSettingsStore((s) => s.privacy);
   const user = useCurrentUser();
   const { t } = useTranslation();
 
   const displayName = user?.displayName || "User";
   const displayEmail = user?.primaryEmail || account.email || "No email";
+  const currencyName = CURRENCIES.find((c) => c.code === currency)?.name ?? "Myanmar Kyat";
 
   const menuItems = [
     {
@@ -102,6 +108,12 @@ function SettingsMain({
       label: t("settings_appearance"),
       description: theme === "light" ? t("settings_theme_light") : theme === "dark" ? t("settings_theme_dark") : t("settings_theme_system"),
       onClick: () => onNavigate("theme"),
+    },
+    {
+      icon: Banknote,
+      label: t("settings_currency"),
+      description: `${currencySymbol(currency)} · ${currencyName}`,
+      onClick: () => onNavigate("currency"),
     },
     {
       icon: Shield,
@@ -709,6 +721,65 @@ function ThemeSettings({ onBack }: { onBack: () => void }) {
       <div className="rounded-xl glass-toggle px-4 py-3">
         <p className="text-xs text-muted-foreground">
           Theme is saved locally and persists across sessions.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CurrencySettings({ onBack }: { onBack: () => void }) {
+  const currency = useSettingsStore((s) => s.currency);
+  const setCurrency = useSettingsStore((s) => s.setCurrency);
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3 mb-2">
+        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
+          <ArrowLeft className="size-5" />
+        </Button>
+        <h2 className="text-lg font-bold">{t("settings_currency")}</h2>
+      </div>
+
+      <Card>
+        <CardContent className="p-2">
+          {CURRENCIES.map((opt) => {
+            const isActive = currency === opt.code;
+            return (
+              <button
+                key={opt.code}
+                onClick={() => setCurrency(opt.code)}
+                className={cn(
+                  "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl transition-all duration-200 text-left",
+                  isActive
+                    ? "bg-primary/10 border border-primary/20"
+                    : "hover:bg-secondary/50",
+                )}
+              >
+                <div className={cn(
+                  "flex items-center justify-center size-10 rounded-xl transition-all duration-300 min-w-0",
+                  isActive ? "gradient-gold text-white shadow-md shadow-primary/25" : "glass-toggle text-muted-foreground",
+                )}>
+                  <span className="text-sm font-bold truncate">{currencySymbol(opt.code)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{opt.name}</p>
+                  <p className="text-xs text-muted-foreground">{opt.code}</p>
+                </div>
+                {isActive && (
+                  <div className="flex items-center justify-center size-6 rounded-full gradient-gold text-white animate-scale-in shadow-md shadow-primary/30">
+                    <Check className="size-4" />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      <div className="rounded-xl glass-toggle px-4 py-3">
+        <p className="text-xs text-muted-foreground">
+          The symbol is shown across the app — amounts are never converted. Saved on this device.
         </p>
       </div>
     </div>

@@ -135,6 +135,7 @@ export const en: TranslationKeys = {
   // Settings
   settings_account: "Account",
   settings_appearance: "Appearance",
+  settings_currency: "Currency",
   settings_privacy: "Privacy",
   settings_data: "Data & Export",
   settings_language: "Language",

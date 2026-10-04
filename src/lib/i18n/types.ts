@@ -166,6 +166,7 @@ export interface TranslationKeys {
   // Settings
   settings_account: string;
   settings_appearance: string;
+  settings_currency: string;
   settings_privacy: string;
   settings_data: string;
   settings_language: string;

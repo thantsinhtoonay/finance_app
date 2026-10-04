@@ -70,6 +70,7 @@ export const my: TranslationKeys = {
   // Settings
   settings_account: "အကောင့်",
   settings_appearance: "ပုံပေါင်း",
+  settings_currency: "ငွေကြေး",
   settings_privacy: "ကိုယ်ရေးလုံခြုံမှု",
   settings_data: "ဒေတာနှင့် ထုတ်ယူခြင်း",
   settings_language: "ဘာသာစကား",

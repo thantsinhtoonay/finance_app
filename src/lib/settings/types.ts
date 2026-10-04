@@ -1,5 +1,15 @@
 export type Theme = "light" | "dark" | "system";
 
+export type CurrencyCode = "MMK" | "USD" | "THB" | "JPY" | "EUR";
+
+export const CURRENCIES: { code: CurrencyCode; name: string }[] = [
+  { code: "MMK", name: "Myanmar Kyat" },
+  { code: "USD", name: "US Dollar" },
+  { code: "THB", name: "Thai Baht" },
+  { code: "JPY", name: "Japanese Yen" },
+  { code: "EUR", name: "Euro" },
+];
+
 export type AccountSettings = {
   name: string;
   email: string;
@@ -17,6 +27,7 @@ export type PrivacySettings = {
 export type AppSettings = {
   version: 1;
   theme: Theme;
+  currency: CurrencyCode;
   account: AccountSettings;
   privacy: PrivacySettings;
   createdAt: string;
@@ -40,6 +51,7 @@ export const DEFAULT_PRIVACY: PrivacySettings = {
 export const DEFAULT_SETTINGS: AppSettings = {
   version: 1,
   theme: "system",
+  currency: "MMK",
   account: DEFAULT_ACCOUNT,
   privacy: DEFAULT_PRIVACY,
   createdAt: new Date().toISOString(),

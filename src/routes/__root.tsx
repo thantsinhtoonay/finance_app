@@ -3,6 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { ThemeInit } from "@/components/budget/theme-init";
 import { I18nInit } from "@/components/budget/i18n-init";
+import { useSettingsStore } from "@/lib/settings/store";
 import appCss from "../styles.css?url";
 
 import "@fontsource/inter/400.css";
@@ -13,6 +14,31 @@ import "@fontsource/padauk/400.css";
 import "@fontsource/padauk/700.css";
 
 const APP_NAME = "Shal Su";
+
+function RootShell() {
+  // Re-render the whole tree when the display currency changes so every
+  // formatMoney() call on mounted pages picks up the new symbol. The actual
+  // sync from persisted settings happens inside the index route's
+  // useLayoutEffect (see routes/index.tsx) so hydration still matches SSR.
+  useSettingsStore((s) => s.currency);
+
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <HeadContent />
+      </head>
+      <body suppressHydrationWarning>
+        <ThemeInit />
+        <I18nInit />
+        <PreviewHostBridge />
+        <AuthProvider>
+          <Outlet />
+        </AuthProvider>
+        <Scripts />
+      </body>
+    </html>
+  );
+}
 
 export const Route = createRootRoute({
   head: () => ({
@@ -33,20 +59,5 @@ export const Route = createRootRoute({
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
     ],
   }),
-  component: () => (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <HeadContent />
-      </head>
-      <body suppressHydrationWarning>
-        <ThemeInit />
-        <I18nInit />
-        <PreviewHostBridge />
-        <AuthProvider>
-          <Outlet />
-        </AuthProvider>
-        <Scripts />
-      </body>
-    </html>
-  ),
+  component: RootShell,
 });

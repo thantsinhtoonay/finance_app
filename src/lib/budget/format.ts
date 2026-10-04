@@ -1,4 +1,27 @@
 import { addMonths, format, parse, parseISO } from "date-fns";
+import type { CurrencyCode } from "@/lib/settings/types";
+
+const CURRENCY_SYMBOLS: Record<CurrencyCode, string> = {
+  MMK: "MMK",
+  USD: "$",
+  THB: "฿",
+  JPY: "¥",
+  EUR: "€",
+};
+
+let activeCurrency: CurrencyCode = "MMK";
+
+export function setActiveCurrency(code: CurrencyCode): void {
+  if (code in CURRENCY_SYMBOLS) activeCurrency = code;
+}
+
+export function getActiveCurrency(): CurrencyCode {
+  return activeCurrency;
+}
+
+export function currencySymbol(code?: CurrencyCode): string {
+  return CURRENCY_SYMBOLS[code ?? activeCurrency] ?? "MMK";
+}
 
 export function monthKey(date = new Date()): string {
   return format(date, "yyyy-MM");
@@ -39,13 +62,13 @@ export function defaultDateForMonth(month: string): string {
 }
 
 export function formatMoney(value: number): string {
+  const symbol = currencySymbol();
   const formatted = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "MMK",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(Math.abs(value));
-  return value < 0 ? `\u2212${formatted}` : formatted;
+  const body = symbol === "MMK" ? `${symbol} ${formatted}` : `${symbol}${formatted}`;
+  return value < 0 ? `\u2212${body}` : body;
 }
 
 export function formatSigned(value: number, type: "income" | "expense"): string {
