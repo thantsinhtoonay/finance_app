@@ -67,7 +67,7 @@ export function formatMoney(value: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(Math.abs(value));
-  const body = symbol === "MMK" ? `${symbol} ${formatted}` : `${symbol}${formatted}`;
+  const body = `${symbol} ${formatted}`;
   return value < 0 ? `\u2212${body}` : body;
 }
 

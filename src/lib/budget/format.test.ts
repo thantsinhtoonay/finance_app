@@ -1,4 +1,4 @@
-import { describe, it } from "node:test";
+﻿import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { currencySymbol, formatMoney, formatSigned, getActiveCurrency, setActiveCurrency } from "./format.ts";
 
@@ -13,37 +13,37 @@ describe("currency symbols", () => {
 
   it("switches to USD ($)", () => {
     setActiveCurrency("USD");
-    assert.equal(formatMoney(1234), "$1,234");
+    assert.equal(formatMoney(1234), "$ 1,234");
     assert.equal(currencySymbol(), "$");
     assert.equal(currencySymbol("USD"), "$");
   });
 
   it("switches to THB (฿)", () => {
     setActiveCurrency("THB");
-    assert.equal(formatMoney(1234), "฿1,234");
+    assert.equal(formatMoney(1234), "฿ 1,234");
   });
 
   it("switches to JPY (¥)", () => {
     setActiveCurrency("JPY");
-    assert.equal(formatMoney(1234), "¥1,234");
+    assert.equal(formatMoney(1234), "¥ 1,234");
   });
 
   it("switches to EUR (€)", () => {
     setActiveCurrency("EUR");
-    assert.equal(formatMoney(1234), "€1,234");
+    assert.equal(formatMoney(1234), "€ 1,234");
   });
 
   it("keeps minus sign for negatives", () => {
     setActiveCurrency("USD");
-    assert.equal(formatMoney(-500), "\u2212$500");
+    assert.equal(formatMoney(-500), "\u2212$ 500");
     setActiveCurrency("MMK");
     assert.equal(formatMoney(-500), "\u2212MMK 500");
   });
 
   it("formats signed income and expense", () => {
     setActiveCurrency("THB");
-    assert.equal(formatSigned(2500, "income"), "+฿2,500");
-    assert.equal(formatSigned(2500, "expense"), "\u2212฿2,500");
+    assert.equal(formatSigned(2500, "income"), "+฿ 2,500");
+    assert.equal(formatSigned(2500, "expense"), "\u2212฿ 2,500");
     setActiveCurrency("MMK");
   });
 
@@ -53,3 +53,4 @@ describe("currency symbols", () => {
     assert.equal(getActiveCurrency(), "MMK");
   });
 });
+
