@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
+import { Loader2, RotateCcw } from "lucide-react";
 import { Dashboard } from "@/components/budget/dashboard";
-import { OpenInTelegram } from "@/components/auth/open-in-telegram";
+import { Button } from "@/components/ui/button";
 import { initDisplayCurrency } from "@/lib/settings/store";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { useTranslation } from "@/lib/i18n/store";
@@ -10,6 +10,8 @@ import { useTranslation } from "@/lib/i18n/store";
 export const Route = createFileRoute("/")({
   component: Home,
 });
+
+const BOT_URL = "https://t.me/shalsu_finance_bot";
 
 // The Telegram Mini App SDK (loaded in __root head) exposes this global.
 type TelegramWebApp = {
@@ -40,21 +42,25 @@ function Home() {
 
   const { user, isPending } = useCurrentUserState();
   const { t } = useTranslation();
-  const [landing, setLanding] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
   const attempted = useRef(false);
 
-  // Telegram-only sign-in: when opened from the Mini App, post the raw initData
-  // once — the server validates it and auto-registers/loads the account keyed
-  // by the Telegram user id, then we reload so the fresh session cookie rules.
-  // Outside Telegram (or after a failed attempt) show the landing page.
+  // Telegram-only sign-in: there is no login page. Opened from the Mini App we
+  // post the raw initData once — the server validates it and auto-registers or
+  // loads the account keyed by the Telegram user id, then we reload so the
+  // fresh session cookie rules. Opened outside Telegram (SDK missing or empty
+  // initData), hand off to the bot after a short wait for the SDK.
   useEffect(() => {
-    if (user || isPending || attempted.current) return;
+    if (user || isPending) return;
     const webApp = window.Telegram?.WebApp;
     if (!webApp?.initData) {
-      setLanding(true);
-      return;
+      const timer = setTimeout(() => {
+        if (!window.Telegram?.WebApp?.initData) window.location.href = BOT_URL;
+      }, 1500);
+      return () => clearTimeout(timer);
     }
+    if (attempted.current) return;
     attempted.current = true;
     webApp.ready?.();
     webApp.expand?.();
@@ -78,13 +84,12 @@ function Home() {
         } catch {
           // non-JSON error body — status alone is the detail
         }
-        setAuthError(`${t("landing_auth_error")} (${detail})`);
+        setAuthError(`${t("auto_auth_error")} (${detail})`);
       } catch {
-        setAuthError(`${t("landing_auth_error")} (network)`);
+        setAuthError(`${t("auto_auth_error")} (network)`);
       }
-      setLanding(true);
     })();
-  }, [user, isPending, t]);
+  }, [user, isPending, t, attempt]);
 
   if (user) {
     return (
@@ -94,13 +99,30 @@ function Home() {
     );
   }
 
-  if (isPending || !landing) {
+  if (authError) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-background">
-        <Loader2 className="size-8 animate-spin text-primary" />
+      <main className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-background px-6">
+        <p className="max-w-sm rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive">
+          {authError}
+        </p>
+        <Button
+          variant="outline"
+          onClick={() => {
+            attempted.current = false;
+            setAuthError(null);
+            setAttempt((n) => n + 1);
+          }}
+        >
+          <RotateCcw />
+          {t("auto_auth_retry")}
+        </Button>
       </main>
     );
   }
 
-  return <OpenInTelegram error={authError} />;
+  return (
+    <main className="flex min-h-dvh items-center justify-center bg-background">
+      <Loader2 className="size-8 animate-spin text-primary" />
+    </main>
+  );
 }

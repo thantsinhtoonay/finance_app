@@ -18,6 +18,22 @@ function sign(fields: Record<string, string>, botToken = BOT_TOKEN): string {
   return params.toString();
 }
 
+/** Signs over the still-encoded query segments instead of decoded values. */
+function signRaw(fields: Record<string, string>, botToken = BOT_TOKEN): string {
+  const query = new URLSearchParams(fields);
+  const chain = query
+    .toString()
+    .split("&")
+    .filter((segment) => !segment.startsWith("hash="))
+    .sort()
+    .join("\n");
+  const secret = createHmac("sha256", botToken).update("WebAppData").digest();
+  const hash = createHmac("sha256", secret).update(chain).digest("hex");
+  const params = new URLSearchParams(fields);
+  params.set("hash", hash);
+  return params.toString();
+}
+
 function validFields(overrides?: Record<string, string>): Record<string, string> {
   return {
     auth_date: String(NOW),
@@ -86,6 +102,11 @@ describe("validateTelegramInitData", () => {
     const raw = new URLSearchParams(noSigHash);
     raw.set("signature", "MEUCIQDx_real");
     const user = okUser(validateTelegramInitData(raw.toString(), BOT_TOKEN, { now: NOW }));
+    assert.equal(user.id, 987654321);
+  });
+
+  it("accepts a hash computed over the still-encoded raw chain", () => {
+    const user = okUser(validateTelegramInitData(signRaw(validFields()), BOT_TOKEN, { now: NOW }));
     assert.equal(user.id, 987654321);
   });
 

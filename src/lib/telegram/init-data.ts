@@ -9,13 +9,13 @@ import { secretsMatch } from "./core.ts";
  *   hash       = hex(HMAC_SHA256(data_check_string, secret_key))
  *
  * data-check-string = every `key=value` pair EXCEPT `hash`, sorted
- * alphabetically, joined with "\n". Values are the decoded (percent-unescape)
- * query values. `signature` (Ed25519, Bot API 7.2+) is an ordinary field here
- * (the official wording is "all received fields"; only the third-party Ed25519
- * check excludes it) — but since some implementations disagreed historically,
- * a hash computed WITHOUT `signature` is also accepted as a fallback. Both
- * variants prove the remaining fields were signed with the bot token, so
- * accepting either cannot weaken the trust check.
+ * alphabetically, joined with "\n". Values are normally the decoded
+ * (percent-unescape) query values per the official docs sample. `signature`
+ * (Ed25519, Bot API 7.2+) is an ordinary field here — only the third-party
+ * Ed25519 check excludes it. Because real-world payloads have surfaced under
+ * every combination of {decoded, still-encoded} × {with, without signature},
+ * all four chains are accepted. Each candidate is still an HMAC under the bot
+ * token, so accepting more chains cannot weaken the trust check.
  *
  * `auth_date` is enforced (≤ maxAge) so a captured payload can't be replayed
  * forever; the window is generous (default 7 days) because a Mini App window can
@@ -51,30 +51,42 @@ export function validateTelegramInitData(
 
   const pairs: string[] = [];
   const pairsWithoutSignature: string[] = [];
-  let hasSignature = false;
   for (const [key, value] of params.entries()) {
     if (key === "hash") continue;
     const pair = `${key}=${value}`;
     pairs.push(pair);
-    if (key === "signature") {
-      hasSignature = true;
-    } else {
-      pairsWithoutSignature.push(pair);
-    }
+    if (key !== "signature") pairsWithoutSignature.push(pair);
   }
+  const query = initData.startsWith("?") ? initData.slice(1) : initData;
+  const rawSegments = query
+    .split("&")
+    .map((segment) => segment.trim())
+    .filter((segment) => segment !== "" && !segment.startsWith("hash="));
+  const rawSegmentsWithoutSignature = rawSegments.filter(
+    (segment) => !segment.startsWith("signature="),
+  );
   if (pairs.length === 0) return { ok: false, reason: "malformed" };
 
   const secretKey = createHmac("sha256", botToken).update("WebAppData").digest();
-  pairs.sort();
-  const expected = createHmac("sha256", secretKey).update(pairs.join("\n")).digest("hex");
-  let hashOk = secretsMatch(expected, hash);
-  if (!hashOk && hasSignature) {
-    // Fallback: hash computed with `signature` excluded (see header comment).
-    pairsWithoutSignature.sort();
-    const expectedAlt = createHmac("sha256", secretKey)
-      .update(pairsWithoutSignature.join("\n"))
-      .digest("hex");
-    hashOk = secretsMatch(expectedAlt, hash);
+  const chainHash = (chain: string[]) =>
+    createHmac("sha256", secretKey).update([...chain].sort().join("\n")).digest("hex");
+
+  const candidates = new Map<string, string[]>();
+  for (const chain of [
+    pairs,
+    pairsWithoutSignature,
+    rawSegments,
+    rawSegmentsWithoutSignature,
+  ]) {
+    if (chain.length > 0) candidates.set([...chain].sort().join("\n"), chain);
+  }
+  const target = hash.trim().toLowerCase();
+  let hashOk = false;
+  for (const chain of candidates.values()) {
+    if (secretsMatch(chainHash(chain), target)) {
+      hashOk = true;
+      break;
+    }
   }
   if (!hashOk) return { ok: false, reason: "bad_hash" };
 
