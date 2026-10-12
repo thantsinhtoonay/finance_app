@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Repeat } from "lucide-react";
+import { Lock, Repeat } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { categoriesFor, defaultCategory, translatedCategoryLabel } from "@/lib/budget/categories";
 import { defaultDateForMonth, formatMoney, parseAmount } from "@/lib/budget/format";
-import { previewRemaining } from "@/lib/budget/store";
+import { previewRemaining, SaveError } from "@/lib/budget/store";
 import type { MonthSummary, RecurringFrequency, Transaction, TxType } from "@/lib/budget/types";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
@@ -40,7 +40,7 @@ type Props = {
     date: string;
     note: string;
     recurring?: RecurringFrequency | null;
-  }) => void;
+  }) => Promise<void>;
 };
 
 export function TransactionDialog({
@@ -71,15 +71,17 @@ export function TransactionDialog({
       setNote(editing.note);
       setRecurring(editing.recurring || "");
     } else {
-      setType("expense");
+      // Income-first gate: while no income exists the dialog opens on income.
+      const startType: TxType = hasIncome ? "expense" : "income";
+      setType(startType);
       setAmount("");
-      setCategory(defaultCategory("expense"));
+      setCategory(defaultCategory(startType));
       setDate(defaultDateForMonth(month));
       setNote("");
       setRecurring("");
     }
     setError(null);
-  }, [open, editing, month]);
+  }, [open, editing, month, hasIncome]);
 
   const cats = categoriesFor(type);
   const parsed = parseAmount(amount);
@@ -94,7 +96,7 @@ export function TransactionDialog({
     if (!ids.includes(category)) setCategory(defaultCategory(next));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const value = parseAmount(amount);
     if (value === null) {
@@ -109,15 +111,23 @@ export function TransactionDialog({
       setError(t("dialog_error_income_first"));
       return;
     }
-    onSubmit({
-      type,
-      amount: value,
-      category,
-      date,
-      note: note.trim(),
-      recurring: recurring || null,
-    });
-    onOpenChange(false);
+    try {
+      await onSubmit({
+        type,
+        amount: value,
+        category,
+        date,
+        note: note.trim(),
+        recurring: recurring || null,
+      });
+      onOpenChange(false);
+    } catch (err) {
+      if (err instanceof SaveError && err.status === 409) {
+        setError(t("dialog_error_income_first"));
+      } else {
+        setError(t("dialog_error_save_failed"));
+      }
+    }
   }
 
   const recurringOptions: { value: RecurringFrequency; key: keyof TranslationKeys }[] = [
@@ -144,9 +154,12 @@ export function TransactionDialog({
                 key={option}
                 type="button"
                 onClick={() => handleType(option)}
+                disabled={option === "expense" && !hasIncome}
+                aria-disabled={option === "expense" && !hasIncome}
                 className={cn(
                   "relative h-11 overflow-hidden rounded-lg text-sm font-semibold capitalize transition-colors duration-200",
                   type === option ? "text-white" : "text-muted-foreground hover:text-foreground hover:bg-secondary/80",
+                  option === "expense" && !hasIncome && "opacity-40 cursor-not-allowed hover:bg-transparent",
                 )}
               >
                 {type === option && (
@@ -161,12 +174,20 @@ export function TransactionDialog({
                     transition={{ type: "spring", stiffness: 400, damping: 32 }}
                   />
                 )}
-                <span className="relative z-10">
+                <span className="relative z-10 flex items-center justify-center gap-1.5">
+                  {option === "expense" && !hasIncome ? <Lock className="size-3.5" /> : null}
                   {option === "expense" ? t("transaction_expense") : t("transaction_income")}
                 </span>
               </button>
             ))}
           </div>
+
+          {!hasIncome ? (
+            <p className="flex items-start gap-1.5 text-xs font-medium text-amber-500">
+              <Lock className="mt-0.5 size-3.5 shrink-0" />
+              {t("dialog_error_income_first")}
+            </p>
+          ) : null}
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="amount" className="text-sm font-semibold">{t("dialog_amount")}</Label>

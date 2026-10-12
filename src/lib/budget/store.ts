@@ -12,6 +12,18 @@ import type {
 
 type Draft = Omit<Transaction, "id">;
 
+/** API save failure carrying the HTTP status and machine-readable error code. */
+export class SaveError extends Error {
+  status: number;
+  code?: string;
+  constructor(status: number, code?: string) {
+    super(code ?? `save failed (${status})`);
+    this.name = "SaveError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 type BudgetState = {
   transactions: Transaction[];
   monthlyGoal: number;
@@ -106,6 +118,8 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
     const id = crypto.randomUUID();
     const tempTx = { ...draft, id };
     set((s) => ({ transactions: [tempTx, ...s.transactions] }));
+    const rollback = () =>
+      set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) }));
 
     try {
       const res = await apiFetch("/api/transactions/", {
@@ -117,13 +131,13 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
         set((s) => ({
           transactions: s.transactions.map((t) => (t.id === id ? saved : t)),
         }));
-      } else {
-        console.error("Failed to save transaction:", res.status);
-        set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) }));
+        return;
       }
+      const body = await res.json().catch(() => null);
+      throw new SaveError(res.status, typeof body?.error === "string" ? body.error : undefined);
     } catch (err) {
-      console.error("Failed to save transaction:", err);
-      set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) }));
+      rollback();
+      throw err;
     }
   },
 
@@ -138,9 +152,13 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
         method: "PUT",
         body: JSON.stringify(draft),
       });
-      if (!res.ok) set({ transactions: prev });
-    } catch {
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new SaveError(res.status, typeof body?.error === "string" ? body.error : undefined);
+      }
+    } catch (err) {
       set({ transactions: prev });
+      throw err;
     }
   },
 

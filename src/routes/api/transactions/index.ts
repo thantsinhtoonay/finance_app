@@ -29,6 +29,9 @@ async function materializeRecurring(sql: Awaited<ReturnType<typeof getSql>>, use
     [userId],
   );
   const today = new Date().toISOString().slice(0, 10);
+  // Income-first gate: auto-generated expense occurrences are deferred (not lost)
+  // while no income exists — dueOccurrences recomputes from the anchor each run.
+  let expenseAllowed: boolean | null = null;
 
   for (const anchor of anchors) {
     const seriesId = anchor.series_id ?? anchor.id;
@@ -50,6 +53,10 @@ async function materializeRecurring(sql: Awaited<ReturnType<typeof getSql>>, use
 
     for (const date of due) {
       if (taken.has(date)) continue;
+      if (anchor.type === "expense") {
+        if (expenseAllowed === null) expenseAllowed = await hasIncomeExcept(sql, userId);
+        if (!expenseAllowed) continue;
+      }
       await sql.query(
         `INSERT INTO transactions (id, user_id, type, amount, category, date, note, recurring, series_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)

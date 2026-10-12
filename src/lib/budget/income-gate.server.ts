@@ -1,6 +1,4 @@
-import { getSql } from "@/lib/db";
-
-type Sql = Awaited<ReturnType<typeof getSql>>;
+import type { Sql } from "@/lib/db";
 
 /**
  * Income-first gate: an expense may only be recorded while at least one OTHER

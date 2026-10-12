@@ -146,6 +146,16 @@ export function Dashboard() {
         if (!confirm(`Import ${data.transactions.length} transactions? This will replace current data.`)) {
           return;
         }
+        // Income-first gate: an import may never introduce expenses while no income exists.
+        const importHasExpense = data.transactions.some((tx) => tx.type === "expense");
+        const importHasIncome = data.transactions.some((tx) => tx.type === "income");
+        const hasIncome =
+          importHasIncome ||
+          useBudgetStore.getState().transactions.some((tx) => tx.type === "income");
+        if (importHasExpense && !hasIncome) {
+          alert(t("dialog_error_income_first"));
+          return;
+        }
         useBudgetStore.setState({
           transactions: data.transactions,
           monthlyGoal: data.monthlyGoal,
@@ -407,10 +417,9 @@ export function Dashboard() {
           !loaded ||
           transactions.some((tx) => tx.type === "income" && (!editing || tx.id !== editing.id))
         }
-        onSubmit={(draft) => {
-          if (editing) updateTransaction(editing.id, draft);
-          else addTransaction(draft);
-        }}
+        onSubmit={(draft) =>
+          editing ? updateTransaction(editing.id, draft) : addTransaction(draft)
+        }
       />
 
       <AlertDialog
