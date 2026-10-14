@@ -82,6 +82,7 @@ export interface TranslationKeys {
   history_subtitle: string;
   history_this_month: string;
   list_transactions: string;
+  list_receipt: string;
   stat_remaining: string;
   
   // Dashboard
@@ -221,6 +222,16 @@ export interface TranslationKeys {
   dialog_error_no_date: string;
   dialog_error_income_first: string;
   dialog_error_save_failed: string;
+  dialog_receipt: string;
+  dialog_receipt_add: string;
+  dialog_receipt_replace: string;
+  dialog_receipt_remove: string;
+  dialog_receipt_view: string;
+  dialog_receipt_loading: string;
+  receipt_error_type: string;
+  receipt_error_large: string;
+  receipt_error_decode: string;
+  receipt_error_size: string;
 
   // Recurring
   recurring_weekly: string;

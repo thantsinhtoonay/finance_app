@@ -125,6 +125,16 @@ export const my: TranslationKeys = {
   dialog_error_no_date: "ရက်စွဲရွေးပါ။",
   dialog_error_income_first: "အရင် ဝင်ငွေ မှတ်တမ်း အရင်ထည့်ပါ — ဝင်ငွေ မထည့်ရသေးမချင်း အသုံးစရိတ် မထည့်နိုင်ပါ။",
   dialog_error_save_failed: "ဤမှတ်တမ်း သိမ်းဆည်း၍ မရပါ။ ထပ်မံကြိုးစားကြည့်ပါ။",
+  dialog_receipt: "ဘောင်ချာဓာတ်ပုံ",
+  dialog_receipt_add: "ဘောင်ချာဓာတ်ပုံ ထည့်ရန်",
+  dialog_receipt_replace: "အစားထိုးရန်",
+  dialog_receipt_remove: "ဖယ်ရှားရန်",
+  dialog_receipt_view: "ဘောင်ချာပုံ ကြည့်ရန်",
+  dialog_receipt_loading: "ဓာတ်ပုံ ပြင်ဆင်နေသည်…",
+  receipt_error_type: "ဓာတ်ပုံဖိုင်ကိုသာ ရွေးပါ။",
+  receipt_error_large: "ဓာတ်ပုံသည် 10MB အောက်ဖြစ်ရမည်။",
+  receipt_error_decode: "ဤဓာတ်ပုံကို ဖတ်၍မရပါ။ အခြားပုံဖြင့် စမ်းကြည့်ပါ။",
+  receipt_error_size: "ဓာတ်ပုံ ကြီးလွန်းပါသည်။ ပိုသေးသောပုံဖြင့် စမ်းကြည့်ပါ။",
 
   // Recurring
   recurring_weekly: "အပတ်စဉ်",
@@ -158,6 +168,7 @@ export const my: TranslationKeys = {
   history_subtitle: "ယခင်လများ၏ ငွေစာရင်းများကို ပြန်လည်ကြည့်ရှုပါ",
   history_this_month: "ယခုလ",
   list_transactions: "ငွေစာရင်းများ",
+  list_receipt: "ဘောင်ချောင်းပုံ ပါသည်",
   stat_remaining: "လက်ကျန်ငွေ",
 
   // More categories

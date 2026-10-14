@@ -45,6 +45,7 @@ export const en: TranslationKeys = {
   history_subtitle: "Review past months",
   history_this_month: "This month",
   list_transactions: "Transactions",
+  list_receipt: "Has receipt",
   stat_remaining: "Remaining",
   
   // Dashboard
@@ -190,6 +191,16 @@ export const en: TranslationKeys = {
   dialog_error_no_date: "Choose a date.",
   dialog_error_income_first: "Add income first — expenses are locked until you record your first income.",
   dialog_error_save_failed: "Couldn't save this entry. Please try again.",
+  dialog_receipt: "Receipt photo",
+  dialog_receipt_add: "Add receipt photo",
+  dialog_receipt_replace: "Replace",
+  dialog_receipt_remove: "Remove",
+  dialog_receipt_view: "View receipt",
+  dialog_receipt_loading: "Processing photo…",
+  receipt_error_type: "Please choose an image file.",
+  receipt_error_large: "Image must be smaller than 10MB.",
+  receipt_error_decode: "Couldn't read this image. Try another photo.",
+  receipt_error_size: "Photo is still too large. Try a smaller or clearer photo.",
 
   // Recurring
   recurring_weekly: "Weekly",

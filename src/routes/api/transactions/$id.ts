@@ -22,11 +22,24 @@ async function addTombstone(
 export const Route = createFileRoute("/api/transactions/$id")({
   server: {
     handlers: {
-      GET: async () =>
-        Response.json(
-          { error: "Method not allowed" },
-          { status: 405, headers: { Allow: "PUT, DELETE" } },
-        ),
+      GET: async ({ params }: { params: { id: string } }) => {
+        try {
+          const userId = await requireApiUser();
+          const sql = await getSql();
+          const rows = await sql.query<{ receipt: string | null }>(
+            `SELECT receipt FROM transactions WHERE id = $1 AND user_id = $2`,
+            [params.id, userId],
+          );
+          if (rows.length === 0) {
+            return Response.json({ error: "Not found" }, { status: 404 });
+          }
+          return Response.json({ id: params.id, receipt: rows[0].receipt });
+        } catch (e: any) {
+          if (e instanceof Response) return e;
+          console.error("[api/transactions/$id] GET failed:", e);
+          return Response.json({ error: "Internal server error" }, { status: 500 });
+        }
+      },
       PUT: async ({ request, params }: { request: Request; params: { id: string } }) => {
         try {
           const userId = await requireApiUser();
@@ -44,8 +57,10 @@ export const Route = createFileRoute("/api/transactions/$id")({
             date: string;
             recurring: string | null;
             series_id: string | null;
+            has_receipt: boolean;
           }>(
-            `SELECT id, date, recurring, series_id FROM transactions WHERE id = $1 AND user_id = $2`,
+            `SELECT id, date, recurring, series_id, (receipt IS NOT NULL) AS has_receipt
+             FROM transactions WHERE id = $1 AND user_id = $2`,
             [id, userId],
           );
           if (existing.length === 0) {
@@ -69,12 +84,31 @@ export const Route = createFileRoute("/api/transactions/$id")({
           // Setting recurring on a non-recurring row makes it the anchor of its
           // own series; otherwise the existing series membership is preserved.
           const nextSeriesId = recurring ? (row.series_id ?? id) : row.series_id;
+          // receipt: undefined = leave unchanged, null = clear, string = replace.
+          const columns = [
+            "type = $1",
+            "amount = $2",
+            "category = $3",
+            "date = $4",
+            "note = $5",
+            "recurring = $6",
+            "series_id = $7",
+          ];
+          const values: unknown[] = [type, rounded, category, date, note, recurring, nextSeriesId];
+          if (parsed.value.receipt !== undefined) {
+            values.push(parsed.value.receipt);
+            columns.push(`receipt = $${values.length}`);
+          }
+          values.push(id, userId);
           await sql.query(
-            `UPDATE transactions SET type = $1, amount = $2, category = $3, date = $4, note = $5, recurring = $6, series_id = $7
-             WHERE id = $8 AND user_id = $9`,
-            [type, rounded, category, date, note, recurring, nextSeriesId, id, userId],
+            `UPDATE transactions SET ${columns.join(", ")} WHERE id = $${values.length - 1} AND user_id = $${values.length}`,
+            values,
           );
-          return Response.json({ id, type, amount: rounded, category, date, note, recurring });
+          const hasReceipt =
+            parsed.value.receipt !== undefined
+              ? parsed.value.receipt != null
+              : row.has_receipt;
+          return Response.json({ id, type, amount: rounded, category, date, note, recurring, hasReceipt });
         } catch (e: any) {
           if (e instanceof Response) return e;
           console.error("[api/transactions/$id] PUT failed:", e);

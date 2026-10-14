@@ -33,7 +33,7 @@ import { useSettingsStore, applyTheme } from "@/lib/settings/store";
 import type { Theme } from "@/lib/settings/types";
 import { CURRENCIES } from "@/lib/settings/types";
 import { currencySymbol } from "@/lib/budget/format";
-import { useBudgetStore, exportToCsv } from "@/lib/budget/store";
+import { buildBackupData, useBudgetStore, exportToCsv } from "@/lib/budget/store";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
@@ -873,19 +873,13 @@ function PrivacySettings({ onBack }: { onBack: () => void }) {
 
 function DataSettings({ onBack }: { onBack: () => void }) {
   const transactions = useBudgetStore((s) => s.transactions);
-  const monthlyGoal = useBudgetStore((s) => s.monthlyGoal);
   const categoryBudgets = useBudgetStore((s) => s.categoryBudgets);
   const resetData = useBudgetStore((s) => s.resetData);
   const [exported, setExported] = useState(false);
 
-  function handleExportJson() {
-    const data = {
-      version: 1,
-      transactions,
-      monthlyGoal,
-      categoryBudgets,
-      exportedAt: new Date().toISOString(),
-    };
+  async function handleExportJson() {
+    // Backups include full receipt images (fetched on demand from the server).
+    const data = await buildBackupData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

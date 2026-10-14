@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Lock, Repeat } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, Lock, Paperclip, Repeat } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/select";
 import { categoriesFor, defaultCategory, translatedCategoryLabel } from "@/lib/budget/categories";
 import { defaultDateForMonth, formatMoney, parseAmount } from "@/lib/budget/format";
-import { previewRemaining, SaveError } from "@/lib/budget/store";
+import { compressReceiptImage } from "@/lib/budget/receipt-image";
+import { fetchReceipt, previewRemaining, SaveError } from "@/lib/budget/store";
 import type { MonthSummary, RecurringFrequency, Transaction, TxType } from "@/lib/budget/types";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
@@ -40,6 +41,7 @@ type Props = {
     date: string;
     note: string;
     recurring?: RecurringFrequency | null;
+    receipt?: string | null;
   }) => Promise<void>;
 };
 
@@ -60,9 +62,19 @@ export function TransactionDialog({
   const [note, setNote] = useState("");
   const [recurring, setRecurring] = useState<RecurringFrequency | "">("");
   const [error, setError] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<string | null>(null);
+  const [receiptDirty, setReceiptDirty] = useState<"set" | "removed" | null>(null);
+  const [receiptLoading, setReceiptLoading] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const receiptFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    setError(null);
+    setReceipt(null);
+    setReceiptDirty(null);
+    setReceiptLoading(false);
+    setShowReceipt(false);
     if (editing) {
       setType(editing.type);
       setAmount(String(editing.amount));
@@ -70,6 +82,24 @@ export function TransactionDialog({
       setDate(editing.date);
       setNote(editing.note);
       setRecurring(editing.recurring || "");
+      if (typeof editing.receipt === "string" && editing.receipt) {
+        setReceipt(editing.receipt);
+      } else if (editing.hasReceipt) {
+        // Image not in memory (list rows carry only the flag) — fetch on demand.
+        let cancelled = false;
+        setReceiptLoading(true);
+        fetchReceipt(editing.id)
+          .then((url) => {
+            if (!cancelled && url) setReceipt(url);
+          })
+          .catch(() => {})
+          .finally(() => {
+            if (!cancelled) setReceiptLoading(false);
+          });
+        return () => {
+          cancelled = true;
+        };
+      }
     } else {
       // Income-first gate: while no income exists the dialog opens on income.
       const startType: TxType = hasIncome ? "expense" : "income";
@@ -80,7 +110,6 @@ export function TransactionDialog({
       setNote("");
       setRecurring("");
     }
-    setError(null);
   }, [open, editing, month, hasIncome]);
 
   const cats = categoriesFor(type);
@@ -94,6 +123,32 @@ export function TransactionDialog({
     setType(next);
     const ids = categoriesFor(next).map((c) => c.id);
     if (!ids.includes(category)) setCategory(defaultCategory(next));
+  }
+
+  async function handleReceiptPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setReceiptLoading(true);
+    try {
+      const dataUrl = await compressReceiptImage(file);
+      setReceipt(dataUrl);
+      setReceiptDirty("set");
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? t(err.message as keyof TranslationKeys)
+          : t("receipt_error_decode"),
+      );
+    } finally {
+      setReceiptLoading(false);
+    }
+  }
+
+  function handleReceiptRemove() {
+    setReceipt(null);
+    setReceiptDirty("removed");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -119,6 +174,12 @@ export function TransactionDialog({
         date,
         note: note.trim(),
         recurring: recurring || null,
+        // undefined = leave unchanged (PUT), null = remove, string = attach.
+        ...(receiptDirty === "set" && receipt
+          ? { receipt }
+          : receiptDirty === "removed"
+            ? { receipt: null }
+            : {}),
       });
       onOpenChange(false);
     } catch (err) {
@@ -272,6 +333,71 @@ export function TransactionDialog({
             />
           </div>
 
+          <div className="flex flex-col gap-2">
+            <Label className="text-sm font-semibold flex items-center gap-1.5">
+              <Paperclip className="size-3.5" />
+              {t("dialog_receipt")}
+            </Label>
+            <input
+              ref={receiptFileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleReceiptPick}
+            />
+            {receiptLoading ? (
+              <div className="flex h-16 items-center gap-2 rounded-xl border border-dashed border-border/60 px-4 text-xs font-medium text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                {t("dialog_receipt_loading")}
+              </div>
+            ) : receipt ? (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReceipt(true)}
+                  aria-label={t("dialog_receipt_view")}
+                  className="size-16 shrink-0 overflow-hidden rounded-xl border border-border/60 transition-opacity hover:opacity-80"
+                >
+                  <img
+                    src={receipt}
+                    alt={t("dialog_receipt")}
+                    className="size-full object-cover"
+                  />
+                </button>
+                <div className="flex flex-col gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-lg"
+                    onClick={() => receiptFileRef.current?.click()}
+                  >
+                    {t("dialog_receipt_replace")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-lg text-muted-foreground"
+                    onClick={handleReceiptRemove}
+                  >
+                    {t("dialog_receipt_remove")}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="justify-start rounded-xl border-dashed text-muted-foreground"
+                onClick={() => receiptFileRef.current?.click()}
+              >
+                <Paperclip className="size-4" />
+                {t("dialog_receipt_add")}
+              </Button>
+            )}
+          </div>
+
           <div className="rounded-xl bg-secondary/80 border border-border/50 px-4 py-3">
             <p className="text-sm text-muted-foreground">
               {t("dialog_remaining_after")}{" "}
@@ -299,6 +425,19 @@ export function TransactionDialog({
             </Button>
           </div>
         </form>
+
+        {showReceipt && receipt ? (
+          <Dialog open={showReceipt} onOpenChange={setShowReceipt}>
+            <DialogContent className="sm:max-w-2xl p-3">
+              <DialogTitle className="sr-only">{t("dialog_receipt")}</DialogTitle>
+              <img
+                src={receipt}
+                alt={t("dialog_receipt")}
+                className="mx-auto max-h-[75vh] w-auto rounded-xl"
+              />
+            </DialogContent>
+          </Dialog>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

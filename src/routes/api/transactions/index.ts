@@ -86,7 +86,7 @@ export const Route = createFileRoute("/api/transactions/")({
           const sql = await getSql();
           await materializeRecurring(sql, userId);
           const rows = await sql.query(
-            `SELECT id, type, amount, category, date, note, recurring
+            `SELECT id, type, amount, category, date, note, recurring, (receipt IS NOT NULL) AS has_receipt
              FROM transactions WHERE user_id = $1 ORDER BY date DESC, created_at DESC`,
             [userId],
           );
@@ -105,7 +105,7 @@ export const Route = createFileRoute("/api/transactions/")({
           if (!parsed.ok) {
             return Response.json({ error: parsed.error }, { status: 400 });
           }
-          const { type, amount, category, date, note, recurring } = parsed.value;
+          const { type, amount, category, date, note, recurring, receipt } = parsed.value;
 
           const id = crypto.randomUUID();
           const sql = await getSql();
@@ -114,11 +114,11 @@ export const Route = createFileRoute("/api/transactions/")({
             return incomeRequired();
           }
           await sql.query(
-            `INSERT INTO transactions (id, user_id, type, amount, category, date, note, recurring, series_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [id, userId, type, Math.round(amount), category, date, note, recurring, recurring ? id : null],
+            `INSERT INTO transactions (id, user_id, type, amount, category, date, note, recurring, series_id, receipt)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [id, userId, type, Math.round(amount), category, date, note, recurring, recurring ? id : null, receipt ?? null],
           );
-          return Response.json({ id, type, amount: Math.round(amount), category, date, note, recurring });
+          return Response.json({ id, type, amount: Math.round(amount), category, date, note, recurring, hasReceipt: receipt != null });
         } catch (e: any) {
           if (e instanceof Response) return e;
           console.error("[api/transactions] POST failed:", e);

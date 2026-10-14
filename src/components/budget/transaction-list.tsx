@@ -1,4 +1,4 @@
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Paperclip, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -137,6 +137,11 @@ export function TransactionList({
                             {t(`recurring_${tx.recurring}`)}
                           </Badge>
                         )}
+                        {tx.hasReceipt ? (
+                          <span title={t("list_receipt")} aria-label={t("list_receipt")}>
+                            <Paperclip className="size-3 text-muted-foreground" />
+                          </span>
+                        ) : null}
                       </p>
                     </div>
                     <p

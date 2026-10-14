@@ -10,6 +10,11 @@ export type Transaction = {
   date: string;
   note: string;
   recurring?: RecurringFrequency | null;
+  /** True when a receipt image exists on the server (list responses). */
+  hasReceipt?: boolean;
+  /** Full receipt image as a data URL. Present in add/edit drafts and
+   *  fetched on demand for viewing — never returned in list responses. */
+  receipt?: string | null;
 };
 
 export type CategoryBudget = {

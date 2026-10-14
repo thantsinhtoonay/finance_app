@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   isIsoDate,
   isValidCategoryId,
+  MAX_RECEIPT_CHARS,
   parseTransactionInput,
 } from "./validation.ts";
 
@@ -146,4 +147,35 @@ test("isValidCategoryId", () => {
   assert.equal(isValidCategoryId("   "), false);
   assert.equal(isValidCategoryId({ x: 1 }), false);
   assert.equal(isValidCategoryId("x".repeat(101)), false);
+});
+
+test("parseTransactionInput receipt field", () => {
+  const base = { type: "expense", amount: 100, category: "food", date: "2026-10-01", note: "" };
+
+  // Valid image data URL passes through.
+  const valid = "data:image/jpeg;base64," + "A".repeat(64);
+  const ok = parseTransactionInput({ ...base, receipt: valid });
+  assert.equal(ok.ok, true);
+  if (ok.ok) assert.equal(ok.value.receipt, valid);
+
+  // Absent receipt stays absent (PUT "unchanged" semantics).
+  const absent = parseTransactionInput(base);
+  assert.equal(absent.ok, true);
+  if (absent.ok) assert.equal("receipt" in absent.value, false);
+
+  // null clears the receipt.
+  const cleared = parseTransactionInput({ ...base, receipt: null });
+  assert.equal(cleared.ok, true);
+  if (cleared.ok) assert.equal(cleared.value.receipt, null);
+
+  // Non-image URLs, exotic mimes, and junk are rejected.
+  assert.equal(parseTransactionInput({ ...base, receipt: "https://x.test/a.jpg" }).ok, false);
+  assert.equal(parseTransactionInput({ ...base, receipt: "data:text/html,hi" }).ok, false);
+  assert.equal(parseTransactionInput({ ...base, receipt: "data:image/svg+xml,PHN2Zz4=" }).ok, false);
+  assert.equal(parseTransactionInput({ ...base, receipt: 42 }).ok, false);
+  assert.equal(parseTransactionInput({ ...base, receipt: "data:image/png;base64,!!!" }).ok, false);
+
+  // Oversized data URL is rejected.
+  const huge = "data:image/jpeg;base64," + "A".repeat(MAX_RECEIPT_CHARS);
+  assert.equal(parseTransactionInput({ ...base, receipt: huge }).ok, false);
 });

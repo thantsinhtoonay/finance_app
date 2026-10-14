@@ -3,6 +3,30 @@ import type { RecurringFrequency } from "./types";
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_CATEGORY = 100;
 const MAX_NOTE = 10_000;
+/** Cap for receipt data URLs (~337KB of image after base64 expansion). */
+export const MAX_RECEIPT_CHARS = 450_000;
+const RECEIPT_DATA_URL = /^data:image\/(?:jpeg|jpg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+/**
+ * Validate an optional receipt field. `undefined` means "leave unchanged"
+ * (PUT semantics), `null` clears the receipt, and a string must be a
+ * whitelisted image data URL within the size cap.
+ */
+function validateReceipt(
+  receipt: unknown,
+): { ok: true; value: string | null | undefined } | { ok: false; error: string } {
+  if (receipt === undefined || receipt === null) return { ok: true, value: receipt };
+  if (typeof receipt !== "string" || !RECEIPT_DATA_URL.test(receipt)) {
+    return {
+      ok: false,
+      error: "receipt must be an image data URL (jpeg, png, or webp)",
+    };
+  }
+  if (receipt.length > MAX_RECEIPT_CHARS) {
+    return { ok: false, error: `receipt must be at most ${MAX_RECEIPT_CHARS} characters` };
+  }
+  return { ok: true, value: receipt };
+}
 
 const RECURRING_VALUES: readonly RecurringFrequency[] = [
   "weekly",
@@ -30,6 +54,7 @@ export type TransactionInput = {
   date: string;
   note: string;
   recurring: RecurringFrequency | null;
+  receipt?: string | null;
 };
 
 export type ParseResult<T> =
@@ -97,6 +122,9 @@ export function parseTransactionInput(
     };
   }
 
+  const receiptParsed = validateReceipt(record.receipt);
+  if (!receiptParsed.ok) return receiptParsed;
+
   return {
     ok: true,
     value: {
@@ -106,6 +134,7 @@ export function parseTransactionInput(
       date,
       note: typeof note === "string" ? note : "",
       recurring: recurringValue as RecurringFrequency | null,
+      ...(receiptParsed.value !== undefined ? { receipt: receiptParsed.value } : {}),
     },
   };
 }

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { categoryById } from "./categories";
 import { monthKey } from "./format";
 import type {
+  AppData,
   CategoryBudget,
   CategoryTotal,
   MonthSummary,
@@ -53,6 +54,39 @@ async function apiFetch(url: string, options?: RequestInit) {
   return res;
 }
 
+/** Fetch the full receipt image (data URL) for one transaction, or null. */
+export async function fetchReceipt(id: string): Promise<string | null> {
+  const res = await apiFetch(`/api/transactions/${id}`);
+  if (!res.ok) throw new SaveError(res.status);
+  const data = await res.json().catch(() => null);
+  return typeof data?.receipt === "string" ? data.receipt : null;
+}
+
+/**
+ * Build a complete JSON backup, pulling receipt images from the server for
+ * rows that have one (list responses only carry the `hasReceipt` flag).
+ */
+export async function buildBackupData(): Promise<AppData> {
+  const s = useBudgetStore.getState();
+  const transactions = await Promise.all(
+    s.transactions.map(async (t) => {
+      if (!t.hasReceipt || t.receipt) return t;
+      try {
+        return { ...t, receipt: await fetchReceipt(t.id) };
+      } catch {
+        return t;
+      }
+    }),
+  );
+  return {
+    version: 1,
+    transactions,
+    monthlyGoal: s.monthlyGoal,
+    categoryBudgets: s.categoryBudgets,
+    exportedAt: new Date().toISOString(),
+  };
+}
+
 export const useBudgetStore = create<BudgetState>()((set, get) => ({
   transactions: [],
       monthlyGoal: 0,
@@ -81,6 +115,7 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
         const transactions = rows.map((t: any) => ({
           ...t,
           amount: Number(t.amount),
+          hasReceipt: t.has_receipt === true,
         }));
         set({ transactions });
       } else {
@@ -144,7 +179,12 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
   updateTransaction: async (id, draft) => {
     const prev = get().transactions;
     set((s) => ({
-      transactions: s.transactions.map((t) => (t.id === id ? { ...t, ...draft } : t)),
+      transactions: s.transactions.map((t) => {
+        if (t.id !== id) return t;
+        const next = { ...t, ...draft };
+        if (draft.receipt !== undefined) next.hasReceipt = draft.receipt != null;
+        return next;
+      }),
     }));
 
     try {

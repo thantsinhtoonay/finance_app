@@ -29,9 +29,11 @@
 - [x] Add dark theme support — `.dark` class, Light/Dark/System setting
 - [x] Change currency to Myanmar Kyat — `format.ts`
 - [x] Set up GitHub repository — `origin/main`
-- [x] Deploy to hosting — Vercel production, primary domain **`https://www.thantsin.website`** (apex `thantsin.website` 308-redirects to www; `shal-su.vercel.app` kept as fallback; git auto-deploy from `origin/main`)
+- [x] Deploy to hosting — Vercel production, primary domain **`https://www.thantsin.website`** (apex `thantsin.website` 307-redirects to www; `shal-su.vercel.app` kept as fallback; git auto-deploy from `origin/main`; DNS proxied through Cloudflare free plan since 2026-10-04)
 
 ### Recently shipped
+- [x] Receipt photos (`attach only`) — add/replace/remove/view a receipt image on income & expense entries; client-side compression (≤400KB JPEG data URL), stored in Postgres (`0004_receipt.sql`), fetched on demand; list shows 📎 flag; JSON backups include images; server validates mime + size; suite now 85 tests
+- [x] Income-first expense gate (`30b12b3`) — Expense locked in dialog until first income (Lock icon, income default); server 409 gate on POST/PUT transactions, JSON import, and recurring materialization; save errors surfaced in dialog (EN + MY); `income-gate.server.ts`, `SaveError` in store; suite now 84 tests
 - [x] Full i18n (Burmese/English) — settings, nav, auth pages, categories, history
 - [x] Language switch on Sign In / Sign Up pages
 - [x] History view (month selector + that month's transactions)
@@ -65,10 +67,10 @@
 
 ### Features
 - [x] ~~Cloud sync (requires auth)~~ — server sync via API routes + Neon Postgres
+- [x] Receipt photos — attach to income/expense entries (scan-to-fill OCR explicitly declined — attach-only)
 - [ ] Multi-currency support
 - [ ] Shared budgets (family/team)
 - [ ] Bill reminders
-- [ ] Receipt scanning
 - [ ] Expense categories with icons (currently colored dots only)
 - [ ] Budget templates
 - [ ] Financial goals (long-term)
@@ -88,7 +90,7 @@
 ### Technical
 - [x] ~~Database backend (PostgreSQL)~~ — Neon + `migrate.mjs`
 - [x] ~~Authentication system~~ — Better Auth, multi-user, session-gated API
-- [ ] Unit tests for store logic — validation + recurring covered (72 tests total); `parseAmount`, `summarizeMonth`, budget reducers still untested
+- [ ] Unit tests for store logic — validation + recurring + income gate + format covered (84 tests total); `parseAmount`, `summarizeMonth`, budget reducers still untested
 - [ ] Integration tests
 - [ ] E2E tests with Playwright — 27-check PowerShell suite + Playwright smoke exist (temp scripts); promote to repo-hosted `*.spec.ts`
 - [ ] Performance optimization (routes chunk 747KB > 500KB warning)
@@ -98,7 +100,7 @@
 - [ ] Offline support (localStorage persists, but no service worker)
 
 ### Housekeeping
-- [x] Custom domain — bought `thantsin.website` (Z.com) → primary **`www.thantsin.website`**, apex redirects 308; origins trusted in Better Auth
+- [x] Custom domain — bought `thantsin.website` (Z.com) → primary **`www.thantsin.website`**, apex redirects 307; origins trusted in Better Auth; NS delegated to Cloudflare (david/paityn), records proxied; old Z.com DNS records still exist in Z.com panel (orphaned, harmless — optional cleanup)
 - [ ] Delete 4 leftover QA test accounts in prod DB (`idor-a/b`, `final/final2 @test.local`) — emails unrecoverable, needs `DATABASE_URL` from Vercel dashboard (env values are redacted to CLI/API)
 - [ ] Stop local dev server (port 8080) when not in use
 
@@ -112,14 +114,13 @@
 
 ## Recommended next (priority order)
 
-1. **Dead code cleanup** — delete `quick-add-fab.tsx` + `swipeable-transaction-item.tsx`; remove unused `handleExportCsv/Json/Import` and dead imports from `dashboard.tsx` (~12 lint warnings). Gets lint much closer to zero warnings.
+1. **Dead code cleanup** — delete `quick-add-fab.tsx` + `swipeable-transaction-item.tsx`; remove unused `handleExportCsv/Json/Import` handlers and dead imports from `dashboard.tsx` (`handleImportJson` now has an income gate but is still unwired to any UI). Gets lint much closer to zero warnings.
 2. **First-run experience** — seeded demo budgets (housing 2000, food 500…) are tiny/meaningless MMK values shown to new users. Remove seeds (or replace with an empty-state "Set your first budget" prompt).
 3. **PWA manifest + app icons** — add 192/512px icons + manifest so users can "Add to Home Screen"; high value for mobile-first Myanmar audience.
 4. **Bundle/perf pass** — split `routes` chunk (747KB); lazy-load recharts/yearly view.
 5. **Recurring reminders** — recurring transactions exist but nothing surfaces upcoming bills; add a "upcoming bills" widget or notifications.
 6. **Tests** — unit tests for store logic (parseAmount, summarizeMonth, budget reducers) before more features.
 7. **Accessibility sweep** — dialog focus trap, aria-labels on icon-only buttons, contrast check in dark mode.
-8. **Custom domain** — ~~blocked on you~~ done: bought `thantsin.website` (Z.com), primary `www.thantsin.website`.
 
 ## Ideas
 

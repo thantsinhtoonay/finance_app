@@ -38,6 +38,7 @@ import { Settings as SettingsPage } from "@/components/budget/settings";
 import { LanguageIconToggle } from "@/lib/i18n/components/language-toggle";
 import { useSettingsStore } from "@/lib/settings/store";
 import {
+  buildBackupData,
   downloadFile,
   exportToCsv,
   monthTransactions,
@@ -121,14 +122,9 @@ export function Dashboard() {
     downloadFile(csv, filename, "text/csv;charset=utf-8");
   }
 
-  function handleExportJson() {
-    const data: AppData = {
-      version: 1,
-      transactions,
-      monthlyGoal,
-      categoryBudgets,
-      exportedAt: new Date().toISOString(),
-    };
+  async function handleExportJson() {
+    // Backups include full receipt images (fetched on demand from the server).
+    const data = await buildBackupData();
     downloadFile(JSON.stringify(data, null, 2), "northline-backup.json", "application/json");
   }
 
