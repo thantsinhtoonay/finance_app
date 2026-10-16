@@ -37,6 +37,11 @@ import { randomBytes } from "node:crypto";
 import { Pool } from "pg";
 import { ensureDbReady, getPglite } from "../db";
 import { emailAndPasswordEnabled } from "./email-password";
+import {
+  sendPasswordChangedEmail,
+  sendResetPasswordEmail,
+  sendWelcomeEmail,
+} from "./email.server";
 import { GATE_PROVIDER_ID, gateIdentitySessions } from "./gate-session.server";
 import { GROK_PROVIDERS } from "./providers";
 import { pgliteDialect } from "./pglite-dialect";
@@ -229,9 +234,9 @@ export const auth = betterAuth({
   session: { cookieCache: { enabled: false } },
 
   // Allow users to delete their own account, and to change their email
-  // directly (no verification email sender is configured in this app, so the
-  // unverified email/password users — the only real flow here — are updated
-  // immediately when `updateEmailWithoutVerification` is on).
+  // directly. Email change applies immediately (deliberate: verification
+  // emails are not wired — the transactional sender is used only for
+  // welcome / password-reset / password-changed notices, see below).
   user: {
     deleteUser: {
       enabled: true,
@@ -243,7 +248,67 @@ export const auth = betterAuth({
   },
 
   // Local email/password — toggled only via `./email-password` (not a plugin).
-  ...(emailAndPasswordEnabled ? { emailAndPassword: { enabled: true } } : {}),
+  // Forgot-password: Better Auth builds the reset URL, `sendResetPassword`
+  // emails it via Resend (email-server.ts). Link shape: /reset-password/:token
+  // → redirects to the SPA route with ?token=….
+  ...(emailAndPasswordEnabled
+    ? {
+        emailAndPassword: {
+          enabled: true,
+          resetPasswordTokenExpiresIn: 60 * 60,
+          sendResetPassword: async (
+            { user, url }: { user: { email: string; name?: string | null }; url: string },
+            request?: Request,
+          ) => {
+            await sendResetPasswordEmail(user.email, user.name ?? "", url, request?.headers);
+          },
+        },
+      }
+    : {}),
+
+  // Transactional emails keyed off endpoint responses (all awaited — Vercel
+  // may freeze the function once the response is out). Path-filtered:
+  //   /sign-up/email    → welcome + account/region/device summary
+  //   /change-password  → "password changed" (if this wasn't you → reset)
+  //   /reset-password   → "password was reset" (POST only; GET is :token route)
+  hooks: {
+    // better-call's runner reads `result.headers` — the handler MUST return
+    // an object (void would crash). Never touch `response` (keeps endpoint
+    // output untouched).
+    after: async (ctx: unknown): Promise<{ response?: unknown }> => {
+      const c = ctx as {
+        context?: { returned?: unknown; headers?: Headers };
+        path?: string;
+      };
+      try {
+        const path = c.path;
+        if (
+          path !== "/sign-up/email" &&
+          path !== "/change-password" &&
+          path !== "/reset-password"
+        ) {
+          return {};
+        }
+        const returned = c.context?.returned as
+          | { user?: { email?: string; name?: string | null }; error?: unknown }
+          | undefined;
+        const user = returned?.user;
+        if (!user?.email || returned?.error) return {};
+        const headers = c.context?.headers;
+        if (path === "/sign-up/email") {
+          await sendWelcomeEmail(user.email, user.name ?? "", headers);
+        } else if (path === "/change-password") {
+          await sendPasswordChangedEmail(user.email, user.name ?? "", headers, "change");
+        } else {
+          await sendPasswordChangedEmail(user.email, user.name ?? "", headers, "reset");
+        }
+      } catch (err) {
+        // Never fail the auth request because an email bounced.
+        console.error("[auth hooks.after] email failed:", err);
+      }
+      return {};
+    },
+  },
 
   // `__Host-` prefixed cookies: the browser REFUSES any same-named cookie that
   // carries a `Domain` attribute, so a sibling `*.grok.me` app cannot "toss" a

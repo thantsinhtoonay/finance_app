@@ -12,7 +12,8 @@ A complete personal finance tracker — income, expenses, budgets, and a live re
 - **Category Breakdown** — Visual pie chart showing spending by category
 - **Savings Goal** — Set and track monthly savings targets with progress bar
 - **Month Navigation** — Browse through months to review past budgets
-- **Multi-User Accounts** — Email/password auth (Better Auth) with session-gated API
+- **Multi-User Accounts** — Email/password auth (Better Auth) with session-gated API; forgot/reset password flow with email reset link
+- **Transactional Emails** — Resend-powered: signup welcome (account/region/device), password-reset link, password-changed notices (`no-reply@thantsin.website`)
 - **Cloud Sync** — Data persisted server-side in Neon Postgres; local cache keeps the app usable offline
 
 ### Advanced
@@ -34,6 +35,7 @@ A complete personal finance tracker — income, expenses, budgets, and a live re
 - Zustand (state management, localStorage cache)
 - Radix UI (components)
 - Better Auth (authentication)
+- Resend (transactional email)
 - Neon Postgres + Kysely (server database)
 - Zod (input validation)
 - framer-motion (animations)
@@ -59,7 +61,7 @@ The app runs at `http://localhost:8080`.
 | `npm run typecheck` | Type checking |
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier |
-| `npm test` | Test suite (84 tests: auth gates, validation, recurring, income gate, format) |
+| `npm test` | Test suite (88 tests: auth gates, validation, recurring, income gate, format, device-info) |
 | `npm run check:auth` | Auth invariant check |
 
 ## Keyboard Shortcuts

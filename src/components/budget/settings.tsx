@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Banknote,
+  BookOpen,
   Camera,
   Check,
   ChevronRight,
@@ -11,6 +12,7 @@ import {
   Download,
   Eye,
   EyeOff,
+  FileText,
   Key,
   Lock,
   LogOut,
@@ -33,7 +35,7 @@ import { useSettingsStore, applyTheme } from "@/lib/settings/store";
 import type { Theme } from "@/lib/settings/types";
 import { CURRENCIES } from "@/lib/settings/types";
 import { currencySymbol } from "@/lib/budget/format";
-import { buildBackupData, useBudgetStore, exportToCsv } from "@/lib/budget/store";
+import { useBudgetStore, exportToCsv } from "@/lib/budget/store";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
@@ -91,6 +93,7 @@ function SettingsMain({
   const privacy = useSettingsStore((s) => s.privacy);
   const user = useCurrentUser();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const displayName = user?.displayName || "User";
   const displayEmail = user?.primaryEmail || account.email || "No email";
@@ -126,6 +129,12 @@ function SettingsMain({
       label: t("settings_data"),
       description: "Export or clear your data",
       onClick: () => onNavigate("data"),
+    },
+    {
+      icon: BookOpen,
+      label: t("settings_guide"),
+      description: "How to use Shal Su",
+      onClick: () => navigate({ to: "/user-guide" }),
     },
   ];
 
@@ -875,21 +884,7 @@ function DataSettings({ onBack }: { onBack: () => void }) {
   const transactions = useBudgetStore((s) => s.transactions);
   const categoryBudgets = useBudgetStore((s) => s.categoryBudgets);
   const resetData = useBudgetStore((s) => s.resetData);
-  const [exported, setExported] = useState(false);
-
-  async function handleExportJson() {
-    // Backups include full receipt images (fetched on demand from the server).
-    const data = await buildBackupData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `northline-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setExported(true);
-    setTimeout(() => setExported(false), 2000);
-  }
+  const [pdfExported, setPdfExported] = useState(false);
 
   function handleExportCsv() {
     const csv = exportToCsv(transactions);
@@ -897,9 +892,17 @@ function DataSettings({ onBack }: { onBack: () => void }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `northline-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `shalsu-transactions-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function handleExportPdf() {
+    // jsPDF is loaded on demand so it stays out of the main bundle.
+    const { exportToPdf } = await import("@/lib/budget/export-pdf");
+    await exportToPdf(transactions);
+    setPdfExported(true);
+    setTimeout(() => setPdfExported(false), 2000);
   }
 
   function handleClearData() {
@@ -926,20 +929,6 @@ function DataSettings({ onBack }: { onBack: () => void }) {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-label">Export</p>
 
           <button
-            onClick={handleExportJson}
-            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left"
-          >
-            <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10">
-              <Download className="size-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold">Export as JSON</p>
-              <p className="text-xs text-muted-foreground">Full backup with settings</p>
-            </div>
-            {exported && <Check className="size-4 text-emerald-500" />}
-          </button>
-
-          <button
             onClick={handleExportCsv}
             className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left"
           >
@@ -950,6 +939,20 @@ function DataSettings({ onBack }: { onBack: () => void }) {
               <p className="text-sm font-semibold">Export as CSV</p>
               <p className="text-xs text-muted-foreground">Spreadsheet-compatible format</p>
             </div>
+          </button>
+
+          <button
+            onClick={handleExportPdf}
+            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left"
+          >
+            <div className="flex items-center justify-center size-10 rounded-xl gradient-gold">
+              <FileText className="size-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Export as PDF</p>
+              <p className="text-xs text-muted-foreground">Designed report, ready to share</p>
+            </div>
+            {pdfExported && <Check className="size-4 text-emerald-500" />}
           </button>
         </CardContent>
       </Card>

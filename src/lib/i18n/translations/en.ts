@@ -33,6 +33,22 @@ export const en: TranslationKeys = {
   auth_error_min_length: "Password must be at least 6 characters",
   auth_error_unexpected: "An unexpected error occurred",
   auth_error_register: "Registration failed",
+  auth_forgot_password: "Forgot password?",
+  forgot_title: "Reset your password",
+  forgot_desc: "Enter your account email and we'll send you a reset link.",
+  forgot_submit: "Send reset link",
+  forgot_sending: "Sending...",
+  forgot_sent:
+    "If that email has an account, a reset link has been sent. Check your inbox (and spam folder).",
+  forgot_back_login: "Back to sign in",
+  reset_title: "Set a new password",
+  reset_desc: "Choose a new password for your account.",
+  reset_submit: "Update password",
+  reset_updating: "Updating...",
+  reset_invalid:
+    "This reset link is invalid or has expired. Request a new one.",
+  reset_success: "Password updated — sign in with your new password.",
+  reset_request_new: "Request a new link",
 
   // Navigation
   nav_home: "Home",
@@ -139,6 +155,7 @@ export const en: TranslationKeys = {
   settings_currency: "Currency",
   settings_privacy: "Privacy",
   settings_data: "Data & Export",
+  settings_guide: "User Guide",
   settings_language: "Language",
   settings_theme: "Theme",
   settings_theme_light: "Light",

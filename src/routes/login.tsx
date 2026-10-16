@@ -12,12 +12,16 @@ import { useTranslation } from "@/lib/i18n/store";
 import { UserGuide } from "@/components/budget/user-guide";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): { reset?: boolean } => ({
+    reset: search.reset === "1" || search.reset === true,
+  }),
   component: LoginPage,
 });
 
 function LoginPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { reset } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -71,6 +75,11 @@ function LoginPage() {
         <Card>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {reset && (
+                <div className="rounded-lg bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-foreground">
+                  {t("reset_success")}
+                </div>
+              )}
               {error && (
                 <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
                   {error}
@@ -113,6 +122,14 @@ function LoginPage() {
                   >
                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </button>
+                </div>
+                <div className="flex justify-end">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-primary hover:underline font-medium"
+                  >
+                    {t("auth_forgot_password")}
+                  </Link>
                 </div>
               </div>
 

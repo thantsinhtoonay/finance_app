@@ -70,6 +70,20 @@ export interface TranslationKeys {
   auth_error_min_length: string;
   auth_error_unexpected: string;
   auth_error_register: string;
+  auth_forgot_password: string;
+  forgot_title: string;
+  forgot_desc: string;
+  forgot_submit: string;
+  forgot_sending: string;
+  forgot_sent: string;
+  forgot_back_login: string;
+  reset_title: string;
+  reset_desc: string;
+  reset_submit: string;
+  reset_updating: string;
+  reset_invalid: string;
+  reset_success: string;
+  reset_request_new: string;
 
   // Navigation
   nav_home: string;
@@ -170,6 +184,7 @@ export interface TranslationKeys {
   settings_currency: string;
   settings_privacy: string;
   settings_data: string;
+  settings_guide: string;
   settings_language: string;
   settings_theme: string;
   settings_theme_light: string;
