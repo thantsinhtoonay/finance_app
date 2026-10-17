@@ -137,7 +137,7 @@ export function Dashboard() {
       try {
         const data = JSON.parse(reader.result as string) as AppData;
         if (data.version !== 1 || !Array.isArray(data.transactions)) {
-          alert("Invalid backup file format.");
+          alert(t("error_backup_format"));
           return;
         }
         // Re-validate every row through the same parser the API uses — a
@@ -164,10 +164,10 @@ export function Dashboard() {
         }
         if (valid.length !== data.transactions.length) {
           alert(
-            `Backup contained ${data.transactions.length - valid.length} invalid entries — they were skipped.`,
+            t("error_backup_skipped").replace("{n}", String(data.transactions.length - valid.length)),
           );
         }
-        if (!confirm(`Import ${valid.length} transactions? This will replace current data.`)) {
+        if (!confirm(t("confirm_import").replace("{n}", String(valid.length)))) {
           return;
         }
         // Income-first gate: an import may never introduce expenses while no income exists.
@@ -200,7 +200,7 @@ export function Dashboard() {
           categoryBudgets,
         });
       } catch {
-        alert("Failed to parse backup file.");
+        alert(t("error_backup_parse"));
       }
     };
     reader.readAsText(file);
@@ -243,9 +243,9 @@ export function Dashboard() {
               whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
             />
-            <div>
+            <div className="min-w-0">
               <h1 className="text-lg font-bold tracking-tight">{t("app_name")}</h1>
-              <p className="text-xs text-muted-foreground/70">{t("dashboard_budget")}</p>
+              <p className="truncate text-xs text-muted-foreground">{t("dashboard_budget")}</p>
             </div>
           </div>
 
@@ -343,7 +343,7 @@ export function Dashboard() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold tracking-label text-muted-foreground uppercase">
-                      Remaining this month
+                      {t("dashboard_remaining")}
                     </p>
                     <p
                       className={cn(
@@ -360,7 +360,7 @@ export function Dashboard() {
                       size="icon"
                       className="size-10"
                       onClick={() => setSelectedMonth(shiftMonth(selectedMonth, -1))}
-                      aria-label="Previous month"
+                      aria-label={t("aria_prev_month")}
                     >
                       <ChevronLeft />
                     </Button>
@@ -373,7 +373,7 @@ export function Dashboard() {
                       size="icon"
                       className="size-10"
                       onClick={() => setSelectedMonth(shiftMonth(selectedMonth, 1))}
-                      aria-label="Next month"
+                      aria-label={t("aria_next_month")}
                     >
                       <ChevronRight />
                     </Button>
@@ -396,13 +396,13 @@ export function Dashboard() {
                   <StatCard
                     label={t("dashboard_income")}
                     value={formatMoney(summary.income)}
-                    icon={<TrendingUp className="size-3.5 sm:size-4 text-emerald-500" />}
+                    icon={<TrendingUp className="size-3.5 sm:size-4 text-income" />}
                     tone="income"
                   />
                   <StatCard
                     label={t("dashboard_expenses")}
                     value={formatMoney(summary.expenses)}
-                    icon={<Wallet className="size-3.5 sm:size-4 text-red-500" />}
+                    icon={<Wallet className="size-3.5 sm:size-4 text-expense" />}
                     tone="expense"
                   />
                   <StatCard
@@ -471,7 +471,10 @@ export function Dashboard() {
             <AlertDialogTitle>{t("msg_confirm_delete")}</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingDelete
-                ? `${pendingDelete.note || t("transaction_delete")} will be removed.`
+                ? t("msg_remove_confirm").replace(
+                    "{name}",
+                    pendingDelete.note || t("transaction_delete"),
+                  )
                 : t("data_clear_confirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -493,7 +496,7 @@ export function Dashboard() {
       <AlertDialog open={showShortcuts} onOpenChange={setShowShortcuts}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("transaction_search")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("shortcuts_title")}</AlertDialogTitle>
           </AlertDialogHeader>
           <div className="flex flex-col gap-2 text-sm">
             <ShortcutRow keys="N" desc={t("transaction_add")} />
@@ -527,7 +530,7 @@ function StatCard({
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="flex min-w-0 flex-col gap-1.5 rounded-xl bg-secondary/50 px-2.5 py-2.5 sm:gap-2 sm:px-4 sm:py-3"
+      className="flex min-w-0 flex-col gap-1.5 rounded-xl bg-secondary/50 px-2 py-2.5 sm:gap-2 sm:px-4 sm:py-3"
     >
       <div className="flex items-start gap-1.5 min-w-0">
         <span className="shrink-0 mt-0.5">{icon}</span>
@@ -535,9 +538,9 @@ function StatCard({
       </div>
       <p
         className={cn(
-          "text-sm sm:text-base font-bold tabular-nums tracking-tight truncate",
-          tone === "income" && "text-emerald-600",
-          tone === "expense" && "text-red-500",
+          "text-[11px] sm:text-base font-bold tabular-nums tracking-tight truncate",
+          tone === "income" && "text-income",
+          tone === "expense" && "text-expense",
         )}
       >
         {value}

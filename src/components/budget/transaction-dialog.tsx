@@ -404,7 +404,7 @@ export function TransactionDialog({
               <span
                 className={cn(
                   "font-semibold tabular-nums",
-                  nextRemaining < 0 ? "text-red-500" : "text-foreground",
+                  nextRemaining < 0 ? "text-expense" : "text-foreground",
                 )}
               >
                 {formatMoney(nextRemaining)}
@@ -413,7 +413,7 @@ export function TransactionDialog({
           </div>
 
           {error ? (
-            <p className="text-sm font-medium text-red-500">{error}</p>
+            <p className="text-sm font-medium text-destructive">{error}</p>
           ) : null}
 
           <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation, LanguageSwitch } from "@/lib/i18n";
 
 export const Route = createFileRoute("/user-guide")({
   component: UserGuidePage,
@@ -32,13 +33,14 @@ function Section({
   subtitle: string;
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   return (
     <section id={id} className="scroll-mt-6">
       <Card>
-        <CardContent className="flex flex-col gap-4 p-5 sm:p-7">
+        <CardContent className="flex flex-col gap-4 p-4 sm:p-7">
           <div>
             <p className="text-xs font-semibold tracking-widest text-primary">
-              SECTION {num}
+              {t("guide_section")} {num}
             </p>
             <h2 className="mt-1 text-xl font-bold sm:text-2xl">{title}</h2>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
@@ -174,21 +176,22 @@ const TOC: Array<[string, string]> = [
 ];
 
 function UserGuidePage() {
+  const { t } = useTranslation();
   return (
     <div className="scroll-smooth min-h-dvh bg-background">
       {/* Hero */}
       <header className="relative overflow-hidden border-b border-border/60 bg-background-wash">
-        <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-3 px-4 py-12 text-center sm:py-16">
+        <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-3 px-4 py-10 text-center sm:py-16">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/80 px-3.5 py-1.5 text-xs font-semibold tracking-widest text-primary">
             <BookOpen className="size-3.5" />
-            SHAL SU · USER GUIDE
+            {t("guide_badge")}
           </span>
           <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
             Shal Su
           </h1>
           <p className="text-sm text-muted-foreground sm:text-base">
             English & မြန်မာ အသုံးပြုသူလမ်းညွှန် — a complete guide to tracking your
-            money: accounts, income & expenses, receipts, budgets, exports and
+            money: accounts, income &amp; expenses, receipts, budgets, exports and
 
             more.
           </p>
@@ -196,12 +199,13 @@ function UserGuidePage() {
             <Button asChild size="sm" variant="outline">
               <Link to="/">
                 <ChevronRight className="size-4" />
-                Open Shal Su
+                {t("guide_open_app")}
               </Link>
             </Button>
             <Button asChild size="sm" variant="ghost" className="text-muted-foreground">
-              <Link to="/login">Sign in page</Link>
+              <Link to="/login">{t("guide_signin_page")}</Link>
             </Button>
+            <LanguageSwitch size="sm" showLabels={true} />
           </div>
         </div>
       </header>
@@ -1153,7 +1157,7 @@ function UserGuidePage() {
             </p>
             <Button asChild size="sm" variant="secondary" className="mt-1">
               <Link to="/">
-                Open Shal Su
+                {t("guide_open_app")}
                 <ChevronRight className="size-4" />
               </Link>
             </Button>
@@ -1172,7 +1176,7 @@ function UserGuidePage() {
         </p>
         <p className="mt-3">
           <Link to="/user-guide" className="text-primary hover:underline">
-            ↑ Back to top
+            ↑ {t("guide_back_top")}
           </Link>
         </p>
       </footer>

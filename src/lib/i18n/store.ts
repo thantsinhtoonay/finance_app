@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import { Language } from "./types";
 import { getLanguageConfig, defaultLanguage } from "./languages";
 import { getTranslation, getAllTranslations } from "./translations";
+import { setActiveLanguage } from "@/lib/budget/format";
 
 interface I18nState {
   language: Language;
@@ -19,6 +20,7 @@ export const useI18n = create<I18nState>()(
       
       setLanguage: (lang: Language) => {
         set({ language: lang });
+        setActiveLanguage(lang);
         
         // Update document lang attribute
         if (typeof document !== "undefined") {
@@ -50,11 +52,14 @@ export const useI18n = create<I18nState>()(
       name: "northline-i18n",
       onRehydrateStorage: () => (state) => {
         // Apply language settings on rehydrate
-        if (state?.language && typeof document !== "undefined") {
-          const config = getLanguageConfig(state.language);
-          document.documentElement.lang = state.language;
-          document.body.style.fontFamily = config.typography.fontFamily;
-          document.body.style.lineHeight = config.typography.lineHeight.normal;
+        if (state?.language) {
+          setActiveLanguage(state.language);
+          if (typeof document !== "undefined") {
+            const config = getLanguageConfig(state.language);
+            document.documentElement.lang = state.language;
+            document.body.style.fontFamily = config.typography.fontFamily;
+            document.body.style.lineHeight = config.typography.lineHeight.normal;
+          }
         }
       },
     }

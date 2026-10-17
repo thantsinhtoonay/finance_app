@@ -9,8 +9,8 @@ const badgeVariants = cva(
       variant: {
         default: "glass-toggle text-muted-foreground",
         primary: "bg-primary/10 text-primary border border-primary/20",
-        income: "glass-toggle bg-emerald-50/80 text-emerald-600 border border-emerald-200/50 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/30",
-        expense: "glass-toggle bg-red-50/80 text-red-500 border border-red-200/50 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/30",
+        income: "glass-toggle bg-income/10 text-income border border-income/30",
+        expense: "glass-toggle bg-expense/10 text-expense border border-expense/30",
         outline: "glass-toggle border border-border text-muted-foreground",
       },
     },

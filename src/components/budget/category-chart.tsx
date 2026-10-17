@@ -38,7 +38,7 @@ export function CategoryChart({ categories, total }: Props) {
 
   return (
     <Card className="h-full">
-      <CardContent className="flex h-full flex-col gap-5">
+      <CardContent className="flex h-full flex-col gap-5 p-4 sm:p-6">
         <div>
           <p className="text-xs font-semibold tracking-label text-muted-foreground uppercase">
             {t("dashboard_budget")}
@@ -80,9 +80,9 @@ export function CategoryChart({ categories, total }: Props) {
               ) : (
                 <div className="size-full rounded-full bg-secondary" />
               )}
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-2">
                 <span className="text-xs font-semibold tracking-label text-muted-foreground uppercase">{t("budget_spent")}</span>
-                <span className="text-lg font-bold tabular-nums tracking-tight">
+                <span className="max-w-[110px] truncate text-center text-base font-bold tabular-nums tracking-tight text-gradient sm:text-lg">
                   {formatMoney(total)}
                 </span>
               </div>
@@ -93,7 +93,7 @@ export function CategoryChart({ categories, total }: Props) {
                 <li key={cat.id} className="flex items-center gap-3">
                   <span
                     className="size-3 shrink-0 rounded-full"
-                    style={{ backgroundColor: cat.color }}
+                    style={{ backgroundColor: cat.color, boxShadow: `0 0 8px ${cat.color}66` }}
                     aria-hidden
                   />
                   <span className="min-w-0 flex-1 truncate text-sm font-medium">{translatedCategoryLabel(cat.id, t)}</span>

@@ -47,7 +47,7 @@ export function CategoryBudgets({ categories, categoryBudgets }: Props) {
 
   return (
     <Card>
-      <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
+      <CardContent className="flex flex-col gap-4 p-4 sm:p-6">
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10">
             <Layers className="size-4 text-primary" />
@@ -120,83 +120,89 @@ function CategoryBudgetRow({
   }
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl bg-secondary/30 px-4 py-3 transition-colors hover:bg-secondary/50">
+    <div className="flex flex-col gap-2 rounded-xl bg-secondary/30 px-4 py-3 transition-colors hover:bg-secondary/50">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2.5">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <span
             className="size-2.5 shrink-0 rounded-full"
             style={{ backgroundColor: category.color }}
           />
           <span className="truncate text-sm font-semibold">{translatedCategoryLabel(category.id, t)}</span>
-          {overBudget && (
-            <span className="flex shrink-0 items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-500">
-              <AlertTriangle className="size-3" />
-              {t("budget_exceeded")}
-            </span>
-          )}
         </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {editing ? (
-            <form
-              className="flex items-center gap-1.5"
-              onSubmit={(e) => {
-                e.preventDefault();
-                commit();
+        {!editing && (
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-10"
+              onClick={() => {
+                setDraft(String(limit || ""));
+                setEditing(true);
               }}
+              aria-label={t("budget_set")}
+              title={t("budget_set")}
             >
-              <Input
-                autoFocus
-                inputMode="decimal"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value.replace(/[^0-9,]/g, ""))}
-                onBlur={commit}
-                className="h-9 w-24 text-xs font-semibold tabular-nums"
-              />
-              <Button type="submit" size="icon" className="size-9">
-                <Check className="size-4" />
-              </Button>
-            </form>
-          ) : (
-            <>
-              <span className="text-xs font-semibold tabular-nums text-muted-foreground">
-                {formatMoney(category.amount)}
-                {limit > 0 && (
-                  <span className="text-muted-foreground/60"> / {formatMoney(limit)}</span>
-                )}
-              </span>
+              <Pencil className="size-3.5" />
+            </Button>
+            {limit > 0 && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-9"
-                onClick={() => {
-                  setDraft(String(limit || ""));
-                  setEditing(true);
-                }}
-                aria-label={t("budget_set")}
-                title={t("budget_set")}
+                className="size-10"
+                onClick={() => onRemoveBudget(category.id)}
+                aria-label={t("budget_remove")}
+                title={t("budget_remove")}
               >
-                <Pencil className="size-3.5" />
+                <Trash2 className="size-3.5 text-muted-foreground hover:text-destructive" />
               </Button>
-              {limit > 0 && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-9"
-                  onClick={() => onRemoveBudget(category.id)}
-                  aria-label={t("budget_remove")}
-                  title={t("budget_remove")}
-                >
-                  <Trash2 className="size-3.5 text-muted-foreground hover:text-red-500" />
-                </Button>
-              )}
-            </>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
-      {limit > 0 && (
+
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+        {editing ? (
+          <form
+            className="flex items-center gap-1.5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              commit();
+            }}
+          >
+            <Input
+              autoFocus
+              inputMode="decimal"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value.replace(/[^0-9,]/g, ""))}
+              onBlur={commit}
+              className="h-9 w-24 text-xs font-semibold tabular-nums"
+            />
+            <Button type="submit" size="icon" className="size-10">
+              <Check className="size-4" />
+            </Button>
+          </form>
+        ) : (
+          <>
+            <span className="text-xs font-semibold tabular-nums text-muted-foreground">
+              {formatMoney(category.amount)}
+              {limit > 0 && (
+                <span className="text-muted-foreground/80"> / {formatMoney(limit)}</span>
+              )}
+            </span>
+            {overBudget && (
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
+                <AlertTriangle className="size-3" />
+                {t("budget_exceeded")}
+              </span>
+            )}
+          </>
+        )}
+      </div>
+
+      {limit > 0 && !editing && (
         <Progress
           value={pct}
-          indicatorClassName={overBudget ? "bg-gradient-to-r from-red-400 to-red-500" : nearLimit ? "bg-gradient-to-r from-amber-400 to-amber-500" : undefined}
+          indicatorClassName={overBudget ? "bg-gradient-to-r from-red-400 to-red-600" : nearLimit ? "bg-gradient-to-r from-amber-400 to-orange-500" : undefined}
           aria-label={`${translatedCategoryLabel(category.id, t)} budget ${pct.toFixed(0)}%`}
         />
       )}

@@ -73,9 +73,9 @@ export function TransactionHistory({ onEdit, onDelete, onAdd }: Props) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-9"
+              className="size-10"
               onClick={() => setSelectedMonth(shiftMonth(selectedMonth, -1))}
-              aria-label="Previous month"
+              aria-label={t("aria_prev_month")}
             >
               <ChevronLeft className="size-4" />
             </Button>
@@ -98,9 +98,9 @@ export function TransactionHistory({ onEdit, onDelete, onAdd }: Props) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-9"
+              className="size-10"
               onClick={() => setSelectedMonth(shiftMonth(selectedMonth, 1))}
-              aria-label="Next month"
+              aria-label={t("aria_next_month")}
             >
               <ChevronRight className="size-4" />
             </Button>
@@ -110,19 +110,19 @@ export function TransactionHistory({ onEdit, onDelete, onAdd }: Props) {
             <HistoryStat
               label={t("dashboard_income")}
               value={formatMoney(summary.income)}
-              icon={<TrendingUp className="size-3.5 text-emerald-500" />}
+              icon={<TrendingUp className="size-3.5 text-income" />}
               tone="income"
             />
             <HistoryStat
               label={t("dashboard_expenses")}
               value={formatMoney(summary.expenses)}
-              icon={<TrendingDown className="size-3.5 text-red-500" />}
+              icon={<TrendingDown className="size-3.5 text-expense" />}
               tone="expense"
             />
             <HistoryStat
               label={t("stat_remaining")}
               value={formatMoney(summary.remaining)}
-              icon={<Wallet className={cn("size-3.5", summary.remaining < 0 ? "text-red-500" : "text-primary")} />}
+              icon={<Wallet className={cn("size-3.5", summary.remaining < 0 ? "text-expense" : "text-primary")} />}
               tone={summary.remaining < 0 ? "expense" : undefined}
             />
           </div>
@@ -153,7 +153,7 @@ function HistoryStat({
   tone?: "income" | "expense";
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5 rounded-xl bg-secondary/50 px-2.5 py-2.5">
+    <div className="flex min-w-0 flex-col gap-1.5 rounded-xl bg-secondary/50 px-2 py-2.5">
       <div className="flex min-w-0 items-start gap-1.5">
         <span className="mt-0.5 shrink-0">{icon}</span>
         <span className="break-words text-[10px] font-semibold leading-tight text-muted-foreground">
@@ -162,9 +162,9 @@ function HistoryStat({
       </div>
       <p
         className={cn(
-          "truncate text-sm font-bold tabular-nums tracking-tight",
-          tone === "income" && "text-emerald-600",
-          tone === "expense" && "text-red-500",
+          "truncate text-[11px] font-bold tabular-nums tracking-tight",
+          tone === "income" && "text-income",
+          tone === "expense" && "text-expense",
         )}
       >
         {value}

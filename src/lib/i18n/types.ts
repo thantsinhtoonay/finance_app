@@ -253,4 +253,103 @@ export interface TranslationKeys {
   recurring_biweekly: string;
   recurring_monthly: string;
   recurring_yearly: string;
+
+  // Settings — account
+  settings_user: string;
+  settings_no_email: string;
+  settings_no_email_set: string;
+  settings_display_name: string;
+  settings_name_placeholder: string;
+  settings_balances_visible: string;
+  settings_balances_hidden: string;
+  settings_data_desc: string;
+  settings_guide_desc: string;
+  settings_change_password: string;
+  settings_change_password_desc: string;
+  settings_current_password: string;
+  settings_new_password: string;
+  settings_confirm_new_password: string;
+  settings_update_password: string;
+  settings_changing: string;
+  settings_password_match: string;
+  settings_password_different: string;
+  settings_password_changed: string;
+  settings_password_change_failed: string;
+  settings_change_email: string;
+  settings_new_email: string;
+  settings_update_email: string;
+  settings_updating: string;
+  settings_email_required: string;
+  settings_email_updated: string;
+  settings_email_change_failed: string;
+  settings_sign_out: string;
+  settings_sign_out_desc: string;
+  settings_delete_account: string;
+  settings_delete_account_desc: string;
+  settings_delete_enter_password: string;
+  settings_delete_warn1: string;
+  settings_delete_warn2: string;
+  settings_delete_confirm_btn: string;
+  settings_deleting: string;
+  settings_delete_failed: string;
+  settings_avatar_size: string;
+  settings_avatar_type: string;
+
+  // Settings — appearance & currency
+  theme_light_desc: string;
+  theme_dark_desc: string;
+  theme_system_desc: string;
+  theme_note: string;
+  currency_note: string;
+
+  // Privacy — descriptions
+  privacy_show_balances_desc: string;
+  privacy_show_transactions_desc: string;
+  privacy_hide_amounts_desc: string;
+  privacy_mask_data_desc: string;
+
+  // Data — export section
+  data_export_section: string;
+  data_export_as_csv: string;
+  data_export_csv_desc: string;
+  data_export_pdf: string;
+  data_export_pdf_desc: string;
+  data_danger_zone: string;
+  data_clear_desc: string;
+  data_clear_confirm_full: string;
+  data_stats_transactions: string;
+  data_stats_budgets: string;
+
+  // Yearly overview
+  yearly_summary: string;
+  yearly_desc: string;
+  yearly_total_income: string;
+  yearly_total_expenses: string;
+  yearly_net_savings: string;
+  yearly_breakdown: string;
+  yearly_breakdown_desc: string;
+  yearly_top_categories: string;
+  yearly_top_desc: string;
+
+  // Accessibility & misc
+  aria_prev_month: string;
+  aria_next_month: string;
+  register_name_placeholder: string;
+  error_backup_format: string;
+  error_backup_parse: string;
+
+  // Guide chrome
+  guide_badge: string;
+  guide_section: string;
+  guide_open_app: string;
+  guide_signin_page: string;
+  guide_back_top: string;
+
+  // Import / shortcuts
+  error_backup_skipped: string;
+  confirm_import: string;
+  msg_remove_confirm: string;
+  shortcuts_title: string;
+  list_actions: string;
+  aria_progress_percent: string;
 }

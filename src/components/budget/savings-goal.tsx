@@ -42,7 +42,7 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
 
   return (
     <Card className="h-full">
-      <CardContent className="flex h-full flex-col gap-5">
+      <CardContent className="flex h-full flex-col gap-5 p-4 sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10">
@@ -105,13 +105,13 @@ export function SavingsGoal({ goal, remaining, onChangeGoal }: Props) {
           </div>
           <Progress
             value={pct}
-            indicatorClassName={met ? "bg-gradient-to-r from-emerald-400 to-emerald-500" : undefined}
-            aria-label={`${pct.toFixed(0)} percent of savings goal`}
+            indicatorClassName={met ? "bg-gradient-to-r from-income to-income/60" : undefined}
+            aria-label={t("aria_progress_percent").replace("{n}", pct.toFixed(0))}
           />
           <p
             className={cn(
               "text-sm font-medium",
-              met ? "text-emerald-600" : remaining < 0 ? "text-red-500" : "text-muted-foreground",
+              met ? "text-income" : remaining < 0 ? "text-expense" : "text-muted-foreground",
             )}
           >
             {goal <= 0

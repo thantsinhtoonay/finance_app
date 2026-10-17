@@ -50,7 +50,7 @@ export function BottomNav({ active, onChange, onAdd }: Props) {
           <button
             onClick={onAdd}
             className="flex items-center justify-center size-12 rounded-full gradient-gold text-white shadow-lg shadow-primary/40 ring-1 ring-white/20 active:scale-90 transition-transform"
-            aria-label="Add transaction"
+            aria-label={t("transaction_add")}
           >
             <Plus className="size-6" strokeWidth={2.5} />
           </button>

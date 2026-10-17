@@ -1,4 +1,4 @@
-﻿import { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
@@ -52,27 +52,43 @@ export function Settings({ onBack }: Props) {
   const [view, setView] = useState<SettingsView>("main");
   // Shared avatar preview — lifted so SettingsMain also shows the updated photo
   const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
+  const { t } = useTranslation();
+
+  const viewTitle: Record<SettingsView, string> = {
+    main: t("nav_settings"),
+    account: t("settings_account"),
+    theme: t("settings_appearance"),
+    currency: t("settings_currency"),
+    privacy: t("settings_privacy"),
+    data: t("settings_data"),
+  };
 
   return (
     <div className="mx-auto w-full max-w-2xl">
       <header className="sticky top-0 z-10 -mx-4 mb-4 border-b border-border/20 bg-background/95 px-4 py-3 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 sm:-mx-6 sm:px-6">
         <div className="flex items-center gap-3">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button variant="ghost" size="icon" onClick={onBack} className="size-10 rounded-full">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => (view === "main" ? onBack() : setView("main"))}
+              className="size-10 rounded-full"
+              aria-label={view === "main" ? t("nav_home") : t("nav_settings")}
+            >
               <ArrowLeft className="size-5" />
             </Button>
           </motion.div>
-          <h1 className="text-lg font-bold tracking-tight">Settings</h1>
+          <h1 className="truncate text-lg font-bold tracking-tight">{viewTitle[view]}</h1>
         </div>
       </header>
 
       <div className="px-0 pb-4">
         {view === "main" && <SettingsMain onNavigate={setView} onBack={onBack} localAvatarUrl={localAvatarUrl} />}
-        {view === "account" && <AccountSettings onBack={() => setView("main")} onAvatarUploaded={setLocalAvatarUrl} />}
-        {view === "theme" && <ThemeSettings onBack={() => setView("main")} />}
-        {view === "currency" && <CurrencySettings onBack={() => setView("main")} />}
-        {view === "privacy" && <PrivacySettings onBack={() => setView("main")} />}
-        {view === "data" && <DataSettings onBack={() => setView("main")} />}
+        {view === "account" && <AccountSettings onAvatarUploaded={setLocalAvatarUrl} />}
+        {view === "theme" && <ThemeSettings />}
+        {view === "currency" && <CurrencySettings />}
+        {view === "privacy" && <PrivacySettings />}
+        {view === "data" && <DataSettings />}
       </div>
     </div>
   );
@@ -95,8 +111,8 @@ function SettingsMain({
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const displayName = user?.displayName || "User";
-  const displayEmail = user?.primaryEmail || account.email || "No email";
+  const displayName = user?.displayName || t("settings_user");
+  const displayEmail = user?.primaryEmail || account.email || t("settings_no_email");
   const currencyName = CURRENCIES.find((c) => c.code === currency)?.name ?? "Myanmar Kyat";
 
   const menuItems = [
@@ -121,19 +137,19 @@ function SettingsMain({
     {
       icon: Shield,
       label: t("settings_privacy"),
-      description: privacy.showBalances ? "Balances visible" : "Balances hidden",
+      description: privacy.showBalances ? t("settings_balances_visible") : t("settings_balances_hidden"),
       onClick: () => onNavigate("privacy"),
     },
     {
       icon: CreditCard,
       label: t("settings_data"),
-      description: "Export or clear your data",
+      description: t("settings_data_desc"),
       onClick: () => onNavigate("data"),
     },
     {
       icon: BookOpen,
       label: t("settings_guide"),
-      description: "How to use Shal Su",
+      description: t("settings_guide_desc"),
       onClick: () => navigate({ to: "/user-guide" }),
     },
   ];
@@ -197,7 +213,7 @@ function SettingsMain({
   );
 }
 
-function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onAvatarUploaded: (url: string) => void }) {
+function AccountSettings({ onAvatarUploaded }: { onAvatarUploaded: (url: string) => void }) {
   const user = useCurrentUser();
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -259,12 +275,12 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      alert("Image must be less than 2MB");
+      alert(t("settings_avatar_size"));
       return;
     }
     // Whitelist raster types only — SVG/HTML uploads must never reach storage.
     if (!/^image\/(jpeg|jpg|png|webp)$/i.test(file.type)) {
-      alert("Please choose a JPEG, PNG, or WebP image");
+      alert(t("settings_avatar_type"));
       return;
     }
     const reader = new FileReader();
@@ -292,15 +308,15 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
     setPasswordSuccess("");
 
     if (newPassword !== confirmNewPassword) {
-      setPasswordError("New passwords do not match");
+      setPasswordError(t("settings_password_match"));
       return;
     }
     if (newPassword.length < 8) {
-      setPasswordError("Password must be at least 8 characters");
+      setPasswordError(t("auth_error_min_length"));
       return;
     }
     if (currentPassword === newPassword) {
-      setPasswordError("New password must be different from current");
+      setPasswordError(t("settings_password_different"));
       return;
     }
 
@@ -311,15 +327,15 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
         newPassword,
       });
       if (error) {
-        setPasswordError(error.message || "Failed to change password");
+        setPasswordError(error.message || t("settings_password_change_failed"));
       } else {
-        setPasswordSuccess("Password changed successfully");
+        setPasswordSuccess(t("settings_password_changed"));
         setCurrentPassword("");
         setNewPassword("");
         setConfirmNewPassword("");
       }
     } catch {
-      setPasswordError("An unexpected error occurred");
+      setPasswordError(t("auth_error_unexpected"));
     } finally {
       setPasswordLoading(false);
     }
@@ -331,7 +347,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
     setEmailSuccess("");
 
     if (!newEmail.trim()) {
-      setEmailError("Email is required");
+      setEmailError(t("settings_email_required"));
       return;
     }
 
@@ -341,13 +357,13 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
         newEmail: newEmail.trim(),
       });
       if (error) {
-        setEmailError(error.message || "Failed to change email");
+        setEmailError(error.message || t("settings_email_change_failed"));
       } else {
-        setEmailSuccess("Email updated successfully");
+        setEmailSuccess(t("settings_email_updated"));
         setNewEmail("");
       }
     } catch {
-      setEmailError("An unexpected error occurred");
+      setEmailError(t("auth_error_unexpected"));
     } finally {
       setEmailLoading(false);
     }
@@ -368,13 +384,13 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
         password: deletePassword,
       });
       if (error) {
-        setDeleteError(error.message || "Failed to delete account");
+        setDeleteError(error.message || t("settings_delete_failed"));
         setDeleteLoading(false);
       } else {
         navigate({ to: "/login" });
       }
     } catch {
-      setDeleteError("An unexpected error occurred");
+      setDeleteError(t("auth_error_unexpected"));
       setDeleteLoading(false);
     }
   }
@@ -392,13 +408,6 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
-          <ArrowLeft className="size-5" />
-        </Button>
-        <h2 className="text-lg font-bold">{t("settings_account")}</h2>
-      </div>
-
       {/* Profile Header */}
       <div className="flex flex-col items-center gap-3 mb-2">
         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
@@ -427,25 +436,25 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
           onChange={handleAvatarUpload}
         />
         <div className="text-center">
-          <p className="font-semibold text-lg">{user?.displayName || "User"}</p>
-          <p className="text-sm text-muted-foreground">{user?.primaryEmail || "No email"}</p>
+          <p className="font-semibold text-lg">{user?.displayName || t("settings_user")}</p>
+          <p className="text-sm text-muted-foreground">{user?.primaryEmail || t("settings_no_email")}</p>
         </div>
       </div>
 
       {/* Edit Name */}
       <Card>
-        <CardContent className="flex flex-col gap-3 p-5">
+        <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
               <User className="size-4 text-primary" />
             </div>
-            <Label className="text-sm font-semibold flex-1">Display Name</Label>
+            <Label className="text-sm font-semibold flex-1">{t("settings_display_name")}</Label>
           </div>
           <div className="flex gap-2">
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
+              placeholder={t("settings_name_placeholder")}
               className="h-10"
             />
             <Button
@@ -471,8 +480,8 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
               <Key className="size-4 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold">Change Password</p>
-              <p className="text-xs text-muted-foreground">Update your password regularly</p>
+              <p className="text-sm font-semibold">{t("settings_change_password")}</p>
+              <p className="text-xs text-muted-foreground">{t("settings_change_password_desc")}</p>
             </div>
             <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300", expandedSection === "password" && "rotate-90 text-primary")} />
           </button>
@@ -489,7 +498,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                 </div>
               )}
               <div className="flex flex-col gap-2 mt-3">
-                <Label className="text-xs font-medium text-muted-foreground">Current Password</Label>
+                <Label className="text-xs font-medium text-muted-foreground">{t("settings_current_password")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -498,15 +507,15 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="h-10 pl-8 pr-9 text-sm"
+                    className="h-10 pl-8 pr-10 text-sm"
                   />
-                  <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
+                  <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
                     {showCurrentPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                   </button>
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <Label className="text-xs font-medium text-muted-foreground">New Password</Label>
+                <Label className="text-xs font-medium text-muted-foreground">{t("settings_new_password")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -515,15 +524,15 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="h-10 pl-8 pr-9 text-sm"
+                    className="h-10 pl-8 pr-10 text-sm"
                   />
-                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
+                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
                     {showNewPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                   </button>
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <Label className="text-xs font-medium text-muted-foreground">Confirm New Password</Label>
+                <Label className="text-xs font-medium text-muted-foreground">{t("settings_confirm_new_password")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -537,7 +546,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                 </div>
               </div>
               <Button type="submit" disabled={passwordLoading} className="mt-1">
-                {passwordLoading ? "Changing..." : "Update Password"}
+                {passwordLoading ? t("settings_changing") : t("settings_update_password")}
               </Button>
             </form>
           )}
@@ -555,8 +564,8 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
               <Mail className="size-4 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold">Change Email</p>
-              <p className="text-xs text-muted-foreground">{user?.primaryEmail || "No email set"}</p>
+              <p className="text-sm font-semibold">{t("settings_change_email")}</p>
+              <p className="text-xs text-muted-foreground">{user?.primaryEmail || t("settings_no_email_set")}</p>
             </div>
             <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300", expandedSection === "email" && "rotate-90 text-primary")} />
           </button>
@@ -573,7 +582,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                 </div>
               )}
               <div className="flex flex-col gap-2 mt-3">
-                <Label className="text-xs font-medium text-muted-foreground">New Email</Label>
+                <Label className="text-xs font-medium text-muted-foreground">{t("settings_new_email")}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -587,7 +596,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                 </div>
               </div>
               <Button type="submit" disabled={emailLoading} className="mt-1">
-                {emailLoading ? "Updating..." : "Update Email"}
+                {emailLoading ? t("settings_updating") : t("settings_update_email")}
               </Button>
             </form>
           )}
@@ -608,8 +617,8 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
               <LogOut className="size-4 text-destructive" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-destructive">Sign Out</p>
-              <p className="text-xs text-muted-foreground">Sign out of your account</p>
+              <p className="text-sm font-semibold text-destructive">{t("settings_sign_out")}</p>
+              <p className="text-xs text-muted-foreground">{t("settings_sign_out_desc")}</p>
             </div>
           </button>
         </CardContent>
@@ -626,17 +635,15 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
               <Trash2 className="size-4 text-destructive" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-destructive">Delete Account</p>
-              <p className="text-xs text-muted-foreground">Permanently delete your account and all data</p>
+              <p className="text-sm font-semibold text-destructive">{t("settings_delete_account")}</p>
+              <p className="text-xs text-muted-foreground">{t("settings_delete_account_desc")}</p>
             </div>
             <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-300", expandedSection === "delete" && "rotate-90 text-destructive")} />
           </button>
           {expandedSection === "delete" && (
             <form onSubmit={handleDeleteAccount} className="px-5 pb-5 flex flex-col gap-3 border-t border-destructive/20">
               <div className="mt-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
-                {deleteConfirm
-                  ? "This action is irreversible. All your data will be permanently deleted."
-                  : "This will permanently delete your account and all associated data."}
+                {deleteConfirm ? t("settings_delete_warn2") : t("settings_delete_warn1")}
               </div>
               {deleteError && (
                 <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive">
@@ -644,7 +651,7 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                 </div>
               )}
               <div className="flex flex-col gap-2">
-                <Label className="text-xs font-medium text-muted-foreground">Enter your password to confirm</Label>
+                <Label className="text-xs font-medium text-muted-foreground">{t("settings_delete_enter_password")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -653,15 +660,15 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
                     onChange={(e) => setDeletePassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="h-10 pl-8 pr-9 text-sm"
+                    className="h-10 pl-8 pr-10 text-sm"
                   />
-                  <button type="button" onClick={() => setShowDeletePassword(!showDeletePassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
+                  <button type="button" onClick={() => setShowDeletePassword(!showDeletePassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
                     {showDeletePassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                   </button>
                 </div>
               </div>
               <Button type="submit" disabled={deleteLoading} variant="destructive" className="mt-1">
-                {deleteLoading ? "Deleting..." : deleteConfirm ? "Yes, Delete My Account" : "Delete Account"}
+                {deleteLoading ? t("settings_deleting") : deleteConfirm ? t("settings_delete_confirm_btn") : t("settings_delete_account")}
               </Button>
             </form>
           )}
@@ -671,14 +678,15 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
   );
 }
 
-function ThemeSettings({ onBack }: { onBack: () => void }) {
+function ThemeSettings() {
   const theme = useSettingsStore((s) => s.theme);
   const setTheme = useSettingsStore((s) => s.setTheme);
+  const { t } = useTranslation();
 
   const themes: { id: Theme; label: string; icon: typeof Sun; description: string }[] = [
-    { id: "light", label: "Light", icon: Sun, description: "Bright and clean" },
-    { id: "dark", label: "Dark", icon: Moon, description: "Easy on the eyes" },
-    { id: "system", label: "System", icon: Monitor, description: "Match your device" },
+    { id: "light", label: t("settings_theme_light"), icon: Sun, description: t("theme_light_desc") },
+    { id: "dark", label: t("settings_theme_dark"), icon: Moon, description: t("theme_dark_desc") },
+    { id: "system", label: t("settings_theme_system"), icon: Monitor, description: t("theme_system_desc") },
   ];
 
   function handleThemeChange(newTheme: Theme) {
@@ -688,22 +696,15 @@ function ThemeSettings({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
-          <ArrowLeft className="size-5" />
-        </Button>
-        <h2 className="text-lg font-bold">Appearance</h2>
-      </div>
-
       <Card>
         <CardContent className="p-2">
-          {themes.map((t) => {
-            const Icon = t.icon;
-            const isActive = theme === t.id;
+          {themes.map((opt) => {
+            const Icon = opt.icon;
+            const isActive = theme === opt.id;
             return (
               <button
-                key={t.id}
-                onClick={() => handleThemeChange(t.id)}
+                key={opt.id}
+                onClick={() => handleThemeChange(opt.id)}
                 className={cn(
                   "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl transition-all duration-200 text-left",
                   isActive
@@ -717,9 +718,9 @@ function ThemeSettings({ onBack }: { onBack: () => void }) {
                 )}>
                   <Icon className="size-5" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold">{t.label}</p>
-                  <p className="text-xs text-muted-foreground">{t.description}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{opt.label}</p>
+                  <p className="truncate text-xs text-muted-foreground">{opt.description}</p>
                 </div>
                 {isActive && (
                   <div className="flex items-center justify-center size-6 rounded-full gradient-gold text-white animate-scale-in shadow-md shadow-primary/30">
@@ -734,27 +735,20 @@ function ThemeSettings({ onBack }: { onBack: () => void }) {
 
       <div className="rounded-xl glass-toggle px-4 py-3">
         <p className="text-xs text-muted-foreground">
-          Theme is saved locally and persists across sessions.
+          {t("theme_note")}
         </p>
       </div>
     </div>
   );
 }
 
-function CurrencySettings({ onBack }: { onBack: () => void }) {
+function CurrencySettings() {
   const currency = useSettingsStore((s) => s.currency);
   const setCurrency = useSettingsStore((s) => s.setCurrency);
   const { t } = useTranslation();
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
-          <ArrowLeft className="size-5" />
-        </Button>
-        <h2 className="text-lg font-bold">{t("settings_currency")}</h2>
-      </div>
-
       <Card>
         <CardContent className="p-2">
           {CURRENCIES.map((opt) => {
@@ -793,68 +787,62 @@ function CurrencySettings({ onBack }: { onBack: () => void }) {
 
       <div className="rounded-xl glass-toggle px-4 py-3">
         <p className="text-xs text-muted-foreground">
-          The symbol is shown across the app — amounts are never converted. Saved on this device.
+          {t("currency_note")}
         </p>
       </div>
     </div>
   );
 }
 
-function PrivacySettings({ onBack }: { onBack: () => void }) {
+function PrivacySettings() {
   const privacy = useSettingsStore((s) => s.privacy);
   const setPrivacy = useSettingsStore((s) => s.setPrivacy);
+  const { t } = useTranslation();
 
   const toggles = [
     {
       key: "showBalances" as const,
-      label: "Show Balances",
-      description: "Display balance amounts on dashboard",
+      label: t("privacy_show_balances"),
+      description: t("privacy_show_balances_desc"),
       icon: Eye,
     },
     {
       key: "showTransactions" as const,
-      label: "Show Transactions",
-      description: "Display transaction list",
+      label: t("privacy_show_transactions"),
+      description: t("privacy_show_transactions_desc"),
       icon: CreditCard,
     },
     {
       key: "hideAmountsInCharts" as const,
-      label: "Hide Amounts in Charts",
-      description: "Show percentages only in charts",
+      label: t("privacy_hide_amounts"),
+      description: t("privacy_hide_amounts_desc"),
       icon: EyeOff,
     },
     {
       key: "maskSensitiveData" as const,
-      label: "Mask Sensitive Data",
-      description: "Blur amounts by default",
+      label: t("privacy_mask_data"),
+      description: t("privacy_mask_data_desc"),
       icon: Lock,
     },
   ];
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
-          <ArrowLeft className="size-5" />
-        </Button>
-        <h2 className="text-lg font-bold">Privacy</h2>
-      </div>
-
       <Card>
         <CardContent className="p-2">
-          {toggles.map((t, i) => {
-            const Icon = t.icon;
-            const isEnabled = privacy[t.key];
+          {toggles.map((toggle, i) => {
+            const Icon = toggle.icon;
+            const isEnabled = privacy[toggle.key];
             return (
               <div
-                key={t.key}
+                key={toggle.key}
                 role="button"
                 tabIndex={0}
-                onClick={() => setPrivacy({ [t.key]: !isEnabled })}
+                onClick={() => setPrivacy({ [toggle.key]: !isEnabled })}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    setPrivacy({ [t.key]: !isEnabled });
+                    setPrivacy({ [toggle.key]: !isEnabled });
                   }
                 }}
                 className={cn(
@@ -869,12 +857,12 @@ function PrivacySettings({ onBack }: { onBack: () => void }) {
                   <Icon className="size-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold">{t.label}</p>
-                  <p className="text-xs text-muted-foreground">{t.description}</p>
+                  <p className="text-sm font-semibold">{toggle.label}</p>
+                  <p className="truncate text-xs text-muted-foreground">{toggle.description}</p>
                 </div>
                 <Switch
                   checked={isEnabled}
-                  onCheckedChange={(checked) => setPrivacy({ [t.key]: checked })}
+                  onCheckedChange={(checked) => setPrivacy({ [toggle.key]: checked })}
                 />
               </div>
             );
@@ -885,11 +873,12 @@ function PrivacySettings({ onBack }: { onBack: () => void }) {
   );
 }
 
-function DataSettings({ onBack }: { onBack: () => void }) {
+function DataSettings() {
   const transactions = useBudgetStore((s) => s.transactions);
   const categoryBudgets = useBudgetStore((s) => s.categoryBudgets);
   const resetData = useBudgetStore((s) => s.resetData);
   const [pdfExported, setPdfExported] = useState(false);
+  const { t } = useTranslation();
 
   function handleExportCsv() {
     const csv = exportToCsv(transactions);
@@ -911,38 +900,27 @@ function DataSettings({ onBack }: { onBack: () => void }) {
   }
 
   function handleClearData() {
-    if (
-      confirm(
-        "Delete ALL data — transactions, category budgets, and savings goal? This cannot be undone.",
-      )
-    ) {
+    if (confirm(t("data_clear_confirm_full"))) {
       resetData();
     }
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="size-9 rounded-full">
-          <ArrowLeft className="size-5" />
-        </Button>
-        <h2 className="text-lg font-bold">Data & Export</h2>
-      </div>
-
       <Card>
-        <CardContent className="flex flex-col gap-3 p-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-label">Export</p>
+        <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-label">{t("data_export_section")}</p>
 
           <button
             onClick={handleExportCsv}
             className="flex items-center gap-4 w-full px-4 py-3 rounded-xl hover:bg-secondary/50 transition-colors text-left"
           >
-            <div className="flex items-center justify-center size-10 rounded-xl bg-emerald-500/10">
-              <Download className="size-5 text-emerald-600 dark:text-emerald-400" />
+            <div className="flex items-center justify-center size-10 rounded-xl bg-income/10">
+              <Download className="size-5 text-income" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold">Export as CSV</p>
-              <p className="text-xs text-muted-foreground">Spreadsheet-compatible format</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">{t("data_export_as_csv")}</p>
+              <p className="truncate text-xs text-muted-foreground">{t("data_export_csv_desc")}</p>
             </div>
           </button>
 
@@ -953,18 +931,18 @@ function DataSettings({ onBack }: { onBack: () => void }) {
             <div className="flex items-center justify-center size-10 rounded-xl gradient-gold">
               <FileText className="size-5 text-white" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold">Export as PDF</p>
-              <p className="text-xs text-muted-foreground">Designed report, ready to share</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">{t("data_export_pdf")}</p>
+              <p className="truncate text-xs text-muted-foreground">{t("data_export_pdf_desc")}</p>
             </div>
-            {pdfExported && <Check className="size-4 text-emerald-500" />}
+            {pdfExported && <Check className="size-4 shrink-0 text-emerald-500" />}
           </button>
         </CardContent>
       </Card>
 
       <Card>
-        <CardContent className="flex flex-col gap-3 p-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-label">Danger Zone</p>
+        <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-label">{t("data_danger_zone")}</p>
 
           <button
             onClick={handleClearData}
@@ -973,17 +951,17 @@ function DataSettings({ onBack }: { onBack: () => void }) {
             <div className="flex items-center justify-center size-10 rounded-xl bg-destructive/10">
               <Trash2 className="size-5 text-destructive" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-destructive">Clear All Data</p>
-              <p className="text-xs text-muted-foreground">Delete all transactions and reset settings</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-destructive">{t("data_clear")}</p>
+              <p className="truncate text-xs text-muted-foreground">{t("data_clear_desc")}</p>
             </div>
           </button>
         </CardContent>
       </Card>
 
       <div className="rounded-xl glass-toggle px-4 py-3">
-        <p className="text-xs text-muted-foreground">
-          {transactions.length} transactions · {categoryBudgets.length} category budgets
+        <p className="truncate text-xs text-muted-foreground">
+          {transactions.length} {t("data_stats_transactions")} · {categoryBudgets.length} {t("data_stats_budgets")}
         </p>
       </div>
     </div>

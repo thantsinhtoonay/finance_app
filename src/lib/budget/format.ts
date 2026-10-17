@@ -23,6 +23,57 @@ export function currencySymbol(code?: CurrencyCode): string {
   return CURRENCY_SYMBOLS[code ?? activeCurrency] ?? "MMK";
 }
 
+/* ─────────────────────────── language-aware dates ─────────────────────────── */
+
+type AppLanguage = "en" | "my";
+
+let activeLanguage: AppLanguage = "en";
+
+const MONTHS_MY = [
+  "ဇန်နဝါရီ",
+  "ဖေဖော်ဝါရီ",
+  "မတ်",
+  "ဧပြီ",
+  "မေ",
+  "ဇွန်",
+  "ဇူလိုင်",
+  "ဩဂုတ်",
+  "စက်တင်ဘာ",
+  "အောက်တိုဘာ",
+  "နိုဝင်ဘာ",
+  "ဒီဇင်ဘာ",
+];
+
+const MONTHS_MY_SHORT = [
+  "ဇန်",
+  "ဖေ",
+  "မတ်",
+  "ဧပြီ",
+  "မေ",
+  "ဇွန်",
+  "ဇူ",
+  "ဩဂ",
+  "စက်",
+  "အောက်",
+  "နိုဝ်",
+  "ဒီ",
+];
+
+export function setActiveLanguage(lang: AppLanguage): void {
+  activeLanguage = lang;
+}
+
+export function getActiveLanguage(): AppLanguage {
+  return activeLanguage;
+}
+
+/** Short axis label for a month index (0 = January). */
+export function monthShortLabel(monthIndex: number): string {
+  const i = Math.min(11, Math.max(0, monthIndex));
+  if (activeLanguage === "my") return MONTHS_MY_SHORT[i];
+  return format(new Date(2000, i), "MMM");
+}
+
 export function monthKey(date = new Date()): string {
   return format(date, "yyyy-MM");
 }
@@ -32,11 +83,15 @@ export function yearKey(date = new Date()): string {
 }
 
 export function formatMonth(key: string): string {
-  return format(parse(key, "yyyy-MM", new Date()), "MMMM yyyy");
+  const date = parse(key, "yyyy-MM", new Date());
+  if (activeLanguage === "my") return `${MONTHS_MY[date.getMonth()]} ${date.getFullYear()}`;
+  return format(date, "MMMM yyyy");
 }
 
 export function formatMonthShort(key: string): string {
-  return format(parse(key, "yyyy-MM", new Date()), "MMM yyyy");
+  const date = parse(key, "yyyy-MM", new Date());
+  if (activeLanguage === "my") return `${MONTHS_MY_SHORT[date.getMonth()]} ${date.getFullYear()}`;
+  return format(date, "MMM yyyy");
 }
 
 export function shiftMonth(key: string, delta: number): string {
@@ -44,11 +99,15 @@ export function shiftMonth(key: string, delta: number): string {
 }
 
 export function formatDay(isoDate: string): string {
-  return format(parseISO(isoDate), "MMM d");
+  const date = parseISO(isoDate);
+  if (activeLanguage === "my") return `${date.getDate()} ${MONTHS_MY[date.getMonth()]}`;
+  return format(date, "MMM d");
 }
 
 export function formatDayFull(isoDate: string): string {
-  return format(parseISO(isoDate), "MMM d, yyyy");
+  const date = parseISO(isoDate);
+  if (activeLanguage === "my") return `${date.getDate()} ${MONTHS_MY[date.getMonth()]} ${date.getFullYear()}`;
+  return format(date, "MMM d, yyyy");
 }
 
 export function todayIso(): string {

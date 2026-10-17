@@ -121,7 +121,7 @@ export function TransactionList({
                     >
                       <span
                         className="size-3 rounded-full"
-                        style={{ backgroundColor: cat.color }}
+                        style={{ backgroundColor: cat.color, boxShadow: `0 0 8px ${cat.color}66` }}
                         aria-hidden
                       />
                     </div>
@@ -147,7 +147,7 @@ export function TransactionList({
                     <p
                       className={cn(
                         "shrink-0 text-right text-sm font-semibold whitespace-nowrap tabular-nums",
-                        tx.type === "income" ? "text-emerald-600" : "text-foreground",
+                        tx.type === "income" ? "text-income" : "text-foreground",
                       )}
                     >
                       {formatSigned(tx.amount, tx.type)}
@@ -157,9 +157,9 @@ export function TransactionList({
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label={`Actions for ${title}`}
+                          aria-label={t("list_actions").replace("{name}", title)}
                           onClick={(e) => e.stopPropagation()}
-                          className="size-9 sm:size-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0"
+                          className="size-10 sm:size-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0"
                         >
                           <MoreHorizontal className="size-4" />
                         </Button>

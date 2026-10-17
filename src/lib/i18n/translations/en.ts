@@ -224,4 +224,106 @@ export const en: TranslationKeys = {
   recurring_biweekly: "Bi-weekly",
   recurring_monthly: "Monthly",
   recurring_yearly: "Yearly",
+
+  // Settings — account
+  settings_user: "User",
+  settings_no_email: "No email",
+  settings_no_email_set: "No email set",
+  settings_display_name: "Display Name",
+  settings_name_placeholder: "Your name",
+  settings_balances_visible: "Balances visible",
+  settings_balances_hidden: "Balances hidden",
+  settings_data_desc: "Export or clear your data",
+  settings_guide_desc: "How to use Shal Su",
+  settings_change_password: "Change Password",
+  settings_change_password_desc: "Update your password regularly",
+  settings_current_password: "Current Password",
+  settings_new_password: "New Password",
+  settings_confirm_new_password: "Confirm New Password",
+  settings_update_password: "Update Password",
+  settings_changing: "Changing...",
+  settings_password_match: "New passwords do not match",
+  settings_password_different: "New password must be different from current",
+  settings_password_changed: "Password changed successfully",
+  settings_password_change_failed: "Failed to change password",
+  settings_change_email: "Change Email",
+  settings_new_email: "New Email",
+  settings_update_email: "Update Email",
+  settings_updating: "Updating...",
+  settings_email_required: "Email is required",
+  settings_email_updated: "Email updated successfully",
+  settings_email_change_failed: "Failed to change email",
+  settings_sign_out: "Sign Out",
+  settings_sign_out_desc: "Sign out of your account",
+  settings_delete_account: "Delete Account",
+  settings_delete_account_desc: "Permanently delete your account and all data",
+  settings_delete_enter_password: "Enter your password to confirm",
+  settings_delete_warn1: "This will permanently delete your account and all associated data.",
+  settings_delete_warn2: "This action is irreversible. All your data will be permanently deleted.",
+  settings_delete_confirm_btn: "Yes, Delete My Account",
+  settings_deleting: "Deleting...",
+  settings_delete_failed: "Failed to delete account",
+  settings_avatar_size: "Image must be less than 2MB",
+  settings_avatar_type: "Please choose a JPEG, PNG, or WebP image",
+
+  // Settings — appearance & currency
+  theme_light_desc: "Bright and clean",
+  theme_dark_desc: "Easy on the eyes",
+  theme_system_desc: "Match your device",
+  theme_note: "Theme is saved locally and persists across sessions.",
+  currency_note:
+    "The symbol is shown across the app — amounts are never converted. Saved on this device.",
+
+  // Privacy — descriptions
+  privacy_show_balances_desc: "Display balance amounts on dashboard",
+  privacy_show_transactions_desc: "Display transaction list",
+  privacy_hide_amounts_desc: "Show percentages only in charts",
+  privacy_mask_data_desc: "Blur amounts by default",
+
+  // Data — export section
+  data_export_section: "Export",
+  data_export_as_csv: "Export as CSV",
+  data_export_csv_desc: "Spreadsheet-compatible format",
+  data_export_pdf: "Export as PDF",
+  data_export_pdf_desc: "Designed report, ready to share",
+  data_danger_zone: "Danger Zone",
+  data_clear_desc: "Delete all transactions and reset settings",
+  data_clear_confirm_full:
+    "Delete ALL data — transactions, category budgets, and savings goal? This cannot be undone.",
+  data_stats_transactions: "transactions",
+  data_stats_budgets: "category budgets",
+
+  // Yearly overview
+  yearly_summary: "Summary",
+  yearly_desc: "Annual financial overview",
+  yearly_total_income: "Total Income",
+  yearly_total_expenses: "Total Expenses",
+  yearly_net_savings: "Net Savings",
+  yearly_breakdown: "Monthly Breakdown",
+  yearly_breakdown_desc: "Income vs expenses by month",
+  yearly_top_categories: "Top Spending Categories",
+  yearly_top_desc: "Where your money went this year",
+
+  // Accessibility & misc
+  aria_prev_month: "Previous month",
+  aria_next_month: "Next month",
+  register_name_placeholder: "John Doe",
+  error_backup_format: "Invalid backup file format.",
+  error_backup_parse: "Failed to parse backup file.",
+
+  // Guide chrome
+  guide_badge: "SHAL SU · USER GUIDE",
+  guide_section: "SECTION",
+  guide_open_app: "Open Shal Su",
+  guide_signin_page: "Sign in page",
+  guide_back_top: "Back to top",
+
+  // Import / shortcuts
+  error_backup_skipped:
+    "Backup contained {n} invalid entries — they were skipped.",
+  confirm_import: "Import {n} transactions? This will replace current data.",
+  msg_remove_confirm: "{name} will be removed.",
+  shortcuts_title: "Keyboard shortcuts",
+  list_actions: "Actions for {name}",
+  aria_progress_percent: "{n}% progress",
 };

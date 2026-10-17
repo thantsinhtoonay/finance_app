@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { categoryById } from "./categories";
-import { monthKey } from "./format";
+import { monthKey, monthShortLabel } from "./format";
 import type {
   AppData,
   CategoryBudget,
@@ -388,13 +388,12 @@ export function summarizeYear(
   year: string,
   categoryBudgets: CategoryBudget[] = [],
 ): YearlySummary {
-  const yearNum = parseInt(year, 10);
   const months = Array.from({ length: 12 }, (_, i) => {
     const m = `${year}-${String(i + 1).padStart(2, "0")}`;
     const summary = summarizeMonth(transactions, m, categoryBudgets);
     return {
       month: m,
-      label: new Date(yearNum, i).toLocaleString("en", { month: "short" }),
+      label: monthShortLabel(i),
       income: summary.income,
       expenses: summary.expenses,
       savings: summary.remaining,
