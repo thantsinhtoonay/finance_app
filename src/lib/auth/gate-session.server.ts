@@ -59,8 +59,9 @@ async function emitSessionCookie(
     sessionTokenName,
   )?.value;
   if (!sessionValue) {
+    // Never log the cookie value itself — only its length, for debugging.
     console.error(`${LOG} signed Set-Cookie missing session token value`, {
-      cookiePreview: signedCookie.slice(0, 120),
+      cookieLength: signedCookie.length,
     });
     return null;
   }

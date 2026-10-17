@@ -30,7 +30,7 @@ export const en: TranslationKeys = {
   auth_have_account: "Already have an account?",
   auth_error_invalid: "Invalid email or password",
   auth_error_mismatch: "Passwords do not match",
-  auth_error_min_length: "Password must be at least 6 characters",
+  auth_error_min_length: "Password must be at least 8 characters",
   auth_error_unexpected: "An unexpected error occurred",
   auth_error_register: "Registration failed",
   auth_forgot_password: "Forgot password?",

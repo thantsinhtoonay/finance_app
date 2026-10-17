@@ -45,6 +45,7 @@ import {
   summarizeMonth,
   useBudgetStore,
 } from "@/lib/budget/store";
+import { parseTransactionInput, isIsoDate } from "@/lib/budget/validation";
 import type { AppData, Transaction, TxType } from "@/lib/budget/types";
 import {
   formatMoney,
@@ -139,12 +140,39 @@ export function Dashboard() {
           alert("Invalid backup file format.");
           return;
         }
-        if (!confirm(`Import ${data.transactions.length} transactions? This will replace current data.`)) {
+        // Re-validate every row through the same parser the API uses — a
+        // crafted backup must not smuggle arbitrary strings (receipt URLs,
+        // oversized notes, junk dates) into state and later into <img src>.
+        const valid: Transaction[] = [];
+        for (const tx of data.transactions) {
+          const parsed = parseTransactionInput({
+            type: tx?.type,
+            amount: tx?.amount,
+            category: tx?.category,
+            date: tx?.date,
+            note: tx?.note ?? "",
+            recurring: tx?.recurring ?? null,
+            receipt: tx?.receipt ?? undefined,
+          });
+          if (!parsed.ok) continue;
+          if (typeof tx.id !== "string" || !tx.id) continue;
+          valid.push({
+            id: tx.id,
+            ...parsed.value,
+            note: parsed.value.note ?? "",
+          });
+        }
+        if (valid.length !== data.transactions.length) {
+          alert(
+            `Backup contained ${data.transactions.length - valid.length} invalid entries — they were skipped.`,
+          );
+        }
+        if (!confirm(`Import ${valid.length} transactions? This will replace current data.`)) {
           return;
         }
         // Income-first gate: an import may never introduce expenses while no income exists.
-        const importHasExpense = data.transactions.some((tx) => tx.type === "expense");
-        const importHasIncome = data.transactions.some((tx) => tx.type === "income");
+        const importHasExpense = valid.some((tx) => tx.type === "expense");
+        const importHasIncome = valid.some((tx) => tx.type === "income");
         const hasIncome =
           importHasIncome ||
           useBudgetStore.getState().transactions.some((tx) => tx.type === "income");
@@ -152,10 +180,24 @@ export function Dashboard() {
           alert(t("dialog_error_income_first"));
           return;
         }
+        const monthlyGoal =
+          typeof data.monthlyGoal === "number" && Number.isFinite(data.monthlyGoal) && data.monthlyGoal >= 0
+            ? data.monthlyGoal
+            : 0;
+        const categoryBudgets = Array.isArray(data.categoryBudgets)
+          ? data.categoryBudgets.filter(
+              (b) =>
+                b &&
+                typeof b.categoryId === "string" &&
+                typeof b.limit === "number" &&
+                Number.isFinite(b.limit) &&
+                b.limit >= 0,
+            )
+          : [];
         useBudgetStore.setState({
-          transactions: data.transactions,
-          monthlyGoal: data.monthlyGoal,
-          categoryBudgets: data.categoryBudgets,
+          transactions: valid,
+          monthlyGoal,
+          categoryBudgets,
         });
       } catch {
         alert("Failed to parse backup file.");

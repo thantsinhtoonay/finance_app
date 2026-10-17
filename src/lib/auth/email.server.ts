@@ -31,6 +31,16 @@ function fromAddress(): string {
   return env("EMAIL_FROM") ?? DEFAULT_FROM;
 }
 
+/** Escape user-controlled text before it goes into HTML email markup. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function sendEmail(opts: {
   to: string;
   subject: string;
@@ -89,7 +99,7 @@ function detailsTable(rows: Array<[string, string]>): string {
   const trs = rows
     .map(
       ([k, v]) =>
-        `<tr><td style="padding:8px 0;color:#78716c;font-size:13px;">${k}</td><td style="padding:8px 0;color:#1c1917;font-size:13px;font-weight:600;text-align:right;">${v}</td></tr>`,
+        `<tr><td style="padding:8px 0;color:#78716c;font-size:13px;">${escapeHtml(k)}</td><td style="padding:8px 0;color:#1c1917;font-size:13px;font-weight:600;text-align:right;">${escapeHtml(v)}</td></tr>`,
     )
     .join("");
   return `<table style="width:100%;border-collapse:collapse;margin:8px 0 16px;">${trs}</table>`;
@@ -109,7 +119,7 @@ export async function sendWelcomeEmail(
   name: string,
   headers: Headers | undefined | null,
 ): Promise<boolean> {
-  const greeting = name ? `Hi ${name},` : "Hi there,";
+  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi there,";
   const html = layout(
     "Welcome to Shal Su",
     `<p style="margin:0 0 16px;color:#44403c;font-size:14px;line-height:1.6;">${greeting} Your Shal Su account is ready. Here's a summary of this signup:</p>
@@ -127,7 +137,8 @@ export async function sendResetPasswordEmail(
   url: string,
   headers: Headers | undefined | null,
 ): Promise<boolean> {
-  const greeting = name ? `Hi ${name},` : "Hi there,";
+  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi there,";
+  const safeUrl = escapeHtml(url);
   if (env("NODE_ENV") !== "production") {
     console.log(`[email:dev] password-reset URL for ${to}: ${url}`);
   }
@@ -135,14 +146,36 @@ export async function sendResetPasswordEmail(
     "Reset your password",
     `<p style="margin:0 0 16px;color:#44403c;font-size:14px;line-height:1.6;">${greeting} We received a request to reset your Shal Su password. Click the button below — it expires in 1 hour.</p>
      <p style="margin:20px 0;text-align:center;">
-       <a href="${url}" style="background:${GOLD};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 28px;border-radius:8px;display:inline-block;">Reset password</a>
+       <a href="${safeUrl}" style="background:${GOLD};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 28px;border-radius:8px;display:inline-block;">Reset password</a>
      </p>
      ${requestMeta(headers)}
-     <p style="margin:16px 0 0;color:#78716c;font-size:12px;line-height:1.6;">Button not working? Paste this link into your browser:<br/><a href="${url}" style="color:${GOLD};word-break:break-all;">${url}</a></p>
+     <p style="margin:16px 0 0;color:#78716c;font-size:12px;line-height:1.6;">Button not working? Paste this link into your browser:<br/><a href="${safeUrl}" style="color:${GOLD};word-break:break-all;">${safeUrl}</a></p>
      <p style="margin:12px 0 0;color:#44403c;font-size:14px;">If you didn't request this, you can safely ignore this email.</p>`,
   );
   const text = `${greeting}\n\nReset your Shal Su password (expires in 1 hour):\n${url}\n\nRequested from ${describeRequest(headers).device} in ${describeRequest(headers).region}.\n\nIf you didn't request this, ignore this email.`;
   return sendEmail({ to, subject: "Reset your Shal Su password", html, text });
+}
+
+export async function sendVerificationEmail(
+  to: string,
+  name: string,
+  url: string,
+  headers: Headers | undefined | null,
+): Promise<boolean> {
+  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi there,";
+  const safeUrl = escapeHtml(url);
+  const html = layout(
+    "Verify your new email",
+    `<p style="margin:0 0 16px;color:#44403c;font-size:14px;line-height:1.6;">${greeting} Confirm this new email address for your Shal Su account by clicking the button below — it expires in 1 hour.</p>
+     <p style="margin:20px 0;text-align:center;">
+       <a href="${safeUrl}" style="background:${GOLD};color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 28px;border-radius:8px;display:inline-block;">Verify email</a>
+     </p>
+     ${requestMeta(headers)}
+     <p style="margin:16px 0 0;color:#78716c;font-size:12px;line-height:1.6;">Button not working? Paste this link into your browser:<br/><a href="${safeUrl}" style="color:${GOLD};word-break:break-all;">${safeUrl}</a></p>
+     <p style="margin:12px 0 0;color:#44403c;font-size:14px;">If you didn't request an email change, ignore this email and consider resetting your password.</p>`,
+  );
+  const text = `${greeting}\n\nConfirm your new Shal Su email (expires in 1 hour):\n${url}\n\nIf you didn't request an email change, ignore this and reset your password.`;
+  return sendEmail({ to, subject: "Verify your new email — Shal Su", html, text });
 }
 
 export async function sendPasswordChangedEmail(
@@ -151,7 +184,7 @@ export async function sendPasswordChangedEmail(
   headers: Headers | undefined | null,
   kind: "change" | "reset",
 ): Promise<boolean> {
-  const greeting = name ? `Hi ${name},` : "Hi there,";
+  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi there,";
   const headline =
     kind === "change" ? "Your password was changed" : "Your password was reset";
   const html = layout(

@@ -262,6 +262,11 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
       alert("Image must be less than 2MB");
       return;
     }
+    // Whitelist raster types only — SVG/HTML uploads must never reach storage.
+    if (!/^image\/(jpeg|jpg|png|webp)$/i.test(file.type)) {
+      alert("Please choose a JPEG, PNG, or WebP image");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = reader.result as string;
@@ -290,8 +295,8 @@ function AccountSettings({ onBack, onAvatarUploaded }: { onBack: () => void; onA
       setPasswordError("New passwords do not match");
       return;
     }
-    if (newPassword.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
+    if (newPassword.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
       return;
     }
     if (currentPassword === newPassword) {

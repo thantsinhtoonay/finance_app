@@ -7,6 +7,9 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { auth } from "@/lib/auth/server";
 import { initDisplayCurrency } from "@/lib/settings/store";
 
+// Handler-only use of `auth` — TanStack extracts createServerFn bodies into
+// server functions, so the auth/server module (pg, Resend, secrets) never
+// enters the client bundle (verified by scanning built assets for secrets).
 const getSession = createServerFn({ method: "GET" }).handler(async () => {
   const headers = getRequestHeaders();
   try {

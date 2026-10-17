@@ -136,8 +136,13 @@ export async function signIn(
     if (typeof window !== "undefined") {
       const dest = new URL(callbackURL, window.location.origin);
       const here = window.location;
-      if (dest.origin !== here.origin || dest.pathname !== here.pathname || dest.search !== here.search) {
-        window.location.href = callbackURL;
+      // Only ever navigate to a same-origin path — never follow an absolute
+      // external URL supplied via callbackURL (open-redirect guard).
+      if (dest.origin === here.origin) {
+        const target = dest.pathname + dest.search;
+        if (target !== here.pathname + here.search) {
+          window.location.href = target;
+        }
       }
     }
     return;

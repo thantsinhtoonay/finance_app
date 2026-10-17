@@ -22,7 +22,16 @@ export function appEnvPlugin() {
           next();
           return;
         }
-        const body = Buffer.from(JSON.stringify(server.config.env), "utf8");
+        // Only expose VITE_-prefixed vars (what the client bundle receives).
+        // The full resolved env also contains RESEND_API_KEY, DATABASE_URL,
+        // CRON_SECRET, etc. — never serve those, even on the LAN-reachable dev
+        // server (0.0.0.0:8080).
+        const publicEnv = Object.fromEntries(
+          Object.entries(server.config.env).filter(([key]) =>
+            key.startsWith("VITE_"),
+          ),
+        );
+        const body = Buffer.from(JSON.stringify(publicEnv), "utf8");
         res.statusCode = 200;
         res.setHeader("content-type", "application/json; charset=utf-8");
         res.setHeader("cache-control", "no-cache");

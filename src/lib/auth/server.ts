@@ -40,6 +40,7 @@ import { emailAndPasswordEnabled } from "./email-password";
 import {
   sendPasswordChangedEmail,
   sendResetPasswordEmail,
+  sendVerificationEmail,
   sendWelcomeEmail,
 } from "./email.server";
 import { GATE_PROVIDER_ID, gateIdentitySessions } from "./gate-session.server";
@@ -141,9 +142,9 @@ const trustedOrigins: string[] = [
   ...(explicitBaseURL ? [explicitBaseURL] : []),
   // Custom production domains
   ...CUSTOM_APP_ORIGINS,
-  // Trust all Vercel preview aliases (*.vercel.app)
+  // Trust all Vercel preview aliases (*.vercel.app) — HTTPS only; a plain-HTTP
+  // preview origin must never be able to send credentialed auth POSTs.
   "https://*.vercel.app",
-  "http://*.vercel.app",
   // Host wildcards for preview
   ...previewAllowedHosts,
   ...previewAllowedHosts.flatMap((host) => [`https://${host}`, `http://${host}`]),
@@ -209,6 +210,25 @@ export const auth = betterAuth({
   // local loopback variants, or clients get "Invalid origin".
   trustedOrigins,
 
+  // Brute-force protection, persisted in Postgres (`rateLimit` table — see
+  // migrations/0005_rate_limit.sql) so limits survive serverless cold starts.
+  // Generous global ceiling; strict per-endpoint rules on the credential
+  // surfaces attackers actually hammer.
+  rateLimit: {
+    enabled: true,
+    storage: "database",
+    window: 60,
+    max: 60,
+    customRules: {
+      "/sign-in/email": { window: 300, max: 5 },
+      "/sign-up/email": { window: 3600, max: 10 },
+      "/request-password-reset": { window: 3600, max: 5 },
+      "/reset-password": { window: 3600, max: 5 },
+      "/change-password": { window: 300, max: 5 },
+      "/change-email": { window: 3600, max: 3 },
+    },
+  },
+
   // Encrypt broker-issued OAuth tokens at rest, and treat the broker's upstreams
   // as trusted first-party identities. The broker owns identity and X emails are
   // synthetic/unverified, so WITHOUT this a login can fail with
@@ -233,17 +253,17 @@ export const auth = betterAuth({
   // for HTTP headers (431 errors). PGLite is fast enough to query each time.
   session: { cookieCache: { enabled: false } },
 
-  // Allow users to delete their own account, and to change their email
-  // directly. Email change applies immediately (deliberate: verification
-  // emails are not wired — the transactional sender is used only for
-  // welcome / password-reset / password-changed notices, see below).
+  // Allow users to delete their own account, and to change their email —
+  // but a change only takes effect after the NEW address clicks the
+  // verification link (sendVerificationEmail below), so an attacker with a
+  // briefly-accessed session cannot silently hijack the account's email.
   user: {
     deleteUser: {
       enabled: true,
     },
     changeEmail: {
       enabled: true,
-      updateEmailWithoutVerification: true,
+      updateEmailWithoutVerification: false,
     },
   },
 
@@ -256,11 +276,36 @@ export const auth = betterAuth({
         emailAndPassword: {
           enabled: true,
           resetPasswordTokenExpiresIn: 60 * 60,
+          // Real-world floor: short passwords fall to credential stuffing lists.
+          minPasswordLength: 8,
           sendResetPassword: async (
             { user, url }: { user: { email: string; name?: string | null }; url: string },
             request?: Request,
           ) => {
             await sendResetPasswordEmail(user.email, user.name ?? "", url, request?.headers);
+          },
+        },
+      }
+    : {}),
+
+  // Email-change verification (updateEmailWithoutVerification: false above):
+  // Better Auth builds the signed link and, via `emailVerification`, emails it
+  // to the NEW address before the change takes effect.
+  ...(emailAndPasswordEnabled
+    ? {
+        emailVerification: {
+          sendOnSignUp: false,
+          autoSignInAfterVerification: false,
+          sendVerificationEmail: async (
+            data: { user: { email: string; name?: string | null }; url: string },
+            request?: Request,
+          ) => {
+            await sendVerificationEmail(
+              data.user.email,
+              data.user.name ?? "",
+              data.url,
+              request?.headers,
+            );
           },
         },
       }

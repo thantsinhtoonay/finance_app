@@ -4,6 +4,9 @@ import { TriangleAlert } from "lucide-react";
 const FALLBACK_MESSAGE = "An unexpected error occurred. Try reloading the page.";
 
 function errorMessage(error: unknown): string {
+  // Never echo raw error messages in production — they can carry SQL details,
+  // internal paths, or token fragments. Dev keeps the message for debugging.
+  if (import.meta.env.PROD) return FALLBACK_MESSAGE;
   if (error instanceof Error && error.message) return error.message;
   if (typeof error === "string" && error) return error;
   return FALLBACK_MESSAGE;

@@ -159,7 +159,7 @@ export const my: TranslationKeys = {
   auth_have_account: "အကောင့်ရှိပြီးသားလား?",
   auth_error_invalid: "အီးမေးလ် သို့မဟုတ် စကားဝှက် မမှန်ကန်ပါ",
   auth_error_mismatch: "စကားဝှက်နှစ်ခု မတူညီပါ",
-  auth_error_min_length: "စကားဝှက်တွင် အနည်းဆုံး စာလုံး ၆ လုံး ပါဝင်ရပါမည်",
+  auth_error_min_length: "စကားဝှက်တွင် အနည်းဆုံး စာလုံး ၈ လုံး ပါဝင်ရပါမည်",
   auth_error_unexpected: "မမျှော်လင့်ထားသော အမှားတစ်ခု ဖြစ်ပွားခဲ့ပါသည်",
   auth_error_register: "အကောင့်ဖန်တီး၍ မရပါ",
   auth_forgot_password: "စကားဝှက် မေ့နေပါသလား?",

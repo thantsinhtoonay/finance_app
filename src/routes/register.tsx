@@ -35,8 +35,8 @@ function RegisterPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError(t("auth_error_min_length"));
+  if (password.length < 8) {
+    setError(t("auth_error_min_length"));
       return;
     }
 

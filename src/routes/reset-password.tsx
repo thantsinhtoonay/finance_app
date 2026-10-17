@@ -13,11 +13,9 @@ import { useTranslation } from "@/lib/i18n/store";
 export const Route = createFileRoute("/reset-password")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { token?: string; error?: string; callbackURL?: string } => ({
+  ): { token?: string; error?: string } => ({
     token: typeof search.token === "string" ? search.token : undefined,
     error: typeof search.error === "string" ? search.error : undefined,
-    callbackURL:
-      typeof search.callbackURL === "string" ? search.callbackURL : undefined,
   }),
   component: ResetPasswordPage,
 });
