@@ -116,6 +116,8 @@ const LOCAL_DEV_ORIGINS: string[] = [
 const CUSTOM_APP_ORIGINS: string[] = [
   "https://thantsin.website",
   "https://www.thantsin.website",
+  "https://shal-su.thantsin.website",
+  "https://shalsu.thantsin.website",
 ];
 
 // Build allowedHosts: always include local dev + preview hosts.
