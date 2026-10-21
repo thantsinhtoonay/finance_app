@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
   Download,
   Keyboard,
+  Loader2,
   Plus,
   RotateCcw,
   Settings as SettingsIcon,
@@ -25,16 +26,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CategoryChart } from "@/components/budget/category-chart";
 import { CategoryBudgets } from "@/components/budget/category-budgets";
 import { SavingsGoal } from "@/components/budget/savings-goal";
 import { TransactionDialog } from "@/components/budget/transaction-dialog";
 import { TransactionList } from "@/components/budget/transaction-list";
-import { TransactionHistory } from "@/components/budget/history";
-import { YearlyOverview } from "@/components/budget/yearly-overview";
 
 import { BottomNav } from "@/components/budget/bottom-nav";
-import { Settings as SettingsPage } from "@/components/budget/settings";
 import { LanguageIconToggle } from "@/lib/i18n/components/language-toggle";
 import { useSettingsStore } from "@/lib/settings/store";
 import {
@@ -59,6 +56,30 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n/store";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { motion, AnimatePresence } from "framer-motion";
+
+// Chart + secondary views load after first paint — recharts/settings/history
+// stay out of the critical hydration path (~350 kB smaller entry chunk).
+const CategoryChart = lazy(() =>
+  import("@/components/budget/category-chart").then((m) => ({ default: m.CategoryChart })),
+);
+const YearlyOverview = lazy(() =>
+  import("@/components/budget/yearly-overview").then((m) => ({ default: m.YearlyOverview })),
+);
+const TransactionHistory = lazy(() =>
+  import("@/components/budget/history").then((m) => ({ default: m.TransactionHistory })),
+);
+const SettingsPage = lazy(() =>
+  import("@/components/budget/settings").then((m) => ({ default: m.Settings })),
+);
+
+function ViewFallback() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center justify-center py-16" role="status" aria-label={t("loading")}>
+      <Loader2 className="size-6 animate-spin text-primary" />
+    </div>
+  );
+}
 
 type Filter = "all" | TxType;
 type View = "dashboard" | "history" | "yearly" | "settings";
@@ -305,7 +326,9 @@ export function Dashboard() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="py-6"
             >
-              <SettingsPage onBack={() => setView("dashboard")} />
+              <Suspense fallback={<ViewFallback />}>
+                <SettingsPage onBack={() => setView("dashboard")} />
+              </Suspense>
             </motion.div>
           ) : view === "history" ? (
             <motion.div
@@ -316,7 +339,9 @@ export function Dashboard() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="py-6"
             >
-              <TransactionHistory onEdit={openEdit} onDelete={setPendingDelete} onAdd={openAdd} />
+              <Suspense fallback={<ViewFallback />}>
+                <TransactionHistory onEdit={openEdit} onDelete={setPendingDelete} onAdd={openAdd} />
+              </Suspense>
             </motion.div>
           ) : view === "yearly" ? (
             <motion.div
@@ -327,7 +352,9 @@ export function Dashboard() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="py-6"
             >
-              <YearlyOverview year={currentYear} />
+              <Suspense fallback={<ViewFallback />}>
+                <YearlyOverview year={currentYear} />
+              </Suspense>
             </motion.div>
           ) : (
             <motion.div
@@ -416,7 +443,9 @@ export function Dashboard() {
             </Card>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
+              <Suspense fallback={<ViewFallback />}>
               <CategoryChart categories={summary.byCategory} total={summary.expenses} />
+            </Suspense>
               <SavingsGoal
                 goal={monthlyGoal}
                 remaining={summary.remaining}
