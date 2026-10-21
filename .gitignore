@@ -48,3 +48,4 @@ startup.sh
 dev-out.log
 dev-err.log
 dev.log
+*.log
