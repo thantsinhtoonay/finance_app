@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Northline Finance** is a client-side personal finance tracking application. All data is stored in the browser's localStorage with no server-side persistence or authentication.
+**Shal Su** (internal codename "Northline Finance") is a full-stack personal finance tracking application. Data is persisted server-side in Neon Postgres behind an authenticated API (Better Auth email/password), with a localStorage cache for offline resilience. The UI is bilingual (English / Burmese).
 
 ## Functional Requirements
 
@@ -14,9 +14,9 @@
 - **FR-001.5:** Transaction amounts use Myanmar Kyat (MMK) with no decimals
 
 ### FR-002: Category System
-- **FR-002.1:** Predefined categories for income and expenses
-- **FR-002.2:** Each category has an icon and color
-- **FR-002.3:** Categories: Food & Drinks, Transport, Housing, Utilities, Entertainment, Shopping, Health, Education, Salary, Freelance, Investment, Other
+- **FR-002.1:** Predefined categories for income and expenses (17 expense / 9 income, bilingual labels)
+- **FR-002.2:** Each category has a colored dot indicator
+- **FR-002.3:** Categories include Food & Drinks, Transport, Housing, Utilities, Entertainment, Shopping, Health, Education, Salary, Freelance, Investment, and more (see `src/lib/budget/categories.ts`)
 
 ### FR-003: Budget Tracking
 - **FR-003.1:** Users can set monthly spending limits per category
@@ -36,9 +36,9 @@
 - **FR-005.3:** Auto-generation of recurring transactions on month change
 - **FR-005.4:** Recurring transactions create new entries, not modify existing
 
-### FR-006: Search and Filter
-- **FR-006.1:** Real-time search by transaction note
-- **FR-006.2:** Filter by category
+### FR-006: Search and History
+- **FR-006.1:** History view lists a selected month's transactions
+- **FR-006.2:** Real-time search by note or category name
 - **FR-006.3:** Search results update instantly
 - **FR-006.4:** Clear search with Escape key
 
@@ -55,10 +55,37 @@
 - **FR-008.4:** Clear all data with confirmation dialog
 
 ### FR-009: Settings
-- **FR-009.1:** Account settings (name, email, avatar initial)
-- **FR-009.2:** Theme toggle (Light, Dark, System)
+- **FR-009.1:** Account settings (name, email change, avatar initial, change password)
+- **FR-009.2:** Theme toggle (Light, Dark, System) + currency selector
 - **FR-009.3:** Privacy controls (hide balances, transactions, mask amounts)
-- **FR-009.4:** Data management (export, import, clear)
+- **FR-009.4:** Data management (CSV export, PDF export, JSON backup/import, clear all data)
+- **FR-009.5:** Account deletion with confirmation
+
+### FR-010: Authentication
+- **FR-010.1:** Email/password sign-up and sign-in (Better Auth)
+- **FR-010.2:** Forgot/reset password flow via emailed link
+- **FR-010.3:** Session-gated API — unauthenticated requests receive 401
+- **FR-010.4:** Origin checks on credentialed auth POSTs; brute-force rate limiting
+
+### FR-011: Internationalization
+- **FR-011.1:** Live language switch (English / Burmese) on every page — header, settings, auth pages, user guide
+- **FR-011.2:** Localized dates and month names (custom Burmese month arrays)
+- **FR-011.3:** Language choice persists across sessions
+- **FR-011.4:** Every translated key must exist in both language files (type-enforced)
+
+### FR-012: Receipt Photos
+- **FR-012.1:** Attach/replace/remove a receipt image on income & expense entries
+- **FR-012.2:** Client-side compression (≤400KB JPEG) before upload
+- **FR-012.3:** Images stored server-side; fetched on demand; included in JSON backups
+
+### FR-013: Exports
+- **FR-013.1:** CSV export (month or all transactions) with formula-injection escaping
+- **FR-013.2:** PDF export (month or all) — branded header, summary, category table
+- **FR-013.3:** JSON backup/restore including budgets, goals, and receipts
+
+### FR-014: Income-First Expense Gate
+- **FR-014.1:** Expense entry is locked in the UI until the first income is recorded
+- **FR-014.2:** Server returns 409 on expense writes (POST/PUT/import/recurring materialization) before any income exists
 
 ## Non-Functional Requirements
 
@@ -88,16 +115,17 @@
 - Edge 90+
 
 ### NFR-005: Data Persistence
-- All data stored in localStorage
-- No server-side storage
-- Data survives page refresh
-- Data persists across browser sessions (until cleared)
+- Server-side storage in Neon Postgres (session-gated API)
+- localStorage cache keeps the app usable offline
+- Data survives page refresh and across browser sessions
+- JSON backup/restore for portability
 
 ### NFR-006: Security
-- No sensitive data collection
-- No external API calls for data
-- No authentication required
-- XSS prevention via React's default escaping
+- Authentication required for all data APIs (401 for anonymous)
+- Origin checks on credentialed auth POSTs; DB-backed rate limiting
+- Security headers via `vercel.json` (CSP, HSTS, nosniff, Referrer-Policy, Permissions-Policy)
+- Strict input validation (Zod) and generic 500 responses
+- XSS prevention via React's default escaping; CSV formula-injection escaping
 
 ## Data Models
 
@@ -111,6 +139,7 @@
   note: string;         // User description
   date: string;         // ISO date (YYYY-MM-DD)
   recurring?: "weekly" | "biweekly" | "monthly" | "yearly";
+  receiptImage?: string; // Compressed JPEG data URL (optional)
 }
 ```
 
@@ -163,16 +192,16 @@
 - Fixed bottom navigation on mobile
 - Floating action button for quick add
 
-### Color Palette
-- Primary: `#7c3aed` (Purple)
-- Background: `#f8f7ff` (Light) / `#0f0a1a` (Dark)
-- Card: `#ffffff` (Light) / `#1a1230` (Dark)
-- Income: `#10b981` (Green)
-- Expense: `#ef4444` (Red)
-- Text: `#1a1625` (Light) / `#f0eeff` (Dark)
+### Color Palette (Shal Su — gold/brown)
+- Primary: `#b8860b` light / `#d4a843` dark (darkgoldenrod)
+- Background: `#fff9f0` (Light) / `#1a0f05` (Dark)
+- Card: `#fffcf7` (Light) / `#2a1a0a` (Dark)
+- Income: `#2e7d32` (Light) / `#66bb6a` (Dark)
+- Expense: `#c0392b` (Light) / `#e74c3c` (Dark)
+- Text: `#3d2512` (Light) / `#f5e6d0` (Dark)
 
 ### Typography
-- Font: Inter
+- Font: Inter (English), Padauk (Burmese)
 - Display: 2rem, 700 weight
 - Body: 1rem, 400 weight
 - Label: 0.75rem, 600 weight, uppercase
@@ -197,7 +226,15 @@
 
 ## API Endpoints
 
-None — This is a client-side application with no server API.
+All under `/api`, session-gated (401 anonymous), JSON in/out:
+
+| Endpoint | Methods | Purpose |
+|----------|---------|---------|
+| `/api/auth/*` | various | Better Auth handler (sign-up, sign-in, reset, session) |
+| `/api/transactions` | GET, POST | List month transactions / create |
+| `/api/transactions/:id` | PUT, DELETE | Update / remove an entry |
+| `/api/budgets` | GET, POST | Category budgets |
+| `/api/settings` | GET, POST | Account/settings sync |
 
 ## Error Handling
 

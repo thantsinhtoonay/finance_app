@@ -18,7 +18,7 @@
 - [x] Build yearly overview page
 - [x] Implement CSV export (Settings → Data & Export)
 - [x] Add JSON backup/restore
-- [x] Create quick-add for mobile (superseded by bottom-nav center + button; `quick-add-fab.tsx` is dead code)
+- [x] Create quick-add for mobile (superseded by bottom-nav center + button; `quick-add-fab.tsx` deleted in `a5e0859`)
 - [x] Implement keyboard shortcuts (N, ?, Esc)
 - [x] Add settings page
 - [x] Create account management
@@ -29,9 +29,12 @@
 - [x] Add dark theme support — `.dark` class, Light/Dark/System setting
 - [x] Change currency to Myanmar Kyat — `format.ts`
 - [x] Set up GitHub repository — `origin/main`
-- [x] Deploy to hosting — Vercel production, primary domain **`https://www.thantsin.website`** (apex `thantsin.website` 307-redirects to www; `shal-su.vercel.app` kept as fallback; git auto-deploy from `origin/main`; DNS proxied through Cloudflare free plan since 2026-10-04)
+- [x] Deploy to hosting — Vercel production, primary domain **`https://shal-su.thantsin.website`** (since 2026-10-26; `www.thantsin.website` removed from Vercel; apex `thantsin.website` + `shal-su.vercel.app` kept as aliases; git auto-deploy from `origin/main`)
 
 ### Recently shipped
+- [x] **i18n completion + responsive/color pass (`a5e0859`, `afec744`)** — Settings, yearly overview, dates/month names, dashboard alerts, dialogs, aria-labels, and guide chrome all switch with EN/MY; budget "exceeded" badge overlap fixed; 44px touch targets; token-based income/expense colors + chart gradients; dead files deleted (suite now 92 tests)
+- [x] **Domain change (`8f74b49`)** — production primary `shal-su.thantsin.website`; subdomain added to Better Auth `CUSTOM_APP_ORIGINS` (fixes "Invalid origin"); `BETTER_AUTH_URL` env updated
+- [x] **Perf pass (`22df5f5`)** — lazy-load chart/history/yearly/settings views, 256px logo, cached images
 - [x] Transactional emails (Resend, `no-reply@thantsin.website`) — signup welcome (account/region/device from request headers), forgot-password reset link (`/forgot-password` + `/reset-password` pages, Better Auth `sendResetPassword`, 1-hour token), "password changed" notices on change + reset via `hooks.after`; device/region parsing unit-tested; dev logs emails to console when `RESEND_API_KEY` unset; **`RESEND_API_KEY` + `EMAIL_FROM=Shal Su <no-reply@thantsin.website>` must be set in Vercel env to send in prod**; sender name "Shal Su" + circular logo in every email header; suite now 88 tests. No verification emails / login blocking (deliberate product decision)
 - [x] Receipt photos (`attach only`) — add/replace/remove/view a receipt image on income & expense entries; client-side compression (≤400KB JPEG data URL), stored in Postgres (`0004_receipt.sql`), fetched on demand; list shows 📎 flag; JSON backups include images; server validates mime + size
 - [x] Income-first expense gate (`30b12b3`) — Expense locked in dialog until first income (Lock icon, income default); server 409 gate on POST/PUT transactions, JSON import, and recurring materialization; save errors surfaced in dialog (EN + MY); `income-gate.server.ts`, `SaveError` in store; suite now 84 tests
@@ -86,7 +89,7 @@
 - [ ] Custom color themes
 - [ ] Dashboard widgets
 - [ ] Drill-down charts
-- [ ] Touch gestures for navigation (`swipeable-transaction-item.tsx` exists but is dead code)
+- [ ] Touch gestures for navigation (`swipeable-transaction-item.tsx` deleted in `a5e0859` — would need a rewrite)
 
 ### Technical
 - [x] ~~Database backend (PostgreSQL)~~ — Neon + `migrate.mjs`
@@ -101,7 +104,7 @@
 - [ ] Offline support (localStorage persists, but no service worker)
 
 ### Housekeeping
-- [x] Custom domain — bought `thantsin.website` (Z.com) → primary **`www.thantsin.website`**, apex redirects 307; origins trusted in Better Auth; NS delegated to Cloudflare (david/paityn), records proxied; old Z.com DNS records still exist in Z.com panel (orphaned, harmless — optional cleanup)
+- [x] Custom domain — `thantsin.website` (Z.com) with NS on Cloudflare; **primary now `shal-su.thantsin.website`** (subdomain CNAME → cname.vercel-dns.com); apex `thantsin.website` kept as Vercel alias; old Z.com DNS records still exist in Z.com panel (orphaned, harmless — optional cleanup); Better Auth origins updated in `CUSTOM_APP_ORIGINS` + `BETTER_AUTH_URL` env
 - [ ] Delete 4 leftover QA test accounts in prod DB (`idor-a/b`, `final/final2 @test.local`) — emails unrecoverable, needs `DATABASE_URL` from Vercel dashboard (env values are redacted to CLI/API)
 - [ ] Stop local dev server (port 8080) when not in use
 
@@ -115,10 +118,10 @@
 
 ## Recommended next (priority order)
 
-1. **Dead code cleanup** — delete `quick-add-fab.tsx` + `swipeable-transaction-item.tsx`; remove unused `handleExportCsv/Json/Import` handlers and dead imports from `dashboard.tsx` (`handleImportJson` now has an income gate but is still unwired to any UI). Gets lint much closer to zero warnings.
+1. ~~**Dead code cleanup**~~ — `quick-add-fab.tsx` + `swipeable-transaction-item.tsx` deleted (`a5e0859`); remaining: double-check `dashboard.tsx` for unused handlers (`handleImportJson` still unwired to UI). Gets lint much closer to zero warnings.
 2. **First-run experience** — seeded demo budgets (housing 2000, food 500…) are tiny/meaningless MMK values shown to new users. Remove seeds (or replace with an empty-state "Set your first budget" prompt).
 3. **PWA manifest + app icons** — add 192/512px icons + manifest so users can "Add to Home Screen"; high value for mobile-first Myanmar audience.
-4. **Bundle/perf pass** — split `routes` chunk (747KB); lazy-load recharts/yearly view.
+4. ~~**Bundle/perf pass**~~ — done (`22df5f5`): lazy-loaded recharts/yearly/history/settings views, logo shrunk to 256px, images cached.
 5. **Recurring reminders** — recurring transactions exist but nothing surfaces upcoming bills; add a "upcoming bills" widget or notifications.
 6. **Tests** — unit tests for store logic (parseAmount, summarizeMonth, budget reducers) before more features.
 7. **Accessibility sweep** — dialog focus trap, aria-labels on icon-only buttons, contrast check in dark mode.

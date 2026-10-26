@@ -307,7 +307,7 @@ export const en: TranslationKeys = {
   // Accessibility & misc
   aria_prev_month: "Previous month",
   aria_next_month: "Next month",
-  register_name_placeholder: "John Doe",
+  register_name_placeholder: "Mg Mg",
   error_backup_format: "Invalid backup file format.",
   error_backup_parse: "Failed to parse backup file.",
 

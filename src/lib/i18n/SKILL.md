@@ -32,7 +32,8 @@ src/lib/i18n/
     ├── index.ts          # Component exports
     ├── text.tsx          # Typography components
     ├── trans.tsx         # Translation components
-    ├── language-selector.tsx  # Language switcher
+    ├── language-selector.tsx  # Full language switcher with labels
+    ├── language-toggle.tsx    # Compact EN/MY toggle
     └── provider.tsx      # i18n provider
 ```
 
@@ -216,6 +217,28 @@ The `<html lang="">` attribute is automatically updated when language changes.
 ### 4. Font Loading
 
 Padauk font is loaded from Google Fonts in the root layout.
+
+### 5. Localized Dates
+
+The i18n store calls `setActiveLanguage()` in `src/lib/budget/format.ts` on every language change (and on rehydrate). These helpers then localize automatically:
+
+- `formatMonth()` — e.g. "October 2026" / "အောက်တိုဘာ ၂၀၂၆"
+- `formatMonthShort()` — chart axis labels
+- `formatDay()` / `formatDayFull()` — e.g. "Oct 26" / "Monday"
+- `monthShortLabel(i)` — used by `summarizeYear()` for the yearly view
+
+Burmese month names are constant arrays (`MONTHS_MY`, `MONTHS_MY_SHORT`) because date-fns v4 has no `my` locale.
+
+## Translation Rules
+
+1. **Keys are type-enforced** — add new keys to `TranslationKeys` in `types.ts` and provide values in **both** `en.ts` and `my.ts`; a missing key fails `npm run typecheck`.
+2. **No parameter interpolation in `t()`** — pass literal keys only. For placeholders use the `.replace` pattern:
+   ```tsx
+   t("error_backup_skipped").replace("{n}", String(count))
+   ```
+   Placeholder keys use `{n}` / `{name}` tokens in both translation files.
+3. **The guide page is intentionally bilingual** — `/user-guide` shows EN + MY body text side by side; only its chrome (badge, section labels, buttons) is translated.
+4. **Date/number formatting must not hardcode language** — use `formatMonth` / `formatDay` helpers from `format.ts`, never date-fns `format` with hardcoded English tokens.
 
 ## CSS Classes
 

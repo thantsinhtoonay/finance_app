@@ -1,6 +1,22 @@
 # Changelog
 
-All notable changes to Northline Finance will be documented in this file.
+All notable changes to Shal Su (Northline Finance) will be documented in this file.
+
+## [2.0.0] - 2026-10-26
+
+### Added
+- **Authentication & cloud sync** — Better Auth email/password, session-gated API, Neon Postgres persistence, forgot/reset password flow, transactional emails via Resend (welcome, reset link, password changed)
+- **Receipt photos** — attach compressed receipt images to income/expense entries
+- **Income-first expense gate** — expenses locked (UI + server 409) until first income
+- **Recurring transactions server materialization** — idempotent generation with tombstones
+- **PDF export** — branded monthly / all-transactions reports
+- **User guide** — built-in bilingual guide at `/user-guide`
+- **Full bilingual i18n (English/Burmese)** — settings, yearly overview, dates/month names, auth pages, aria-labels, dialogs; live language switch everywhere; type-enforced translation keys
+- **Security hardening** — strict CSP/HSTS headers, DB-backed rate limiting, input validation (Zod), generic 500s, CSV formula-injection escaping, email-change verification
+- **Performance** — lazy-loaded chart/history/yearly/settings views, smaller logo, cached images
+
+### Changed
+- **Domain** — production primary is now `https://shal-su.thantsin.website` (Burmese "Theme" label, token-based income/expense colors, mobile responsive fixes, budget badge overlap fix)
 
 ## [1.0.0] - 2026-09-12
 

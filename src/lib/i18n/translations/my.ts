@@ -304,7 +304,7 @@ export const my: TranslationKeys = {
   // Accessibility & misc
   aria_prev_month: "ယခင်လ",
   aria_next_month: "နောက်လ",
-  register_name_placeholder: "အမည် ထည့်ပါ",
+  register_name_placeholder: "မောင်မောင်",
   error_backup_format: "Backup ဖိုင် ပုံစံ မမှန်ကန်ပါ။",
   error_backup_parse: "Backup ဖိုင်ကို ဖတ်၍မရပါ။",
 
