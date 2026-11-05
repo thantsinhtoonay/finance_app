@@ -87,6 +87,10 @@ export async function buildBackupData(): Promise<AppData> {
   };
 }
 
+// Dedupes concurrent `loadFromServer()` calls (React StrictMode double-mount,
+// parallel route loaders) — one in-flight fetch shared by all callers.
+let inflightLoad: Promise<void> | null = null;
+
 export const useBudgetStore = create<BudgetState>()((set, get) => ({
   transactions: [],
       monthlyGoal: 0,
@@ -103,50 +107,65 @@ export const useBudgetStore = create<BudgetState>()((set, get) => ({
   loaded: false,
 
   loadFromServer: async () => {
-    try {
-      const [txRes, budgetRes, settingsRes] = await Promise.all([
-        apiFetch("/api/transactions/"),
-        apiFetch("/api/budgets/"),
-        apiFetch("/api/settings/"),
-      ]);
+    // Loaded once per session: navigating away and back (Dashboard remount)
+    // must not refetch the world. Sign-out does a full page load, so this
+    // never leaks one user's data into another's session.
+    if (get().loaded) return;
+    if (inflightLoad) return inflightLoad;
+    inflightLoad = (async () => {
+      try {
+        const [txRes, budgetRes, settingsRes] = await Promise.all([
+          apiFetch("/api/transactions/"),
+          apiFetch("/api/budgets/"),
+          apiFetch("/api/settings/"),
+        ]);
 
-      if (txRes.ok) {
-        const rows = await txRes.json();
-        const transactions = rows.map((t: any) => ({
-          ...t,
-          amount: Number(t.amount),
-          hasReceipt: t.has_receipt === true,
-        }));
-        set({ transactions });
-      } else {
-        console.error("Failed to load transactions:", txRes.status);
-      }
+        // Parse everything first, then ONE set() — subscribers render once
+        // instead of four times as data trickles in.
+        const next: Partial<BudgetState> = {};
 
-      if (budgetRes.ok) {
-        const rows = await budgetRes.json();
-        const categoryBudgets = rows.map((b: any) => ({
-          ...b,
-          limit: Number(b.limit),
-        }));
-        if (categoryBudgets.length > 0) {
-          set({ categoryBudgets });
+        if (txRes.ok) {
+          const rows = await txRes.json();
+          next.transactions = rows.map((t: any) => ({
+            ...t,
+            amount: Number(t.amount),
+            hasReceipt: t.has_receipt === true,
+          }));
+        } else {
+          console.error("Failed to load transactions:", txRes.status);
         }
-      } else {
-        console.error("Failed to load budgets:", budgetRes.status);
-      }
 
-      if (settingsRes.ok) {
-        const { monthlyGoal } = await settingsRes.json();
-        set({ monthlyGoal: Number(monthlyGoal) });
-      } else {
-        console.error("Failed to load settings:", settingsRes.status);
-      }
+        if (budgetRes.ok) {
+          const rows = await budgetRes.json();
+          const categoryBudgets = rows.map((b: any) => ({
+            ...b,
+            limit: Number(b.limit),
+          }));
+          if (categoryBudgets.length > 0) next.categoryBudgets = categoryBudgets;
+        } else {
+          console.error("Failed to load budgets:", budgetRes.status);
+        }
 
-      set({ loaded: true });
-    } catch (err) {
-      console.error("Failed to load data from server:", err);
-      set({ loaded: true });
-    }
+        if (settingsRes.ok) {
+          const { monthlyGoal } = await settingsRes.json();
+          next.monthlyGoal = Number(monthlyGoal);
+        } else {
+          console.error("Failed to load settings:", settingsRes.status);
+        }
+
+        // Only mark loaded when every endpoint succeeded — a partial failure
+        // leaves loaded=false so the next mount retries the whole load.
+        next.loaded = txRes.ok && budgetRes.ok && settingsRes.ok;
+        set(next);
+      } catch (err) {
+        console.error("Failed to load data from server:", err);
+        // Leave loaded=false: the next mount retries instead of showing an
+        // empty app forever after one transient network error.
+      } finally {
+        inflightLoad = null;
+      }
+    })();
+    return inflightLoad;
   },
 
   addTransaction: async (draft) => {

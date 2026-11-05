@@ -120,12 +120,16 @@ export function defaultDateForMonth(month: string): string {
   return `${month}-01`;
 }
 
+// Hoisted: constructing Intl.NumberFormat costs ~60× more than format() —
+// this runs once per list row, stat card, and budget bar per render.
+const MONEY_FORMATTER = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
 export function formatMoney(value: number): string {
   const symbol = currencySymbol();
-  const formatted = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(Math.abs(value));
+  const formatted = MONEY_FORMATTER.format(Math.abs(value));
   const body = `${symbol} ${formatted}`;
   return value < 0 ? `\u2212${body}` : body;
 }

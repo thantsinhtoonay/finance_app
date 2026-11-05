@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useMemo } from "react";
 import { persist } from "zustand/middleware";
 import { Language } from "./types";
 import { getLanguageConfig, defaultLanguage } from "./languages";
@@ -66,16 +67,24 @@ export const useI18n = create<I18nState>()(
   )
 );
 
-// Helper hook for components
+// Helper hook for components. Narrow selectors + a memoized result so the
+// returned object is referentially stable across renders (memoized children
+// like transaction rows depend on that) and unrelated store fields never
+// trigger re-renders.
 export function useTranslation() {
-  const { t, language, setLanguage, getTypography, getDir } = useI18n();
-  
-  return {
-    t,
-    language,
-    setLanguage,
-    typography: getTypography(),
-    dir: getDir(),
-    isBurmese: language === "my",
-  };
+  const language = useI18n((s) => s.language);
+  const t = useI18n((s) => s.t);
+  const setLanguage = useI18n((s) => s.setLanguage);
+
+  return useMemo(
+    () => ({
+      t,
+      language,
+      setLanguage,
+      typography: getLanguageConfig(language).typography,
+      dir: getLanguageConfig(language).dir,
+      isBurmese: language === "my",
+    }),
+    [language, t, setLanguage],
+  );
 }

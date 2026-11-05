@@ -21,6 +21,11 @@ type AnchorRow = {
  * Materialize past-due occurrences of every recurring series owned by `userId`
  * (idempotent: a date that already has a row or a user tombstone is never
  * re-inserted; only anchors — rows whose id equals their series_id — generate).
+ *
+ * Batched: one SELECT for anchors, one pair-wise SELECT for existing rows, one
+ * for tombstones, and a single multi-row INSERT — 4 round trips total instead
+ * of 3 + one INSERT per due date (the old N+1 made first load slow for users
+ * with old recurring series).
  */
 async function materializeRecurring(sql: Awaited<ReturnType<typeof getSql>>, userId: string): Promise<void> {
   const anchors = await sql.query<AnchorRow>(
@@ -33,48 +38,82 @@ async function materializeRecurring(sql: Awaited<ReturnType<typeof getSql>>, use
   // while no income exists — dueOccurrences recomputes from the anchor each run.
   let expenseAllowed: boolean | null = null;
 
+  // 1) Collect due dates for every anchor.
+  const pending: Array<{ anchor: AnchorRow; seriesId: string; dates: string[] }> = [];
   for (const anchor of anchors) {
     const seriesId = anchor.series_id ?? anchor.id;
     if (seriesId !== anchor.id) continue; // generated occurrences never generate
     const due = dueOccurrences(anchor.date, anchor.recurring, today);
-    if (due.length === 0) continue;
+    if (due.length > 0) pending.push({ anchor, seriesId, dates: due });
+  }
+  if (pending.length === 0) return;
 
-    const existing = await sql.query<{ date: string }>(
-      `SELECT date FROM transactions
-       WHERE user_id = $1 AND series_id = $2 AND date = ANY($3)`,
-      [userId, seriesId, due],
-    );
-    const tombstoned = await sql.query<{ date: string }>(
-      `SELECT date FROM recurring_tombstones
-       WHERE user_id = $1 AND series_id = $2 AND date = ANY($3)`,
-      [userId, seriesId, due],
-    );
-    const taken = new Set([...existing, ...tombstoned].map((r) => r.date));
-
-    for (const date of due) {
-      if (taken.has(date)) continue;
-      if (anchor.type === "expense") {
-        if (expenseAllowed === null) expenseAllowed = await hasIncomeExcept(sql, userId);
-        if (!expenseAllowed) continue;
-      }
-      await sql.query(
-        `INSERT INTO transactions (id, user_id, type, amount, category, date, note, recurring, series_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         ON CONFLICT DO NOTHING`,
-        [
-          crypto.randomUUID(),
-          userId,
-          anchor.type,
-          anchor.amount,
-          anchor.category,
-          date,
-          anchor.note,
-          anchor.recurring,
-          seriesId,
-        ],
-      );
+  // 2) Which (series, date) pairs are already taken? Two set-based lookups.
+  const flatSeries: string[] = [];
+  const flatDates: string[] = [];
+  for (const p of pending) {
+    for (const d of p.dates) {
+      flatSeries.push(p.seriesId);
+      flatDates.push(d);
     }
   }
+  const [existing, tombstoned] = await Promise.all([
+    sql.query<{ series_id: string; date: string }>(
+      `SELECT series_id, date FROM transactions
+       WHERE user_id = $1 AND (series_id, date) IN
+         (SELECT * FROM unnest($2::text[], $3::text[]))`,
+      [userId, flatSeries, flatDates],
+    ),
+    sql.query<{ series_id: string; date: string }>(
+      `SELECT series_id, date FROM recurring_tombstones
+       WHERE user_id = $1 AND (series_id, date) IN
+         (SELECT * FROM unnest($2::text[], $3::text[]))`,
+      [userId, flatSeries, flatDates],
+    ),
+  ]);
+  const taken = new Set([
+    ...existing.map((r) => `${r.series_id}|${r.date}`),
+    ...tombstoned.map((r) => `${r.series_id}|${r.date}`),
+  ]);
+
+  // 3) Collect missing rows and insert them all in one statement.
+  const ids: string[] = [];
+  const userIds: string[] = [];
+  const types: string[] = [];
+  const amounts: string[] = [];
+  const categories: string[] = [];
+  const dates: string[] = [];
+  const notes: string[] = [];
+  const recurrings: string[] = [];
+  const seriesIds: string[] = [];
+  for (const { anchor, seriesId, dates: dueDates } of pending) {
+    if (anchor.type === "expense") {
+      if (expenseAllowed === null) expenseAllowed = await hasIncomeExcept(sql, userId);
+      if (!expenseAllowed) continue;
+    }
+    for (const date of dueDates) {
+      if (taken.has(`${seriesId}|${date}`)) continue;
+      ids.push(crypto.randomUUID());
+      userIds.push(userId);
+      types.push(anchor.type);
+      amounts.push(anchor.amount);
+      categories.push(anchor.category);
+      dates.push(date);
+      notes.push(anchor.note);
+      recurrings.push(anchor.recurring);
+      seriesIds.push(seriesId);
+    }
+  }
+  if (ids.length === 0) return;
+  await sql.query(
+    `INSERT INTO transactions (id, user_id, type, amount, category, date, note, recurring, series_id)
+     SELECT * FROM unnest(
+       $1::text[], $2::text[], $3::text[], $4::numeric[], $5::text[],
+       $6::text[], $7::text[], $8::text[], $9::text[]
+     )
+     ON CONFLICT DO NOTHING`,
+    [ids, userIds, types, amounts, categories, dates, notes, recurrings, seriesIds],
+  );
 }
 
 export const Route = createFileRoute("/api/transactions/")({

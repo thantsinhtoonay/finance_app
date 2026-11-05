@@ -89,7 +89,7 @@ export function applyTheme(theme: Theme) {
   }
 }
 
-export function initTheme() {
+export function initTheme(): () => void {
   const stored = localStorage.getItem("northline-settings");
   if (stored) {
     try {
@@ -103,7 +103,8 @@ export function initTheme() {
     applyTheme("system");
   }
 
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  const onChange = () => {
     const stored = localStorage.getItem("northline-settings");
     if (stored) {
       try {
@@ -114,5 +115,8 @@ export function initTheme() {
         applyTheme("system");
       }
     }
-  });
+  };
+  mq.addEventListener("change", onChange);
+  // Disposer so a remounting component doesn't accumulate listeners.
+  return () => mq.removeEventListener("change", onChange);
 }

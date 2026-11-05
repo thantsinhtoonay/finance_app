@@ -74,8 +74,12 @@ export function categoriesFor(type: TxType): CategoryDef[] {
   return type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 }
 
+// O(1) lookups — categoryById runs per row per render; a linear .find over
+// 26 categories added up.
+const CATEGORY_BY_ID = new Map<string, CategoryDef>(ALL.map((c) => [c.id, c]));
+
 export function categoryById(id: string): CategoryDef {
-  return ALL.find((c) => c.id === id) ?? { id, label: id, color: "#a8aaa6" };
+  return CATEGORY_BY_ID.get(id) ?? { id, label: id, color: "#a8aaa6" };
 }
 
 export function translatedCategoryLabel(id: string, t: (key: keyof TranslationKeys) => string): string {

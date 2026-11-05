@@ -17,6 +17,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as UserGuideRouteImport } from './routes/user-guide'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiBudgetsIndexRouteImport } from './routes/api/budgets/index'
+import { Route as ApiCronKeepAwakeRouteImport } from './routes/api/cron/keep-awake'
 import { Route as ApiSettingsIndexRouteImport } from './routes/api/settings/index'
 import { Route as ApiTransactionsIndexRouteImport } from './routes/api/transactions/index'
 import { Route as ApiTransactionsIdRouteImport } from './routes/api/transactions/$id'
@@ -61,6 +62,11 @@ const ApiBudgetsIndexRoute = ApiBudgetsIndexRouteImport.update({
   path: '/api/budgets/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronKeepAwakeRoute = ApiCronKeepAwakeRouteImport.update({
+  id: '/api/cron/keep-awake',
+  path: '/api/cron/keep-awake',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSettingsIndexRoute = ApiSettingsIndexRouteImport.update({
   id: '/api/settings/',
   path: '/api/settings/',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/user-guide': typeof UserGuideRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/keep-awake': typeof ApiCronKeepAwakeRoute
   '/api/transactions/$id': typeof ApiTransactionsIdRoute
   '/api/budgets/': typeof ApiBudgetsIndexRoute
   '/api/settings/': typeof ApiSettingsIndexRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/user-guide': typeof UserGuideRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/keep-awake': typeof ApiCronKeepAwakeRoute
   '/api/transactions/$id': typeof ApiTransactionsIdRoute
   '/api/budgets': typeof ApiBudgetsIndexRoute
   '/api/settings': typeof ApiSettingsIndexRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/user-guide': typeof UserGuideRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/keep-awake': typeof ApiCronKeepAwakeRoute
   '/api/transactions/$id': typeof ApiTransactionsIdRoute
   '/api/budgets/': typeof ApiBudgetsIndexRoute
   '/api/settings/': typeof ApiSettingsIndexRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/user-guide'
     | '/api/auth/$'
+    | '/api/cron/keep-awake'
     | '/api/transactions/$id'
     | '/api/budgets/'
     | '/api/settings/'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/user-guide'
     | '/api/auth/$'
+    | '/api/cron/keep-awake'
     | '/api/transactions/$id'
     | '/api/budgets'
     | '/api/settings'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/user-guide'
     | '/api/auth/$'
+    | '/api/cron/keep-awake'
     | '/api/transactions/$id'
     | '/api/budgets/'
     | '/api/settings/'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   UserGuideRoute: typeof UserGuideRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCronKeepAwakeRoute: typeof ApiCronKeepAwakeRoute
   ApiTransactionsIdRoute: typeof ApiTransactionsIdRoute
   ApiBudgetsIndexRoute: typeof ApiBudgetsIndexRoute
   ApiSettingsIndexRoute: typeof ApiSettingsIndexRoute
@@ -231,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBudgetsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/keep-awake': {
+      id: '/api/cron/keep-awake'
+      path: '/api/cron/keep-awake'
+      fullPath: '/api/cron/keep-awake'
+      preLoaderRoute: typeof ApiCronKeepAwakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/settings/': {
       id: '/api/settings/'
       path: '/api/settings'
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   UserGuideRoute: UserGuideRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCronKeepAwakeRoute: ApiCronKeepAwakeRoute,
   ApiTransactionsIdRoute: ApiTransactionsIdRoute,
   ApiBudgetsIndexRoute: ApiBudgetsIndexRoute,
   ApiSettingsIndexRoute: ApiSettingsIndexRoute,

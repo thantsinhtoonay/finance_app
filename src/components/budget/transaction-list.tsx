@@ -1,4 +1,5 @@
 import { MoreHorizontal, Paperclip, Pencil, Trash2 } from "lucide-react";
+import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +18,121 @@ import { useTranslation } from "@/lib/i18n/store";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Filter = "all" | TxType;
+
+type TFn = ReturnType<typeof useTranslation>["t"];
+
+type RowProps = {
+  tx: Transaction;
+  /** Mount-order hint for the entrance stagger — ignored by the memo compare. */
+  index: number;
+  showBorder: boolean;
+  onEdit: (tx: Transaction) => void;
+  onDelete: (tx: Transaction) => void;
+  t: TFn;
+};
+
+/**
+ * One list row. Memoized so a parent re-render (dialog open, filter change,
+ * any store write) doesn't re-render — and framer-motion re-measure — every
+ * row. `index` intentionally excluded from the memo compare: shifted indexes
+ * (insert/delete elsewhere in the list) don't change a row's content, and the
+ * entrance delay only applies at mount anyway.
+ */
+const TransactionRow = memo(
+  function TransactionRow({ tx, index, showBorder, onEdit, onDelete, t }: RowProps) {
+    const cat = categoryById(tx.category);
+    const catLabel = translatedCategoryLabel(tx.category, t);
+    const title = tx.note || catLabel;
+    return (
+      <motion.li
+        layout
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, x: -100 }}
+        // Clamped: 60 rows × 0.03s used to delay the last row by 1.8s.
+        transition={{
+          delay: Math.min(index * 0.03, 0.25),
+          type: "spring",
+          stiffness: 500,
+          damping: 30,
+        }}
+        onClick={() => onEdit(tx)}
+        className={cn(
+          "group flex items-center gap-3 py-3 px-3 -mx-3 rounded-xl cursor-pointer transition-colors duration-150 hover:bg-secondary/50 active:bg-secondary/70",
+          showBorder && "border-t border-border/50",
+        )}
+      >
+        <div
+          className="flex items-center justify-center size-10 rounded-xl shrink-0"
+          style={{ backgroundColor: `${cat.color}20` }}
+        >
+          <span
+            className="size-3 rounded-full"
+            style={{ backgroundColor: cat.color, boxShadow: `0 0 8px ${cat.color}66` }}
+            aria-hidden
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold">{title}</p>
+          <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span>{formatDay(tx.date)}</span>
+            <Badge variant="default" className="text-[10px] px-1.5 py-0">
+              {catLabel}
+            </Badge>
+            {tx.recurring && (
+              <Badge variant="primary" className="text-[10px] px-1.5 py-0 capitalize">
+                {t(`recurring_${tx.recurring}`)}
+              </Badge>
+            )}
+            {tx.hasReceipt ? (
+              <span title={t("list_receipt")} aria-label={t("list_receipt")}>
+                <Paperclip className="size-3 text-muted-foreground" />
+              </span>
+            ) : null}
+          </p>
+        </div>
+        <p
+          className={cn(
+            "shrink-0 text-right text-sm font-semibold whitespace-nowrap tabular-nums",
+            tx.type === "income" ? "text-income" : "text-foreground",
+          )}
+        >
+          {formatSigned(tx.amount, tx.type)}
+        </p>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("list_actions").replace("{name}", title)}
+              onClick={(e) => e.stopPropagation()}
+              className="size-10 sm:size-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0"
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="rounded-xl">
+            <DropdownMenuItem onSelect={() => onEdit(tx)} className="rounded-lg">
+              <Pencil className="size-4" />
+              {t("edit")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onSelect={() => onDelete(tx)} className="rounded-lg">
+              <Trash2 className="size-4" />
+              {t("delete")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </motion.li>
+    );
+  },
+  (prev, next) =>
+    prev.tx === next.tx &&
+    prev.showBorder === next.showBorder &&
+    prev.onEdit === next.onEdit &&
+    prev.onDelete === next.onDelete &&
+    prev.t === next.t,
+);
 
 type Props = {
   items: Transaction[];
@@ -97,88 +213,17 @@ export function TransactionList({
         ) : (
           <ul className="flex flex-col">
             <AnimatePresence mode="popLayout">
-              {items.map((tx, i) => {
-                const cat = categoryById(tx.category);
-                const catLabel = translatedCategoryLabel(tx.category, t);
-                const title = tx.note || catLabel;
-                return (
-                  <motion.li
-                    key={tx.id}
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    transition={{ delay: i * 0.03, type: "spring", stiffness: 500, damping: 30 }}
-                    onClick={() => onEdit(tx)}
-                    className={cn(
-                      "group flex items-center gap-3 py-3 px-3 -mx-3 rounded-xl cursor-pointer transition-colors duration-150 hover:bg-secondary/50 active:bg-secondary/70",
-                      i > 0 && "border-t border-border/50",
-                    )}
-                  >
-                    <div
-                      className="flex items-center justify-center size-10 rounded-xl shrink-0"
-                      style={{ backgroundColor: `${cat.color}20` }}
-                    >
-                      <span
-                        className="size-3 rounded-full"
-                        style={{ backgroundColor: cat.color, boxShadow: `0 0 8px ${cat.color}66` }}
-                        aria-hidden
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{title}</p>
-                      <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                        <span>{formatDay(tx.date)}</span>
-                        <Badge variant="default" className="text-[10px] px-1.5 py-0">
-                          {catLabel}
-                        </Badge>
-                        {tx.recurring && (
-                          <Badge variant="primary" className="text-[10px] px-1.5 py-0 capitalize">
-                            {t(`recurring_${tx.recurring}`)}
-                          </Badge>
-                        )}
-                        {tx.hasReceipt ? (
-                          <span title={t("list_receipt")} aria-label={t("list_receipt")}>
-                            <Paperclip className="size-3 text-muted-foreground" />
-                          </span>
-                        ) : null}
-                      </p>
-                    </div>
-                    <p
-                      className={cn(
-                        "shrink-0 text-right text-sm font-semibold whitespace-nowrap tabular-nums",
-                        tx.type === "income" ? "text-income" : "text-foreground",
-                      )}
-                    >
-                      {formatSigned(tx.amount, tx.type)}
-                    </p>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={t("list_actions").replace("{name}", title)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="size-10 sm:size-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0"
-                        >
-                          <MoreHorizontal className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-xl">
-                        <DropdownMenuItem onSelect={() => onEdit(tx)} className="rounded-lg">
-                          <Pencil className="size-4" />
-                          {t("edit")}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(tx)} className="rounded-lg">
-                          <Trash2 className="size-4" />
-                          {t("delete")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </motion.li>
-                );
-              })}
+              {items.map((tx, i) => (
+                <TransactionRow
+                  key={tx.id}
+                  tx={tx}
+                  index={i}
+                  showBorder={i > 0}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  t={t}
+                />
+              ))}
             </AnimatePresence>
           </ul>
         )}

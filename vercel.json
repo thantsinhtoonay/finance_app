@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron/keep-awake",
+      "schedule": "*/4 * * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

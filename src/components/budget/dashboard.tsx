@@ -128,15 +128,17 @@ export function Dashboard() {
   const currentYear = yearKey();
   const isCurrentMonth = selectedMonth === monthKey();
 
-  function openAdd() {
+  // useCallback: these feed memoized transaction rows — identity must be
+  // stable across renders or the row memo is defeated.
+  const openAdd = useCallback(() => {
     setEditing(null);
     setDialogOpen(true);
-  }
+  }, []);
 
-  function openEdit(tx: Transaction) {
+  const openEdit = useCallback((tx: Transaction) => {
     setEditing(tx);
     setDialogOpen(true);
-  }
+  }, []);
 
   function handleExportCsv() {
     const csv = exportToCsv(transactions, selectedMonth);
@@ -243,7 +245,7 @@ export function Dashboard() {
         setShowShortcuts((s) => !s);
       }
     },
-    [],
+    [openAdd],
   );
 
   useEffect(() => {
@@ -254,7 +256,7 @@ export function Dashboard() {
   return (
     <>
     <div className="mx-auto flex h-dvh w-full max-w-6xl flex-col overflow-hidden">
-      <header className="z-40 shrink-0 border-b border-border/30 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 shadow-sm shadow-black/5">
+      <header className="z-40 shrink-0 border-b border-border/30 bg-background shadow-sm shadow-black/5">
         <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
             <motion.img
@@ -322,7 +324,7 @@ export function Dashboard() {
               key="settings"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              exit={{ opacity: 0, x: -20, transition: { duration: 0.12 } }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="py-6"
             >
@@ -335,7 +337,7 @@ export function Dashboard() {
               key="history"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              exit={{ opacity: 0, x: -20, transition: { duration: 0.12 } }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="py-6"
             >
@@ -348,7 +350,7 @@ export function Dashboard() {
               key="yearly"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              exit={{ opacity: 0, x: -20, transition: { duration: 0.12 } }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="py-6"
             >
@@ -361,7 +363,7 @@ export function Dashboard() {
               key="dashboard"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              exit={{ opacity: 0, y: -10, transition: { duration: 0.12 } }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="flex flex-col gap-5 py-6"
             >

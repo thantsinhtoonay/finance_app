@@ -158,6 +158,7 @@ export function YearlyOverview({ year }: Props) {
                   fill="url(#yearIncomeGrad)"
                   radius={[6, 6, 0, 0]}
                   maxBarSize={36}
+                  isAnimationActive={false}
                 />
                 <Bar
                   dataKey="expenses"
@@ -165,6 +166,7 @@ export function YearlyOverview({ year }: Props) {
                   fill="url(#yearExpenseGrad)"
                   radius={[6, 6, 0, 0]}
                   maxBarSize={36}
+                  isAnimationActive={false}
                 />
               </BarChart>
             </ResponsiveContainer>
