@@ -13,7 +13,13 @@ import { getSql } from "@/lib/db";
  * 2. Invokes the server bundle regularly so the serverless function stays warm
  *    and users rarely hit a cold start.
  *
- * Auth: Vercel sends `Authorization: Bearer $CRON_SECRET` on cron invocations.
+ * Auth: Vercel sends `Authorization: Bearer $CRON_SECRET` on cron invocations,
+ * but ONLY when a `CRON_SECRET` env var exists (Vercel does not provision one
+ * automatically). So the bearer is enforced when the secret is configured and
+ * skipped when it isn't — otherwise every invocation would 401 and the ping
+ * would silently never run. The endpoint is harmless either way (SELECT 1, no
+ * data or mutations); adding CRON_SECRET to the project later hardens it with
+ * no code change.
  */
 export const Route = createFileRoute("/api/cron/keep-awake")({
   server: {
@@ -21,7 +27,7 @@ export const Route = createFileRoute("/api/cron/keep-awake")({
       GET: async ({ request }: { request: Request }) => {
         const secret = process.env.CRON_SECRET?.trim();
         const auth = request.headers.get("authorization") ?? "";
-        if (!secret || auth !== `Bearer ${secret}`) {
+        if (secret && auth !== `Bearer ${secret}`) {
           return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
         try {
