@@ -32,6 +32,7 @@
 - [x] Deploy to hosting — Vercel production, primary domain **`https://shal-su.thantsin.website`** (since 2026-10-26; `www.thantsin.website` removed from Vercel; apex `thantsin.website` + `shal-su.vercel.app` kept as aliases; git auto-deploy from `origin/main`)
 
 ### Recently shipped
+- [x] **Smoothness/performance pass (`39821c0`)** — recurring materialization on `GET /api/transactions` batched (4 queries flat instead of N+1 inserts per due date), `loadFromServer` fetches once per session + single `set()` (was refetching 3 endpoints with 4 re-renders on every Dashboard remount), transaction rows memoized with clamped entrance stagger (was `i*0.03` → 1.8s delay on 60 rows), cached `Intl.NumberFormat`, O(1) category lookup, snappier view-switch exits, yearly bars animation off, opaque header/bottom-nav (no per-frame backdrop-blur over scroll), stable `useTranslation` result, no redundant first-paint render from `I18nInit`, `matchMedia` listener cleanup; DB pools get `connectionTimeoutMillis: 10s` (Neon cold-wake no longer hangs requests indefinitely); **new `/api/cron/keep-awake` every 4 min** (`crons` in vercel.json, `CRON_SECRET`-guarded) keeps Neon awake + function warm. Verified locally: batched materialization inserts/idempotent/expense-gate all correct (92 tests)
 - [x] **i18n completion + responsive/color pass (`a5e0859`, `afec744`)** — Settings, yearly overview, dates/month names, dashboard alerts, dialogs, aria-labels, and guide chrome all switch with EN/MY; budget "exceeded" badge overlap fixed; 44px touch targets; token-based income/expense colors + chart gradients; dead files deleted (suite now 92 tests)
 - [x] **Domain change (`8f74b49`)** — production primary `shal-su.thantsin.website`; subdomain added to Better Auth `CUSTOM_APP_ORIGINS` (fixes "Invalid origin"); `BETTER_AUTH_URL` env updated
 - [x] **Perf pass (`22df5f5`)** — lazy-load chart/history/yearly/settings views, 256px logo, cached images
@@ -94,11 +95,11 @@
 ### Technical
 - [x] ~~Database backend (PostgreSQL)~~ — Neon + `migrate.mjs`
 - [x] ~~Authentication system~~ — Better Auth, multi-user, session-gated API
-- [ ] Unit tests for store logic — validation + recurring + income gate + format covered (84 tests total); `parseAmount`, `summarizeMonth`, budget reducers still untested
+- [ ] Unit tests for store logic — validation + recurring + income gate + format covered (92 tests total); `parseAmount`, `summarizeMonth`, budget reducers still untested
 - [ ] Integration tests
 - [ ] E2E tests with Playwright — 27-check PowerShell suite + Playwright smoke exist (temp scripts); promote to repo-hosted `*.spec.ts`
-- [ ] Performance optimization (routes chunk 747KB > 500KB warning)
-- [ ] Bundle analysis
+- [x] ~~Performance optimization~~ — routes chunk 747KB → 273KB via lazy-loaded views (`22df5f5`); remaining: bundle analysis
+- [x] ~~Bundle analysis~~ — build asset sizes reviewed (2026-11-05): largest chunks export-pdf 423KB (lazy), index 374KB (vendor), chart lib 337KB (lazy), routes 273KB (lazy); assets total 3.2MB incl. unicode-split fonts
 - [ ] SEO improvements
 - [ ] PWA manifest (only `favicon.svg` exists — no icons/manifest)
 - [ ] Offline support (localStorage persists, but no service worker)
