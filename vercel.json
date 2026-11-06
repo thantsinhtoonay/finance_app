@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/keep-awake",
-      "schedule": "*/4 * * * *"
+      "schedule": "0 14 * * *"
     }
   ],
   "headers": [

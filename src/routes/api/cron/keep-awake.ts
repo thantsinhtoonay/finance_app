@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 
 /**
- * Keep-alive ping (Vercel Cron, every 4 min — see `crons` in vercel.json).
+ * Keep-alive ping (Vercel Cron, daily at 14:00 UTC — see `crons` in
+ * vercel.json; Vercel Hobby plans only allow daily cron schedules, so a more
+ * frequent schedule fails the whole deployment).
  *
  * Two jobs in one:
  * 1. Runs `SELECT 1` so Neon's compute never autosuspends — a cold DB wake was
