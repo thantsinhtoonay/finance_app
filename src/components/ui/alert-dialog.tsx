@@ -33,10 +33,14 @@ function AlertDialogContent({
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl glass-card p-6 text-card-foreground",
+          // Small screens: bottom sheet (inset-x-0 + bottom-0, no translate —
+          // the old `max-sm:inset-x-4` kept -translate-x-1/2 and pushed the
+          // box half off-screen to the left). sm+: centered modal.
+          "fixed z-50 grid w-full max-w-md gap-4 rounded-2xl glass-card p-6 text-card-foreground",
           "data-[state=open]:animate-glass-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-          "max-sm:inset-x-4 max-sm:w-auto",
+          "max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:max-h-[85dvh] max-sm:overflow-y-auto max-sm:rounded-b-none max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]",
+          "sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2",
           className,
         )}
         {...props}

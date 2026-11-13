@@ -111,13 +111,25 @@ const TransactionRow = memo(
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="rounded-xl">
+          {/* stopPropagation: menu content renders in a React portal, so clicks
+              inside it would otherwise bubble (in the React tree) to the row's
+              onClick and open the edit dialog on top of the delete confirm. */}
+          <DropdownMenuContent
+            align="end"
+            className="rounded-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <DropdownMenuItem onSelect={() => onEdit(tx)} className="rounded-lg">
               <Pencil className="size-4" />
               {t("edit")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onSelect={() => onDelete(tx)} className="rounded-lg">
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() => onDelete(tx)}
+              onClick={(e) => e.stopPropagation()}
+              className="rounded-lg"
+            >
               <Trash2 className="size-4" />
               {t("delete")}
             </DropdownMenuItem>
